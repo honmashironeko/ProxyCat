@@ -92,3 +92,4 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 顺便打个广告：[各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 
+[![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
