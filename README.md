@@ -1,18 +1,6 @@
 ![ProxyCat](https://socialify.git.ci/honmashironeko/ProxyCat/image?description=1&descriptionEditable=%E4%B8%80%E6%AC%BE%E8%BD%BB%E9%87%8F%E7%BA%A7%E7%9A%84%E4%BC%98%E7%A7%80%E4%BB%A3%E7%90%86%E6%B1%A0%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%8C%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%90%86%E7%9A%84%E8%87%AA%E5%8A%A8%E8%BD%AE%E6%8D%A2&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F139044047%3Fv%3D4&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Dark)
 
-## 一、项目目录
-
-一、项目目录			六、免责申明
-
-二、工具概述			七、开发计划
-
-三、安装依赖			八、更新日志
-
-四、工具使用			九、赞助开源
-
-五、工具演示			十、打个广告
-
-## 二、工具概述
+## 一、工具概述
 
 渗透过程中总是遇到需要隐藏IP地址或者更换IP地址绕过安全设备的情况，但是市面上的隧道代理价格极其昂贵，普遍在20-40元/天，这高昂的费用令人难以接受。但是笔者注意到短效IP其实性价比很高，一个IP只需要几分钱，平均只需要0.5-3元/天。
 
@@ -22,7 +10,7 @@
 
 辛苦各位给本项目，以及作者其他开源项目都点点star，您的star对作者非常重要！也希望您帮忙多多分享本工具。
 
-## 三、安装依赖库
+## 二、安装依赖库
 
 `pip install -r requirements.txt`
 
@@ -30,7 +18,7 @@
 
 `pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/`
 
-## 四、工具使用
+## 三、工具使用
 
 按照该格式`socks5://127.0.0.1:7890` or` http://127.0.0.1:7890` 一行一个填入ip.txt文件中。
 
@@ -76,7 +64,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 <img src="./assets/f656037af6bd8d6c505aa943f0e972c.png" alt="f656037af6bd8d6c505aa943f0e972c" style="zoom: 50%;" />
 
-## 五、工具演示
+## 四、工具演示
 
 固定代理地址（默认）：http://neko:123456@127.0.0.1:1080
 
@@ -86,7 +74,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 
 
-## 六、免责申明
+## 五、免责申明
 
 1. 如果您下载、安装、使用、修改本工具及相关代码，即表明您信任本工具
 2. 在使用本工具时造成对您自己或他人任何形式的损失和伤害，我们不承担任何责任
@@ -95,7 +83,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 5. 除非您已阅读并接受本协议所有条款，否则您无权下载、安装或使用本工具
 6. 您的下载、安装、使用等行为即视为您已阅读并同意上述协议的约束
 
-## 七、开发计划
+## 六、开发计划
 
 - [x] 增加代理服务器身份鉴别功能，保证在公网使用过程中不被恶意盗用
 
@@ -107,7 +95,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
   微信公众号：樱花庄的本间白猫
 
-## 八、更新日志
+## 七、更新日志
 
 **2024/08/23**
 
@@ -120,7 +108,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 1. 工具首次发布
 
-## 九、赞助开源
+## 八、赞助开源
 
 开源是免费的，全靠爱的力量！但是还是希望您在觉得工具不错的情况下，赞助一下作者的开发哦~
 
@@ -128,7 +116,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 [![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
 
-## 十、打个广告
+## 九、打个广告
 
 - [代理池购买点击这里跳转](https://www.juliangip.com/user/reg?inviteCode=1033745) 
 - [代理池购买点击这里跳转](https://www.kuaidaili.com/?ref=pglfmm887dmw)
