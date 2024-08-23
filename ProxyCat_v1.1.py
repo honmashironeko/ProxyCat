@@ -1,18 +1,21 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
-import threading
 import logoprint
+import threading
 import requests
 import argparse
 import logging
 import socket
 import select
+import base64
+import getip
 import socks
 import time
 
 logging.basicConfig(level=logging.INFO)
 proxy_index, rotate_mode, rotate_interval = 0, 'cycle', 60
+proxy_fail_count = {}
 
 def load_proxies(file_path='ip.txt'):
     with open(file_path, 'r') as file:
@@ -23,13 +26,24 @@ def rotate_proxies(proxies, interval):
     global proxy_index
     while True:
         time.sleep(interval)
-        if rotate_mode == 'cycle':
+        if args.k:
+            proxies.clear()
+            proxies.extend(get_proxy_from_getip())
             proxy_index = (proxy_index + 1) % len(proxies)
-        elif rotate_mode == 'once' and proxy_index < len(proxies) - 1:
-            proxy_index += 1
+        else:
+            if rotate_mode == 'cycle':
+                proxy_index = (proxy_index + 1) % len(proxies)
+            elif rotate_mode == 'once' and proxy_index < len(proxies) - 1:
+                proxy_index += 1
         logging.info(f"切换到代理地址: {proxies[proxy_index]}")
 
-proxies = load_proxies()
+def get_proxy_from_getip():
+    proxy = getip.newip()
+    protocol, host_port = proxy.split('://')
+    host, port = host_port.split(':')
+    return [(protocol, host, port)]
+
+proxies = []
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -40,13 +54,49 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         super().__init__(*args, **kwargs)
 
     def _update_proxy(self):
-        global proxy_index
+        global proxy_index, proxy_fail_count
+        if rotate_interval == 0:
+            if args.k:
+                proxies.clear()
+                proxies.extend(get_proxy_from_getip())
+            proxy_index = (proxy_index + 1) % len(proxies)
+            logging.info(f"切换到代理地址: {proxies[proxy_index]}")
         protocol, host, port = proxies[proxy_index]
         self.proxy_dict = {"http": f"{protocol}://{host}:{port}", "https": f"{protocol}://{host}:{port}"}
 
-    def do_GET(self): self._proxy_request()
-    def do_POST(self): self._proxy_request()
-    def do_CONNECT(self): self._tunnel_request()
+    def _authenticate(self):
+        auth = self.headers.get('Proxy-Authorization')
+        if not auth:
+            self.send_response(407)
+            self.send_header('Proxy-Authenticate', 'Basic realm="Proxy"')
+            self.end_headers()
+            return False
+        auth = auth.split()
+        if len(auth) != 2:
+            self.send_error(400, message="Invalid authentication format")
+            return False
+        if auth[0].lower() != 'basic':
+            self.send_error(400, message="Unsupported authentication method")
+            return False
+        auth = auth[1].encode('utf-8')
+        auth = base64.b64decode(auth).decode('utf-8')
+        username, password = auth.split(':', 1)
+        if username != self.server.username or password != self.server.password:
+            self.send_error(403, message="Invalid credentials")
+            return False
+        return True
+
+    def do_GET(self):
+        if self._authenticate():
+            self._proxy_request()
+
+    def do_POST(self):
+        if self._authenticate():
+            self._proxy_request()
+
+    def do_CONNECT(self):
+        if self._authenticate():
+            self._tunnel_request()
 
     def _proxy_request(self):
         self._update_proxy()
@@ -55,13 +105,39 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         headers['Connection'] = 'keep-alive'
 
         try:
+            logging.info(f"处理请求: {self.command} {self.path}")
             response = self.session.request(self.command, self.path, headers=headers, data=data, 
-                proxies=self.proxy_dict, stream=True, timeout=(5, 27))
+                                            proxies=self.proxy_dict, stream=True)
             self.send_response(response.status_code)
             self.send_headers(response)
             self.forward_content(response)
-        except Exception as e:
+        except (requests.RequestException, socket.timeout) as e:
+            logging.error(f"请求失败: {e}")
+            self._handle_proxy_failure()
             self.send_error(500, message=str(e))
+
+    def _handle_proxy_failure(self):
+        global proxy_index, proxy_fail_count
+        current_proxy = proxies[proxy_index]
+        if current_proxy in proxy_fail_count:
+            proxy_fail_count[current_proxy] += 1
+        else:
+            proxy_fail_count[current_proxy] = 1
+
+        if proxy_fail_count[current_proxy] >= 3:
+            logging.info(f"代理地址 {current_proxy} 失败次数达到3次，切换到下一个代理")
+            proxy_fail_count[current_proxy] = 0
+            if args.k:
+                proxies.clear()
+                proxies.extend(get_proxy_from_getip())
+                proxy_index = (proxy_index + 1) % len(proxies)
+                logging.info(f"切换到代理地址: {proxies[proxy_index]}")
+            else:
+                if rotate_mode == 'cycle':
+                    proxy_index = (proxy_index + 1) % len(proxies)
+                elif rotate_mode == 'once' and proxy_index < len(proxies) - 1:
+                    proxy_index += 1
+                logging.info(f"切换到代理地址: {proxies[proxy_index]}")
 
     def send_headers(self, response):
         for key, value in response.headers.items():
@@ -85,7 +161,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Connection', 'keep-alive')
             self.end_headers()
             self._forward_data(self.connection, remote_socket)
-        except Exception as e:
+        except (socket.error, Exception) as e:
+            logging.error(f"隧道请求失败: {e}")
+            self._handle_proxy_failure()
             self.send_error(502, message=str(e))
 
     def _connect_via_proxy(self, host, port):
@@ -117,28 +195,46 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         return remote_socket
 
     def _forward_data(self, client_socket, remote_socket):
-        sockets = [client_socket, remote_socket]
-        while True:
-            read_sockets, _, error_sockets = select.select(sockets, [], sockets, 10)
-            if error_sockets:
-                break
-            for sock in read_sockets:
-                other_sock = client_socket if sock is remote_socket else remote_socket
-                data = sock.recv(4096)
-                if not data:
-                    return
-                other_sock.sendall(data)
+        try:
+            sockets = [client_socket, remote_socket]
+            while True:
+                read_sockets, _, error_sockets = select.select(sockets, [], sockets, 10)
+                if error_sockets:
+                    logging.warning("Socket错误，终止连接")
+                    break
+                for sock in read_sockets:
+                    other_sock = client_socket if sock is remote_socket else remote_socket
+                    data = sock.recv(4096)
+                    if not data:
+                        return
+                    other_sock.sendall(data)
+        finally:
+            client_socket.close()
+            remote_socket.close()
 
-def run(server_class=HTTPServer, handler_class=ProxyHTTPRequestHandler, port=1080, mode='cycle', interval=60):
-    global rotate_mode, rotate_interval
+def run(server_class=HTTPServer, handler_class=ProxyHTTPRequestHandler, port=1080, mode='cycle', interval=60, username='neko', password='123456', use_getip=False):
+    global rotate_mode, rotate_interval, proxies, args
     rotate_mode, rotate_interval = mode, interval
+    
+    if use_getip:
+        proxies = get_proxy_from_getip()
+    else:
+        proxies = load_proxies()
+    if proxies:
+        logging.info(f"初始代理地址: {proxies[proxy_index]}")
+    else:
+        logging.error("没有加载到任何代理地址")
+        return
     
     server_address, max_workers = ('', port), multiprocessing.cpu_count() * 5
     executor = ThreadPoolExecutor(max_workers=max_workers)
     server = server_class(server_address, handler_class)
-    thread = threading.Thread(target=rotate_proxies, args=(proxies, interval))
-    thread.daemon = True
-    thread.start()
+    server.username = username
+    server.password = password
+    if interval > 0:
+        thread = threading.Thread(target=rotate_proxies, args=(proxies, interval))
+        thread.daemon = True
+        thread.start()
     serve_requests(server, executor)
 
 def serve_requests(server, executor):
@@ -152,8 +248,7 @@ def serve_requests(server, executor):
         executor.shutdown(wait=True)
         server.server_close()
 
-def print_icpscan_banner(port, mode, interval):
-    logoprint.logos()
+def print_icpscan_banner(port, mode, interval, username, password):
     mode = '循环' if mode == 'cycle' else '单轮'
     print("--------------------------------------------------------")
     print("公众号:樱花庄的本间白猫")
@@ -162,12 +257,16 @@ def print_icpscan_banner(port, mode, interval):
     print("Gitcode:https://gitcode.com/honmashironeko/ProxyCat")
     print("--------------------------------------------------------")
     print(f"监听端口: {port}, 代理轮换模式: {mode}, 代理更换时间: {interval}秒")
-    print(f"初始代理地址: {proxies[proxy_index]}")
+    print(f"默认账号密码: {username}:{password}")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=logoprint.logos())
     parser.add_argument('-p', type=int, default=1080, help='监听端口')
     parser.add_argument('-m', default='cycle', help='代理轮换模式:cycle 表示循环使用,once 表示用完即止')
-    parser.add_argument('-t', type=int, default=60, help='代理更换时间(秒)')
+    parser.add_argument('-t', type=int, default=60, help='代理更换时间(秒),设置为0秒时变成每次请求更换IP')
+    parser.add_argument('-up', default='neko:123456', help='指定账号密码,格式为username:password')
+    parser.add_argument('-k', action='store_true', help='使用 getip 模块获取代理地址')
     args = parser.parse_args()
-    print_icpscan_banner(port=args.p, mode=args.m, interval=args.t)
-    run(port=args.p, mode=args.m, interval=args.t)
+    username, password = args.up.split(':')
+    print_icpscan_banner(port=args.p, mode=args.m, interval=args.t, username=username, password=password)
+    run(port=args.p, mode=args.m, interval=args.t, username=username, password=password, use_getip=args.k)
