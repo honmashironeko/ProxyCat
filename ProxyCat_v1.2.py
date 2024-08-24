@@ -1,14 +1,16 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor
+from httpx import AsyncClient
 import multiprocessing
 import logoprint
 import threading
-import requests
 import argparse
+import asyncio
 import logging
 import socket
 import select
 import base64
+import httpx
 import getip
 import socks
 import time
@@ -20,7 +22,7 @@ proxy_fail_count = {}
 def load_proxies(file_path='ip.txt'):
     with open(file_path, 'r') as file:
         proxies = [line.strip().split('://') for line in file]
-        return [(p[0], *p[1].split(':')) for p in proxies]
+        return [(p[0], *p[1].split(':')) for p in proxies if len(p) == 2]
 
 def rotate_proxies(proxies, interval):
     global proxy_index
@@ -47,10 +49,7 @@ proxies = []
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        self.session = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(pool_connections=1000, pool_maxsize=1000)
-        self.session.mount('http://', adapter)
-        self.session.mount('https://', adapter)
+        self.client = AsyncClient(http2=True, timeout=httpx.Timeout(10.0, read=30.0))
         super().__init__(*args, **kwargs)
 
     def _update_proxy(self):
@@ -62,7 +61,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             proxy_index = (proxy_index + 1) % len(proxies)
             logging.info(f"切换到代理地址: {proxies[proxy_index]}")
         protocol, host, port = proxies[proxy_index]
-        self.proxy_dict = {"http": f"{protocol}://{host}:{port}", "https": f"{protocol}://{host}:{port}"}
+        self.proxy_dict = {"http://": f"{protocol}://{host}:{port}", "https://": f"{protocol}://{host}:{port}"}
 
     def _authenticate(self):
         auth = self.headers.get('Proxy-Authorization')
@@ -104,17 +103,23 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         headers = {key: val for key, val in self.headers.items()}
         headers['Connection'] = 'keep-alive'
 
-        try:
-            logging.info(f"处理请求: {self.command} {self.path}")
-            response = self.session.request(self.command, self.path, headers=headers, data=data, 
-                                            proxies=self.proxy_dict, stream=True)
-            self.send_response(response.status_code)
-            self.send_headers(response)
-            self.forward_content(response)
-        except (requests.RequestException, socket.timeout) as e:
-            logging.error(f"请求失败: {e}")
-            self._handle_proxy_failure()
-            self.send_error(500, message=str(e))
+        async def handle():
+            for attempt in range(3):
+                try:
+                    logging.info(f"处理请求: {self.command} {self.path}")
+                    response = await self.client.request(self.command, self.path, headers=headers, data=data, 
+                                                         proxies=self.proxy_dict, stream=True)
+                    self.send_response(response.status_code)
+                    self.send_headers(response)
+                    await self.forward_content(response)
+                    break
+                except (httpx.RequestError, socket.timeout, OSError) as e:
+                    logging.error(f"请求失败: {e}")
+                    self._handle_proxy_failure()
+                    if attempt == 2:
+                        self.send_error(500, message=str(e))
+
+        asyncio.run(handle())
 
     def _handle_proxy_failure(self):
         global proxy_index, proxy_fail_count
@@ -125,19 +130,25 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             proxy_fail_count[current_proxy] = 1
 
         if proxy_fail_count[current_proxy] >= 3:
-            logging.info(f"代理地址 {current_proxy} 失败次数达到3次，切换到下一个代理")
-            proxy_fail_count[current_proxy] = 0
+            logging.info(f"代理地址 {current_proxy} 失败次数达到3次，尝试切换到下一个代理")
+            original_proxy_index = proxy_index
             if args.k:
-                proxies.clear()
-                proxies.extend(get_proxy_from_getip())
-                proxy_index = (proxy_index + 1) % len(proxies)
-                logging.info(f"切换到代理地址: {proxies[proxy_index]}")
+                new_proxies = get_proxy_from_getip()
+                if new_proxies:
+                    proxies.clear()
+                    proxies.extend(new_proxies)
+                    proxy_index = (proxy_index + 1) % len(proxies)
+                    logging.info(f"切换到新代理地址: {proxies[proxy_index]}")
+                else:
+                    logging.warning("无法获取新代理，继续使用原代理")
+                    proxy_index = original_proxy_index 
             else:
                 if rotate_mode == 'cycle':
                     proxy_index = (proxy_index + 1) % len(proxies)
                 elif rotate_mode == 'once' and proxy_index < len(proxies) - 1:
                     proxy_index += 1
                 logging.info(f"切换到代理地址: {proxies[proxy_index]}")
+            proxy_fail_count[current_proxy] = 0 
 
     def send_headers(self, response):
         for key, value in response.headers.items():
@@ -146,8 +157,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Connection', 'keep-alive')
         self.end_headers()
 
-    def forward_content(self, response):
-        for chunk in response.iter_content(chunk_size=4096):
+    async def forward_content(self, response):
+        async for chunk in response.aiter_bytes(chunk_size=4096):
             if chunk:
                 self.wfile.write(chunk)
                 self.wfile.flush()
