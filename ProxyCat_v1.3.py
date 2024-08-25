@@ -1,23 +1,25 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor
-from httpx import AsyncClient
+from httpx import AsyncClient, Limits
 import multiprocessing
-import logoprint
 import threading
+import logoprint
 import argparse
 import asyncio
 import logging
 import socket
 import select
 import base64
-import httpx
 import getip
 import socks
+import httpx
 import time
+import random
 
 logging.basicConfig(level=logging.INFO)
 proxy_index, rotate_mode, rotate_interval = 0, 'cycle', 60
 proxy_fail_count = {}
+cache = {}
 
 def load_proxies(file_path='ip.txt'):
     with open(file_path, 'r') as file:
@@ -49,7 +51,8 @@ proxies = []
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        self.client = AsyncClient(http2=True, timeout=httpx.Timeout(10.0, read=30.0))
+        self.client = AsyncClient(http2=True, timeout=httpx.Timeout(30.0, read=30.0), limits=Limits(max_connections=500))
+        self.tunnel_established = False
         super().__init__(*args, **kwargs)
 
     def _update_proxy(self):
@@ -58,7 +61,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             if args.k:
                 proxies.clear()
                 proxies.extend(get_proxy_from_getip())
-            proxy_index = (proxy_index + 1) % len(proxies)
+            proxy_index = random.randint(0, len(proxies) - 1)
             logging.info(f"切换到代理地址: {proxies[proxy_index]}")
         protocol, host, port = proxies[proxy_index]
         self.proxy_dict = {"http://": f"{protocol}://{host}:{port}", "https://": f"{protocol}://{host}:{port}"}
@@ -137,14 +140,14 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 if new_proxies:
                     proxies.clear()
                     proxies.extend(new_proxies)
-                    proxy_index = (proxy_index + 1) % len(proxies)
+                    proxy_index = random.randint(0, len(proxies) - 1)
                     logging.info(f"切换到新代理地址: {proxies[proxy_index]}")
                 else:
                     logging.warning("无法获取新代理，继续使用原代理")
                     proxy_index = original_proxy_index 
             else:
                 if rotate_mode == 'cycle':
-                    proxy_index = (proxy_index + 1) % len(proxies)
+                    proxy_index = random.randint(0, len(proxies) - 1)
                 elif rotate_mode == 'once' and proxy_index < len(proxies) - 1:
                     proxy_index += 1
                 logging.info(f"切换到代理地址: {proxies[proxy_index]}")
@@ -167,11 +170,17 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         self._update_proxy()
         host, port = self.path.split(':')
         try:
-            remote_socket = self._connect_via_proxy(host, int(port))
-            self.send_response(200, 'Connection Established')
-            self.send_header('Connection', 'keep-alive')
-            self.end_headers()
-            self._forward_data(self.connection, remote_socket)
+            if not self.tunnel_established: 
+                remote_socket = self._connect_via_proxy(host, int(port))
+                self.tunnel_established = True
+                self.send_response(200, 'Connection Established')
+                self.send_header('Connection', 'keep-alive')
+                self.end_headers()
+                self._forward_data(self.connection, remote_socket)
+            else:
+                self.send_response(200, 'Connection Already Established')
+                self.send_header('Connection', 'keep-alive')
+                self.end_headers()
         except (socket.error, Exception) as e:
             logging.error(f"隧道请求失败: {e}")
             self._handle_proxy_failure()
