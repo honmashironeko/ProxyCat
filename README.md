@@ -83,7 +83,15 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 5. 除非您已阅读并接受本协议所有条款，否则您无权下载、安装或使用本工具
 6. 您的下载、安装、使用等行为即视为您已阅读并同意上述协议的约束
 
-## 六、开发计划
+## 六、感谢名单
+
+本排名不分先后，仅用于感谢为本项目提供帮助的师傅们
+
+AabyssZG
+
+ProbiusOfficial
+
+## 七、开发计划
 
 - [x] 增加代理服务器身份鉴别功能，保证在公网使用过程中不被恶意盗用
 
@@ -99,7 +107,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
   微信公众号：樱花庄的本间白猫
 
-## 七、更新日志
+## 八、更新日志
 
 **2024/08/25**
 
@@ -125,7 +133,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 1. 工具首次发布
 
-## 八、赞助开源
+## 九、赞助开源
 
 开源是免费的，全靠爱的力量！但是还是希望您在觉得工具不错的情况下，赞助一下作者的开发哦~
 
@@ -133,7 +141,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
 
 [![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
 
-## 九、代理购买推荐
+## 十、代理购买推荐
 
 - [第一家代理池购买点击这里跳转](https://www.juliangip.com/user/reg?inviteCode=1033745) 
 - [第二家代理池购买点击这里跳转](https://www.kuaidaili.com/?ref=pglfmm887dmw)
