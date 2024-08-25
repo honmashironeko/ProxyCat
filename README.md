@@ -145,8 +145,6 @@ http://127.0.0.1:7890
 
 [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
-
 ## 赞助开源
 
 开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
@@ -159,5 +157,5 @@ http://127.0.0.1:7890
 - [第二家代理池购买点击这里跳转](https://www.kuaidaili.com/?ref=pglfmm887dmw)
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 
-
+[![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
 
