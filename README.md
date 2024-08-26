@@ -143,7 +143,6 @@ ProbiusOfficial
 
 ## 十、代理购买推荐
 
-- [第一家代理池购买点击这里跳转](https://www.juliangip.com/user/reg?inviteCode=1033745) 
 - [第二家代理池购买点击这里跳转](https://www.kuaidaili.com/?ref=pglfmm887dmw)
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 
