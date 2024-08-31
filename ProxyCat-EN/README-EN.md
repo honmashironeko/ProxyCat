@@ -1,6 +1,10 @@
 ![ProxyCat](https://socialify.git.ci/honmashironeko/ProxyCat/image?description=1&descriptionEditable=%E4%B8%80%E6%AC%BE%E8%BD%BB%E9%87%8F%E7%BA%A7%E7%9A%84%E4%BC%98%E7%A7%80%E4%BB%A3%E7%90%86%E6%B1%A0%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%8C%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%90%86%E7%9A%84%E8%87%AA%E5%8A%A8%E8%BD%AE%E6%8D%A2&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F139044047%3Fv%3D4&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Dark)
 
-​											[English](./ProxyCat-EN/README-EN.md) | [中文](./README.md)
+  <p align="center">
+    <a href="/ProxyCat-EN/README-EN.md">English</a>
+    ·
+    <a href="/README.md">简体中文</a>
+  </p>
 
 ## 项目概述
 
@@ -8,7 +12,7 @@
 
 综上所述，本工具应运而生！目的是在于将持续时间仅有1分钟-60分钟不等的短效IP转变成一个固定IP供其他工具使用，形成代理池服务器，部署一次即可永久使用。
 
-![项目原理图](./assets/202408260021207.png)
+![项目原理图](./assets/202408260021207-1725093725174-21.png)
 
 ## 支持的功能
 
@@ -99,7 +103,7 @@ proxy_file = ip.txt
 
 如果您是部署在公网，将127.0.0.1替换成您的公网IP即可。
 
-![界面展示图](./assets/Clip_2024-08-29_10-15-56.png)
+![界面展示图](./assets/Clip_2024-08-29_10-15-56-1725093725174-22.png)
 
 ### 使用接口自动获取代理地址
 
@@ -111,13 +115,13 @@ proxy_file = ip.txt
 
 > 此处的运营商可在下方广告区域获取
 
-![1724897980633](./assets/1724897980633.png)
+![1724897980633](./assets/1724897980633-1725093725174-24.png)
 
 ## 性能表现
 
 当前经过实际测试，在代理地址服务器性能足够的情况下，能够做到500并发不丢包，基本可以覆盖大部分扫描和渗透测试。
 
-![8e3f79309626ed0e653ba51b6482bff](./assets/8e3f79309626ed0e653ba51b6482bff.png)
+![8e3f79309626ed0e653ba51b6482bff](./assets/8e3f79309626ed0e653ba51b6482bff-1725093725174-23.png)
 
 ## 免责申明
 
@@ -194,18 +198,15 @@ proxy_file = ip.txt
 
 [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
+[![Star History Chart](./assets/ProxyCat&type=Date.svg+xml)](https://star-history.com/#honmashironeko/ProxyCat&Date)
 
 ## 赞助开源
 
 开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
 
-![ced79e6745867bd51b1eddfb17cb5702](./assets/202408260020820.png)
+![ced79e6745867bd51b1eddfb17cb5702](./assets/202408260020820-1725093725174-25.png)
 
 ## 代理推荐
 
 - [第一家便宜大碗代理购买，用邀请码注册得5000免费IP+10元优惠券](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
-
-
-
