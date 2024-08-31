@@ -111,7 +111,8 @@ In this case, you need to modify the contents of **getip.py** to use your own AP
 
 > The operator can be obtained from the advertisement area below.
 
-![Clip_2024-08-31_16-50-59](./assets/Clip_2024-08-31_16-50-59.png)
+![Clip_2024-08-31_20-44-23](https://github.com/user-attachments/assets/42c1f3ef-0e75-4b07-a901-1c8b76f7f9c3)
+
 
 ## Performance
 
