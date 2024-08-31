@@ -198,7 +198,6 @@ proxy_file = ip.txt
 
 ## 赞助开源
 
-<<<<<<< HEAD
 开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
 
 ![ced79e6745867bd51b1eddfb17cb5702](./assets/202408260020820.png)
@@ -206,9 +205,6 @@ proxy_file = ip.txt
 ## 代理推荐
 
 - [第一家便宜大碗代理购买，用邀请码注册得5000免费IP+10元优惠券](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
-=======
-- 这几家先停止，存在一定问题，等修复协调好
->>>>>>> 54448867afb461da8b865a8b9328dce98853b467
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 
 
