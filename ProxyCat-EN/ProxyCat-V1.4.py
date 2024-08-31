@@ -280,7 +280,7 @@ def print_banner(config):
         ('Github', 'https://github.com/honmashironeko/ProxyCat'),
         ('Local listening port', config.get('port')),
         ('Proxy rotation mode', 'cycle' if config.get('mode') == 'cycle' else 'once'),
-        ('Agent change time', f"{config.get('interval')}秒"),
+        ('Agent change time', f"{config.get('interval')}Second"),
         ('Default account password', auth_info),
     ]
     print(f"{Fore.MAGENTA}{'=' * 55}")
@@ -291,7 +291,7 @@ def print_banner(config):
 def update_status(server):
     while True:
         time_left = server.time_until_next_switch()
-        status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Next switch: {Fore.GREEN}{time_left:.1f}秒"
+        status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Next switch: {Fore.GREEN}{time_left:.1f}Second"
         print(status, end='', flush=True)
         time.sleep(1)
 

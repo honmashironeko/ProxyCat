@@ -6,36 +6,34 @@
     <a href="/README.md">简体中文</a>
   </p>
 
-## 项目概述
+## Project Overview
 
-渗透过程中总是遇到需要隐藏IP地址或者更换IP地址绕过安全设备的情况，但是市面上的隧道代理价格极其昂贵，普遍在20-40元/天，这高昂的费用令人难以接受。但是笔者注意到短效IP其实性价比很高，一个IP只需要几分钱，平均只需要0.2-3元/天。
+During penetration testing, one often encounters situations where hiding or changing the IP address is necessary to bypass security devices. However, commercial tunnel proxies are generally very expensive, ranging from 20 to 40 yuan per day, which can be quite prohibitive. The author has observed that short-lived IPs are much more cost-effective, averaging only 0.2 to 3 yuan per day.
 
-综上所述，本工具应运而生！目的是在于将持续时间仅有1分钟-60分钟不等的短效IP转变成一个固定IP供其他工具使用，形成代理池服务器，部署一次即可永久使用。
+Thus, this tool was developed to transform short-lived IPs (lasting from 1 to 60 minutes) into a stable IP, enabling other tools to utilize them effectively and forming a proxy pool server that can be deployed once for permanent use.
 
 ![项目原理图](./assets/202408260021207-1725093725174-21.png)
 
-## 支持的功能
+## Supported Features
 
 ```
-本地监听服务类：自定义监听端口、自定义监听端口身份鉴别
-代理地址类：4种协议支持、代理地址定时更换、代理地址每次请求后更换、API接口自动获取代理地址、支持有身份鉴别的代理地址
-服务运行时：支持仅在收到请求后才更换代理地址、支持超高并发、支持HTTP、HTTPS请求协议、支持每次启动检查版本更新
-系统兼容性：Windows、Linux、Mac原则上全支持、支持VPS远程部署、本地部署
+Local Listening Service: Customizable listening ports, custom authentication for listening ports.
+Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies.
+Service Runtime: Changes proxy addresses only upon receiving requests, supports ultra-high concurrency, supports HTTP and HTTPS protocols, checks for version updates at startup.
+System Compatibility: Compatible with Windows, Linux, and MacOS; supports VPS remote deployment and local installation.
 ```
 
-## 项目使用
+## Project Usage
 
-### 安装依赖
+### Install Dependencies
 
-工具基于 Python 实现（建议使用python3.8以上版本），在使用前请使用以下命令配置依赖：
+This tool is implemented in Python (recommended version 3.8 or higher). Please configure the dependencies using the following commands:
 
 ```bash
 pip install -r requirements.txt
-# or 推荐使用国内源：
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 ```
 
-使用 `python` 命令在项目目录运行 `python3 ProxyCat.py -h` 回显如下即配置成功：
+Run the command `python3 ProxyCat.py -h` in the project directory, and if the following output appears, the configuration is successful:
 
 ```
 # python3 ProxyCat.py -h
@@ -44,16 +42,16 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
      |,4-  ) )-,_. ,\ (  `'-'
     '---''(_/--'  `-'\_)  ProxyCat
 
-用法: ProxyCat.py [-h] [-c]
+Usage: ProxyCat.py [-h] [-c]
 
-参数:
-  -h, --help  显示此帮助信息并退出
-  -c C        指定配置文件名(默认config.ini)
+Arguments:
+  -h, --help  Display this help message and exit
+  -c C        Specify configuration file name (default: config.ini)
 ```
 
-### ip.txt 手动录入代理地址
+### Manually Enter Proxy Addresses in ip.txt
 
-按照该格式`socks5://127.0.0.1:7890` or` http://127.0.0.1:7890` 一行一个填入ip.txt文件中：
+Enter proxy addresses in the following format, one per line, into the `ip.txt` file:
 
 ```ip.txt
 socks5://127.0.0.1:7890
@@ -63,150 +61,135 @@ http://127.0.0.1:7890
 ...
 ```
 
->  如果您缺少合适的国内代理地址，恰巧又有几块钱的话可以联系作者（微信公众号：樱花庄的本间白猫），获取多家低价代理购买地址，为作者带来几毛钱的推荐收益~
-
-在config.ini(或自定义配置文件)中配置参数:
+Configure parameters in `config.ini` (or a custom configuration file):
 
 ```
 [SETTINGS]
-# 本地服务器监听端口(默认为:1080)
+# Local server listening port (default: 1080)
 port = 1080
 
-# 代理地址轮换模式：cycle 表示循环使用，once 表示用完即止(默认为:cycle)
+# Proxy address rotation mode: cycle means cyclic use, once means once used up (default is: cycle)
 mode = cycle
 
-# 代理地址更换时间（秒），设置为 0 时每次请求都更换 IP(默认为:300)
+# Proxy address change time (seconds), when set to 0, the IP will be changed for each request (default: 300)
 interval = 300
 
-# 本地服务器端口认证用户名((默认为:neko)当为空时不需要认证
+# Local server port authentication username (default: neko) No authentication is required when it is empty
 username = neko
 
-# 本地服务器端口认证密码(默认为:123456)当为空时不需要认证
+# Local server port authentication password (default: 123456) No authentication is required when it is empty
 password = 123456
 
-# 是否使用 getip 模块获取代理地址 True or False(默认为:False)
+# Whether to use the getip module to obtain the proxy address True or False (default: False)
 use_getip = False
 
-# 代理地址列表文件(默认为:ip.txt)
+# Proxy address list file (default: ip.txt)
 proxy_file = ip.txt
 ```
 
-配置对应参数后即可使用：
+Once the corresponding parameters are configured, you may use the following command:
 
 ```bash
 # python3 ProxyCat.py
 ```
 
-**演示效果如下**
+**Demonstration Result**
 
-固定代理地址（默认）：http://neko:123456@127.0.0.1:1080 or http://127.0.0.1:1080
+Fixed proxy address (default): http://neko:123456@127.0.0.1:1080 or http://127.0.0.1:1080
 
-如果您是部署在公网，将127.0.0.1替换成您的公网IP即可。
+If deployed publicly, replace `127.0.0.1` with your public IP address.
 
-![界面展示图](./assets/Clip_2024-08-29_10-15-56-1725093725174-22.png)
+![Clip_2024-08-31_16-49-22](./assets/Clip_2024-08-31_16-49-22.png)
 
-### 使用接口自动获取代理地址
+### Use API to Automatically Retrieve Proxy Addresses
 
-工具支持直接调用代理地址获取的API接口，当您配置`use_getip = True`时，工具将不再从本地ip.txt中读取代理地址，而是更换为通过执行 **getip.py** 脚本来获取新的代理地址。
+The tool supports directly calling the API for proxy address retrieval. When you set `use_getip = True`, the tool will no longer read from the local `ip.txt` and will instead execute **getip.py** to fetch new proxy addresses.
 
-此时，您需要将 **getip.py** 内容修改为您自己的接口，格式为 `IP:PORT`，默认为 `socks5` 协议，如果您要使用 `http` ，请手动更改。
+In this case, you need to modify the contents of **getip.py** to use your own API, formatted as `IP:PORT`. The default is `socks5` protocol; change it manually if using `http`.
 
-**演示效果如下**
+**Demonstration Result**
 
-> 此处的运营商可在下方广告区域获取
+> The operator can be obtained from the advertisement area below.
 
-![1724897980633](./assets/1724897980633-1725093725174-24.png)
+![Clip_2024-08-31_16-50-59](./assets/Clip_2024-08-31_16-50-59.png)
 
-## 性能表现
+## Performance
 
-当前经过实际测试，在代理地址服务器性能足够的情况下，能够做到500并发不丢包，基本可以覆盖大部分扫描和渗透测试。
+Current testing shows that under adequate server performance for proxy addresses, the tool can support 500 concurrent requests without packet loss, effectively covering most scanning and penetration testing needs.
 
 ![8e3f79309626ed0e653ba51b6482bff](./assets/8e3f79309626ed0e653ba51b6482bff-1725093725174-23.png)
 
-## 免责申明
+## Disclaimer
 
-- 如果您下载、安装、使用、修改本工具及相关代码，即表明您信任本工具
-- 在使用本工具时造成对您自己或他人任何形式的损失和伤害，我们不承担任何责任
-- 如您在使用本工具的过程中存在任何非法行为，您需自行承担相应后果，我们将不承担任何法律及连带责任
-- 请您务必审慎阅读、充分理解各条款内容，特别是免除或者限制责任的条款，并选择接受或不接受
-- 除非您已阅读并接受本协议所有条款，否则您无权下载、安装或使用本工具
-- 您的下载、安装、使用等行为即视为您已阅读并同意上述协议的约束
+- By downloading, installing, using, or modifying this tool and its related code, you indicate your trust in this tool.
+- We take no responsibility for any loss or damage caused to you or others while using this tool.
+- If you engage in any illegal activities while using this tool, you assume all corresponding consequences, and we will not bear any legal or associated liabilities.
+- Please read and thoroughly understand each clause, especially those that exempt or limit liability, and choose to accept or decline.
+- Unless you have read and accepted all terms of this agreement, you are not entitled to download, install, or use this tool.
+- Your actions, including downloading, installing, or using, indicate that you have read and agree to these terms.
 
-## 更新日志
+## Changelog
 
 **2024/08/31**
 
-- 项目大结构调整
-- 美化显示，将持续提示下一次更换代理地址的时间
-- 已支持`ctrl+c`停止运行
-- 大幅度调整为异步请求，并发效率提升，实测1000并发，共5000包，丢50包左右约99%稳定性，500并发0丢包
-- 不再采取运行时指定参数方案，修改为从本地ini配置文件中读取，易用性更高
-- 支持本地无认证，适配更多软件代理方式
-- 增加版本检测功能，将自动提示版本信息
-- 增加代理服务器地址的身份鉴别功能，但仅支持本地读取，因大多数API都需要白名单，因此不重复提供
-- 增加功能，仅在收到新请求的情况下才使用getip更新，减少IP消耗
-- 增加自识别代理服务器地址协议，以适配更多代理商
-- 增加支持HTTPS、socks4代理协议，目前已覆盖HTTP、HTTPS、socks5、socks4协议
+- Major structure adjustments for the project.
+
+- UI enhancements to indicate the time remaining until the next proxy address change.
+- Support for `ctrl+c` to stop operation.
+- Significant adjustments to asynchronous requests; tested at 1000 concurrent requests with 5000 packets sent, resulting in about 50 lost packets, achieving ~99% stability; 500 concurrent requests resulted in no packet loss.
+- Changed parameter specification from runtime to reading from local ini configuration file for improved usability.
+- Support for local no-authentication, adapting to more software proxy modes.
+- Added version detection functionality to automatically prompt version information.
+- Introduced authentication for proxy server addresses, but this only applies to local reads due to the need for whitelisting in most APIs, hence not provided repeatedly.
+- Implemented a feature that updates via `getip` only upon receiving new requests to reduce IP consumption.
+- Enhanced automatic recognition of proxy server address protocols to accommodate more proxy providers.
+- Added support for HTTPS and SOCKS4 proxy protocols; now covers HTTP, HTTPS, SOCKS5, and SOCKS4 protocols.
 
 **2024/08/25**
 
-- 读取ip.txt时自动跳过空行
-- httpx更换为并发池，提高性能
-- 增加缓冲字典，相同站点降低延迟
-- 每次请求更换IP逻辑修改为，随机选择代理
-- 采用更加高效的结构和算法，优化请求处理逻辑
+- Automatically skips empty lines when reading from `ip.txt`.
+
+- Replaced `httpx` with a concurrency pool for performance improvement.
+- Added a buffering dictionary to reduce latency for the same site.
+- Modified the logic for changing IPs on each request to randomly select a proxy.
+- Implemented more efficient structures and algorithms to optimize request handling.
 
 **2024/08/24**
 
-- 采用异步方案提高并发能力和减少超时
-- 重复代码封装提高代码复用性
+- Adopted asynchronous solutions to improve concurrency and reduce timeouts.
+
+- Encapsulated redundant code for increased reusability.
 
 **2024/08/23**
 
-- 修改并发逻辑
-- 增加身份鉴别功能
-- 增加IP获取接口，永久更换IP
-- 增加每次请求更换IP功能
+- Adjusted concurrency logic.
+- Added authentication features.
+- Added IP retrieval interface for permanent IP changes.
+- Introduced functionality to change IP on every request.
 
-## 开发计划
+## Development Plans
 
-- [x] 增加本地服务器身份鉴别功能，保证在公网使用过程中不被恶意盗用
+- [x] Add local server authentication to prevent malicious use in public.
+- [x] Introduce functionality to change IP on every request.
+- [x] Create a static proxy automatic retrieval module for permanent operation.
+- [ ] Introduce load balancing mode to use multiple proxy addresses simultaneously, effectively increasing concurrency and reducing load on a single server.
+- [x] Add version detection functionality.
+- [x] Include support for proxy address authentication.
+- [x] Implement functionality for updating via `getip` only upon new requests to minimize IP usage.
+- [ ] Perform validity checks on all proxy servers in `ip.txt` upon the first startup.
 
-- [x] 增加每次请求更换IP功能
+If you have suggestions or encounter bugs during use, please reach out to the author using the contact information provided!
 
-- [x] 增加静态代理自动获取更新模块，从而永久运行
+## Acknowledgments
 
-- [ ] 增加负载均衡模式，同时使用大量代理地址发送，从而有效提高并发效率，减少单一服务器负载
-
-- [x] 增加版本检测功能
-
-- [x] 增加代理地址身份鉴别支持
-
-- [x] 增加功能，仅在收到新请求的情况下才使用getip更新，减少IP消耗
-
-- [ ] 首次启动时批量对ip.txt中的代理服务器进行有效性检查
-
-  如果您有好的idea，或者使用过程中遇到的bug，都请辛苦您添加作者联系方式进行反馈！
-
-  微信公众号：樱花庄的本间白猫
-
-## 鸣谢
-
-本排名不分先后，感谢为本项目提供帮助的师傅们。
+The following individuals are thanked in no particular order for their contributions to this project.
 
 [AabyssZG (曾哥)](https://github.com/AabyssZG)
 
 [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
 
-[![Star History Chart](./assets/ProxyCat&type=Date.svg+xml)](https://star-history.com/#honmashironeko/ProxyCat&Date)
+![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)
 
-## 赞助开源
+## Proxy Recommendations
 
-开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
-
-![ced79e6745867bd51b1eddfb17cb5702](./assets/202408260020820-1725093725174-25.png)
-
-## 代理推荐
-
-- [第一家便宜大碗代理购买，用邀请码注册得5000免费IP+10元优惠券](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
-- [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
+- [Click here to purchase](https://www.ipmart.io?source=Shironeko)
