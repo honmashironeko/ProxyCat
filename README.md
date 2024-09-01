@@ -186,6 +186,8 @@ proxy_file = ip.txt
 
 - [ ] 首次启动时批量对ip.txt中的代理服务器进行有效性检查
 
+- [ ] 增加本地监听socks协议，或全面改成socks，以此适配更多软件
+
   如果您有好的idea，或者使用过程中遇到的bug，都请辛苦您添加作者联系方式进行反馈！
 
   微信公众号：樱花庄的本间白猫
@@ -197,6 +199,8 @@ proxy_file = ip.txt
 [AabyssZG (曾哥)](https://github.com/AabyssZG)
 
 [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
+
+chars6
 
 [![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)](https://star-history.com/#honmashironeko/ProxyCat&Date)
 
