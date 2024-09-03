@@ -27,7 +27,7 @@
 
 ### 安装依赖
 
-工具基于 Python 实现（建议使用python3.8以上版本），在使用前请使用以下命令配置依赖：
+工具基于 Python 实现（建议使用python3.11以上版本），在使用前请使用以下命令配置依赖：
 
 ```bash
 pip install -r requirements.txt
@@ -147,6 +147,7 @@ proxy_file = ip.txt
 - 增加功能，仅在收到新请求的情况下才使用getip更新，减少IP消耗
 - 增加自识别代理服务器地址协议，以适配更多代理商
 - 增加支持HTTPS、socks4代理协议，目前已覆盖HTTP、HTTPS、socks5、socks4协议
+- 修改asyncio.timeout()为asyncio.wait_for()，适配更低的python版本
 
 **2024/08/25**
 

@@ -154,8 +154,10 @@ class AsyncProxyServer:
         proxy_port = int(proxy_port)
 
         try:
-            async with asyncio.timeout(10):
-                remote_reader, remote_writer = await asyncio.open_connection(proxy_host, proxy_port)
+            remote_reader, remote_writer = await asyncio.wait_for(
+                asyncio.open_connection(proxy_host, proxy_port),
+                timeout=10
+            )
 
             if proxy_type == 'http':
                 connect_headers = [f'CONNECT {host}:{port} HTTP/1.1', f'Host: {host}:{port}']
