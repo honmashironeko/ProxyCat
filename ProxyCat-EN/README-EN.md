@@ -17,7 +17,7 @@ Thus, this tool was developed to transform short-lived IPs (lasting from 1 to 60
 ## Supported Features
 
 ```
-Local Listening Service: Customizable listening ports, custom authentication for listening ports.
+Local Listening Service: Customizable listening ports, custom authentication for listening ports, Two monitoring protocols.
 Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies.
 Service Runtime: Changes proxy addresses only upon receiving requests, supports ultra-high concurrency, supports HTTP and HTTPS protocols, checks for version updates at startup.
 System Compatibility: Compatible with Windows, Linux, and MacOS; supports VPS remote deployment and local installation.
@@ -95,7 +95,14 @@ Once the corresponding parameters are configured, you may use the following comm
 
 **Demonstration Result**
 
-Fixed proxy address (default): http://neko:123456@127.0.0.1:1080 or http://127.0.0.1:1080
+Fixed proxy address (default): 
+
+```
+http://neko:123456@127.0.0.1:1080
+http://127.0.0.1:1080 
+socks5://neko:123456@127.0.0.1:1080
+socks5://127.0.0.1:1080 
+```
 
 If deployed publicly, replace `127.0.0.1` with your public IP address.
 
@@ -130,6 +137,12 @@ Current testing shows that under adequate server performance for proxy addresses
 - Your actions, including downloading, installing, or using, indicate that you have read and agree to these terms.
 
 ## Changelog
+
+**2024/09/03**
+
+- Add local socks5 monitoring and adapt to more software 
+- Replacement of some functions to adapt to lower versions of Python
+- Beautify the replayed content
 
 **2024/08/31**
 
@@ -178,6 +191,7 @@ Current testing shows that under adequate server performance for proxy addresses
 - [x] Include support for proxy address authentication.
 - [x] Implement functionality for updating via `getip` only upon new requests to minimize IP usage.
 - [ ] Perform validity checks on all proxy servers in `ip.txt` upon the first startup.
+- [x] Add the local listening socks protocol, or completely change it to socks to adapt to more software
 
 If you have suggestions or encounter bugs during use, please reach out to the author using the contact information provided!
 

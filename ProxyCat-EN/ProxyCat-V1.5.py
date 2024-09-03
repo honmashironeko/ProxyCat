@@ -2,26 +2,25 @@ from httpx import AsyncClient, TimeoutException
 from colorama import init, Fore
 from packaging import version
 from itertools import cycle
-import configparser
-import threading
-import logoprint
-import argparse
-import logging
-import asyncio
-import socket
-import base64
-import getip
-import httpx
-import time
-import re
+import configparser, threading, logoprint, argparse, logging, asyncio, socket, base64, getip, httpx, time, re, struct
 
 init(autoreset=True)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+DEFAULT_CONFIG = {
+    'port': 1080,
+    'mode': 'cycle',
+    'interval': 300,
+    'username': '',
+    'password': '',
+    'use_getip': False,
+    'proxy_file': 'ip.txt'
+}
+
 def load_config(config_file='config.ini'):
     config = configparser.ConfigParser()
     config.read(config_file, encoding='utf-8')
-    return config['SETTINGS']
+    return {k: v for k, v in config['SETTINGS'].items()}
 
 def load_proxies(file_path='ip.txt'):
     with open(file_path, 'r') as file:
@@ -29,36 +28,28 @@ def load_proxies(file_path='ip.txt'):
 
 class AsyncProxyServer:
     def __init__(self, config):
-        self.config = config
-        self.username = config.get('username', '').strip()
-        self.password = config.get('password', '').strip()
+        self.config = {**DEFAULT_CONFIG, **config}
+        self.username = self.config['username'].strip()
+        self.password = self.config['password'].strip()
         self.auth_required = bool(self.username and self.password)
-        self.mode = config.get('mode', 'cycle')
-        self.interval = config.getint('interval', 300)
-        self.use_getip = config.getboolean('use_getip', False)
-        self.proxy_file = config.get('proxy_file', 'ip.txt')
+        self.mode = self.config['mode']
+        self.interval = int(self.config['interval'])
+        self.use_getip = self.config.get('use_getip', 'False').lower() == 'true'
+        self.proxy_file = self.config['proxy_file']
         self.proxies = self.load_proxies()
-        self.initial_proxy = self.proxies[0] if self.proxies else "No proxy available"
         self.proxy_cycle = cycle(self.proxies)
-        self.current_proxy = self.initial_proxy
+        self.current_proxy = next(self.proxy_cycle) if self.proxies else "No agent available"
         self.last_switch_time = time.time()
         self.rate_limiter = asyncio.Queue(maxsize=3000)
 
     def load_proxies(self):
-        if self.use_getip:
-            return [getip.newip()]
-        else:
-            return load_proxies(self.proxy_file)
+        return [getip.newip()] if self.use_getip else load_proxies(self.proxy_file)
 
     async def get_next_proxy(self):
-        current_time = time.time()
-        if current_time - self.last_switch_time >= self.interval:
-            if self.use_getip:
-                self.current_proxy = getip.newip()
-            else:
-                self.current_proxy = next(self.proxy_cycle)
-            self.last_switch_time = current_time
-            logging.info(f"Switch to a new proxy: {self.current_proxy}")
+        if time.time() - self.last_switch_time >= self.interval:
+            self.current_proxy = getip.newip() if self.use_getip else next(self.proxy_cycle)
+            self.last_switch_time = time.time()
+            logging.info(f"Switch to a new agent: {self.current_proxy}")
         return self.current_proxy
 
     def time_until_next_switch(self):
@@ -71,19 +62,126 @@ class AsyncProxyServer:
 
     async def handle_client(self, reader, writer):
         try:
-            await asyncio.shield(self._handle_client_impl(reader, writer))
+            await self.acquire()
+            first_byte = await reader.read(1)
+            if not first_byte:
+                return
+            
+            if first_byte == b'\x05':
+                await self.handle_socks5_connection(reader, writer)
+            else: 
+                await self._handle_client_impl(reader, writer, first_byte)
         except asyncio.CancelledError:
-            logging.info("Client process canceled")
+            logging.info("Client handles cancellations")
         except Exception as e:
-            logging.error(f"Client processing error: {e}")
+            logging.error(f"Error in client processing: {e}")
         finally:
             writer.close()
             await writer.wait_closed()
 
-    async def _handle_client_impl(self, reader, writer):
+    async def handle_socks5_connection(self, reader, writer):
+        nmethods = ord(await reader.readexactly(1))
+        methods = await reader.readexactly(nmethods)
+
+        if self.auth_required:
+            writer.write(b'\x05\x02')
+        else:
+            writer.write(b'\x05\x00')
+        await writer.drain()
+
+        if self.auth_required:
+            auth_version = await reader.readexactly(1)
+            if auth_version != b'\x01':
+                writer.close()
+                return
+            
+            ulen = ord(await reader.readexactly(1))
+            username = await reader.readexactly(ulen)
+            plen = ord(await reader.readexactly(1))
+            password = await reader.readexactly(plen)
+
+            if username.decode() != self.username or password.decode() != self.password:
+                writer.write(b'\x01\x01') 
+                await writer.drain()
+                writer.close()
+                return
+            
+            writer.write(b'\x01\x00')
+            await writer.drain()
+
+        version, cmd, _, atyp = struct.unpack('!BBBB', await reader.readexactly(4))
+        if cmd != 1: 
+            writer.write(b'\x05\x07\x00\x01\x00\x00\x00\x00\x00\x00')
+            await writer.drain()
+            writer.close()
+            return
+
+        if atyp == 1: 
+            dst_addr = socket.inet_ntoa(await reader.readexactly(4))
+        elif atyp == 3:
+            addr_len = ord(await reader.readexactly(1))
+            dst_addr = (await reader.readexactly(addr_len)).decode()
+        elif atyp == 4: 
+            dst_addr = socket.inet_ntop(socket.AF_INET6, await reader.readexactly(16))
+        else:
+            writer.write(b'\x05\x08\x00\x01\x00\x00\x00\x00\x00\x00')
+            await writer.drain()
+            writer.close()
+            return
+
+        dst_port = struct.unpack('!H', await reader.readexactly(2))[0]
+
         try:
-            await self.acquire()
-            request_line = await reader.readline()
+            proxy = await self.get_next_proxy()
+            proxy_type, proxy_addr = proxy.split('://')
+            proxy_auth, proxy_host_port = self._split_proxy_auth(proxy_addr)
+            proxy_host, proxy_port = proxy_host_port.split(':')
+            proxy_port = int(proxy_port)
+
+            remote_reader, remote_writer = await asyncio.open_connection(proxy_host, proxy_port)
+
+            if proxy_type == 'socks5':
+                remote_writer.write(b'\x05\x01\x00')
+                await remote_writer.drain()
+                await remote_reader.readexactly(2)
+                
+                remote_writer.write(b'\x05\x01\x00' + 
+                                    (b'\x03' + len(dst_addr).to_bytes(1, 'big') + dst_addr.encode() if isinstance(dst_addr, str) else b'\x01' + socket.inet_aton(dst_addr)) + 
+                                    struct.pack('!H', dst_port))
+                await remote_writer.drain()
+                
+                await remote_reader.readexactly(10)
+            elif proxy_type in ['http', 'https']:
+                connect_request = f'CONNECT {dst_addr}:{dst_port} HTTP/1.1\r\nHost: {dst_addr}:{dst_port}\r\n'
+                if proxy_auth:
+                    connect_request += f'Proxy-Authorization: Basic {base64.b64encode(proxy_auth.encode()).decode()}\r\n'
+                connect_request += '\r\n'
+                remote_writer.write(connect_request.encode())
+                await remote_writer.drain()
+                
+                while True:
+                    line = await remote_reader.readline()
+                    if line == b'\r\n':
+                        break
+
+            writer.write(b'\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00')
+            await writer.drain()
+
+            await asyncio.gather(
+                self._pipe(reader, remote_writer),
+                self._pipe(remote_reader, writer)
+            )
+        except Exception as e:
+            logging.error(f"SOCKS5 connection error: {e}")
+            writer.write(b'\x05\x01\x00\x01\x00\x00\x00\x00\x00\x00')
+            await writer.drain()
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+    async def _handle_client_impl(self, reader, writer, first_byte):
+        try:
+            request_line = first_byte + await reader.readline()
             if not request_line:
                 return
 
@@ -119,7 +217,7 @@ class AsyncProxyServer:
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            logging.error(f"An error occurred while processing the client request: {e}")
+            logging.error(f"Error processing client request: {e}")
 
     def _authenticate(self, headers):
         if not self.auth_required:
@@ -142,7 +240,7 @@ class AsyncProxyServer:
             host, port = path.split(':')
             port = int(port)
         except ValueError:
-            logging.error(f"Invalid CONNECT path: {path}")
+            logging.error(f"Invalid connection path: {path}")
             writer.write(b'HTTP/1.1 400 Bad Request\r\n\r\n')
             await writer.drain()
             return
@@ -192,7 +290,7 @@ class AsyncProxyServer:
                 self._pipe(remote_reader, writer)
             )
         except asyncio.TimeoutError:
-            logging.error("Connection timeout")
+            logging.error("connection timeout")
             writer.write(b'HTTP/1.1 504 Gateway Timeout\r\n\r\n')
             await writer.drain()
         except Exception as e:
@@ -245,7 +343,7 @@ class AsyncProxyServer:
             except asyncio.CancelledError:
                 raise
             except Exception as e:
-                logging.error(f"Request processing error: {e}")
+                logging.error(f"Error processing request: {e}")
                 writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
                 await writer.drain()
 
@@ -269,19 +367,22 @@ class AsyncProxyServer:
             writer.write(b'0\r\n\r\n')
             await writer.drain()
         except asyncio.CancelledError:
-            logging.info("Response write canceled")
+            logging.info("Response write is canceled")
             raise
 
 def print_banner(config):
-    auth_info = f"{config.get('username')}:{config.get('password')}" if config.get('username') and config.get('password') else "Not set (no authentication required)"
+    auth_info = f"{config.get('username')}:{config.get('password')}" if config.get('username') and config.get('password') else "未设置 (无需认证)"
     banner_info = [
         ('公众号', '樱花庄的本间白猫'),
         ('Blog', 'https://y.shironekosan.cn'),
+        ('夸克网盘', 'https://pan.quark.cn/s/39b4b5674570'),
         ('Github', 'https://github.com/honmashironeko/ProxyCat'),
-        ('Local listening port', config.get('port')),
+        ('百度网盘', 'https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5'),
         ('Proxy rotation mode', 'cycle' if config.get('mode') == 'cycle' else 'once'),
         ('Agent change time', f"{config.get('interval')}Second"),
         ('Default account password', auth_info),
+        ('local listening address', f"http://{auth_info}@127.0.0.1:{config.get('port')}"),
+        ('local listening address', f"socks5://{auth_info}@127.0.0.1:{config.get('port')}"),
     ]
     print(f"{Fore.MAGENTA}{'=' * 55}")
     for key, value in banner_info:
@@ -291,7 +392,7 @@ def print_banner(config):
 def update_status(server):
     while True:
         time_left = server.time_until_next_switch()
-        status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Next switch: {Fore.GREEN}{time_left:.1f}Second"
+        status = f"\r{Fore.YELLOW}Current proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Switch next time: {Fore.GREEN}{time_left:.1f}Second"
         print(status, end='', flush=True)
         time.sleep(1)
 
@@ -301,7 +402,7 @@ async def handle_client_wrapper(server, reader, writer, clients):
     try:
         await task
     except Exception as e:
-        logging.error(f"Client processing error: {e}")
+        logging.error(f"Error in client processing: {e}")
     finally:
         clients.remove(task)
 
@@ -312,54 +413,45 @@ async def run_server(server):
         server_instance = await asyncio.start_server(
             lambda r, w: handle_client_wrapper(server, r, w, clients),
             '0.0.0.0', 
-            server.config.getint('port', 1080)
+            int(server.config['port'])
         )
         async with server_instance:
             await server_instance.serve_forever()
     except asyncio.CancelledError:
-        logging.info("The server is shutting down...")
+        logging.info("Server is shutting down...")
     finally:
         if server_instance:
             server_instance.close()
             await server_instance.wait_closed()
         for client in clients:
             client.cancel()
-        await asyncio.gather(*[client for client in clients], return_exceptions=True)
+        await asyncio.gather(*clients, return_exceptions=True)
 
 async def check_for_updates():
-    current_version = "ProxyCat-V1.4"
-    timeout = 10
+    current_version = "ProxyCat-V1.5"
     try:
         async with AsyncClient() as client:
-            try:
-                response = await asyncio.wait_for(
-                    client.get("https://y.shironekosan.cn/1.html"),
-                    timeout=timeout
-                )
-                response.raise_for_status()
-                content = response.text
-                match = re.search(r'<p>(ProxyCat-V\d+\.\d+)</p>', content)
-                if match:
-                    latest_version = match.group(1)
-                    if version.parse(latest_version.split('-V')[1]) > version.parse(current_version.split('-V')[1]):
+            response = await asyncio.wait_for(client.get("https://y.shironekosan.cn/1.html"), timeout=10)
+            response.raise_for_status()
+            content = response.text
+            match = re.search(r'<p>(ProxyCat-V\d+\.\d+)</p>', content)
+            if match:
+                latest_version = match.group(1)
+                if version.parse(latest_version.split('-V')[1]) > version.parse(current_version.split('-V')[1]):
                         print(f"{Fore.YELLOW}New version found! Current version: {current_version}, Latest version: {latest_version}")
                         print(f"{Fore.YELLOW}Please visit https://pan.quark.cn/s/39b4b5674570 to get the latest version")
                         print(f"{Fore.YELLOW}Please visit https://github.com/honmashironeko/ProxyCat to get the latest version")
                         print(f"{Fore.YELLOW}Please visit https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5 to get the latest version")
-                    else:
-                        print(f"{Fore.GREEN}The current version is the latest ({current_version})")
                 else:
-                    print(f"{Fore.RED}Unable to find version information in the response")
-            except TimeoutException:
-                print(f"{Fore.RED}Checking for updates has timed out, please check your network connection")
-            except Exception as e:
-                print(f"{Fore.RED}An error occurred while checking for updates: {e}")
+                    print(f"{Fore.GREEN}The current version is the latest ({current_version})")
+            else:
+                print(f"{Fore.RED}Version information could not be found in the response")
     except Exception as e:
-        print(f"{Fore.RED}An error occurred while creating the HTTP client: {e}")
+        print(f"{Fore.RED}An error occurred while checking for updates: {e}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=logoprint.logos())
-    parser.add_argument('-c', '--config', default='config.ini', help='Configuration file path')
+    parser.add_argument('-c', '--config', default='config.ini', help='configuration file path')
     args = parser.parse_args()
     config = load_config(args.config)
     server = AsyncProxyServer(config)
@@ -370,4 +462,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(run_server(server))
     except KeyboardInterrupt:
-        logging.info("The program was interrupted by the user")
+        logging.info("Program interrupted by user")
