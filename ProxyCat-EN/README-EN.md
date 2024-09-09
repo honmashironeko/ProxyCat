@@ -18,7 +18,7 @@ Thus, this tool was developed to transform short-lived IPs (lasting from 1 to 60
 
 ```
 Local Listening Service: Customizable listening ports, custom authentication for listening ports, Two monitoring protocols.
-Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies.
+Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies, Support proxy address validity check.
 Service Runtime: Changes proxy addresses only upon receiving requests, supports ultra-high concurrency, supports HTTP and HTTPS protocols, checks for version updates at startup.
 System Compatibility: Compatible with Windows, Linux, and MacOS; supports VPS remote deployment and local installation.
 ```
@@ -85,6 +85,9 @@ use_getip = False
 
 # Proxy address list file (default: ip.txt)
 proxy_file = ip.txt
+
+# Whether proxy detection is enabled True or False(default True)
+check_proxies = True
 ```
 
 Once the corresponding parameters are configured, you may use the following command:
@@ -138,6 +141,11 @@ Current testing shows that under adequate server performance for proxy addresses
 
 ## Changelog
 
+**2024/09/09**
+
+- Added function, you can set whether to check the validity of the proxy address in ip.txt when starting for the first time, and only use valid proxy addresses
+- function downgrade, support for lower python versions
+
 **2024/09/03**
 
 - Add local socks5 monitoring and adapt to more software 
@@ -190,7 +198,7 @@ Current testing shows that under adequate server performance for proxy addresses
 - [x] Add version detection functionality.
 - [x] Include support for proxy address authentication.
 - [x] Implement functionality for updating via `getip` only upon new requests to minimize IP usage.
-- [ ] Perform validity checks on all proxy servers in `ip.txt` upon the first startup.
+- [x] Perform validity checks on all proxy servers in `ip.txt` upon the first startup.
 - [x] Add the local listening socks protocol, or completely change it to socks to adapt to more software
 
 If you have suggestions or encounter bugs during use, please reach out to the author using the contact information provided!

@@ -1,4 +1,4 @@
-from httpx import AsyncClient, TimeoutException
+from httpx import AsyncClient
 from colorama import init, Fore
 from packaging import version
 from itertools import cycle
@@ -14,7 +14,7 @@ DEFAULT_CONFIG = {
     'username': '',
     'password': '',
     'use_getip': False,
-    'proxy_file': 'ip.txt'
+    'proxy_file': 'ip.txt',
 }
 
 def load_config(config_file='config.ini'):
@@ -252,8 +252,7 @@ class AsyncProxyServer:
         proxy_port = int(proxy_port)
 
         try:
-            async with asyncio.timeout(10):
-                remote_reader, remote_writer = await asyncio.open_connection(proxy_host, proxy_port)
+            remote_reader, remote_writer = await asyncio.wait_for(asyncio.open_connection(proxy_host, proxy_port),timeout=10)
 
             if proxy_type == 'http':
                 connect_headers = [f'CONNECT {host}:{port} HTTP/1.1', f'Host: {host}:{port}']
@@ -329,16 +328,22 @@ class AsyncProxyServer:
         proxy_type, proxy_addr = proxy.split('://')
         proxy_auth, proxy_host_port = self._split_proxy_auth(proxy_addr)
         
-        async with httpx.AsyncClient(
-            limits=httpx.Limits(max_keepalive_connections=500, max_connections=3000),
-            timeout=30
-        ) as client:
+        client_kwargs = {
+            "limits": httpx.Limits(max_keepalive_connections=500, max_connections=3000),
+            "timeout": 30,
+        }
+        
+        if proxy_type in ['http', 'https']:
+            client_kwargs["proxies"] = {proxy_type: f"{proxy_type}://{proxy_host_port}"}
+        elif proxy_type in ['socks4', 'socks5']:
+            client_kwargs["transport"] = httpx.AsyncHTTPTransport(proxy=f"{proxy_type}://{proxy_host_port}")
+        
+        if proxy_auth:
+            headers['Proxy-Authorization'] = f'Basic {base64.b64encode(proxy_auth.encode()).decode()}'
+        
+        async with httpx.AsyncClient(**client_kwargs) as client:
             try:
-                if proxy_auth:
-                    proxy = f"{proxy_type}://{proxy_host_port}"
-                    headers['Proxy-Authorization'] = f'Basic {base64.b64encode(proxy_auth.encode()).decode()}'
-                
-                async with client.stream(method, path, headers=headers, content=body, proxies=proxy) as response:
+                async with client.stream(method, path, headers=headers, content=body) as response:
                     await self._write_response(writer, response)
             except asyncio.CancelledError:
                 raise
@@ -427,8 +432,76 @@ async def run_server(server):
             client.cancel()
         await asyncio.gather(*clients, return_exceptions=True)
 
+async def check_http_proxy(proxy):
+    try:
+        async with httpx.AsyncClient(proxies=proxy, timeout=10) as client:
+            response = await client.get('http://www.baidu.com')
+            if response.status_code == 200:
+                return True
+    except Exception as e:
+        logging.error(f"HTTP代理 {proxy} 检测失败: {e}")
+    return False
+
+async def check_https_proxy(proxy):
+    try:
+        async with httpx.AsyncClient(proxies=proxy, timeout=10) as client:
+            response = await client.get('https://www.baidu.com')
+            if response.status_code == 200:
+                return True
+    except Exception as e:
+        logging.error(f"HTTPS代理 {proxy} 检测失败: {e}")
+    return False
+
+async def check_socks_proxy(proxy):
+    try:
+        proxy_type, proxy_addr = proxy.split('://')
+        proxy_host, proxy_port = proxy_addr.split(':')
+        proxy_port = int(proxy_port)
+        reader, writer = await asyncio.open_connection(proxy_host, proxy_port)
+        writer.write(b'\x05\x01\x00')
+        await writer.drain()
+        response = await reader.readexactly(2)
+        if response == b'\x05\x00':
+            writer.close()
+            await writer.wait_closed()
+            return True
+    except Exception as e:
+        logging.error(f"SOCKS代理 {proxy} 检测失败: {e}")
+    return False
+
+async def check_proxy(proxy):
+    proxy_type = proxy.split('://')[0]
+    if proxy_type in ['http', 'https']:
+        return await check_http_proxy(proxy) and await check_https_proxy(proxy)
+    elif proxy_type in ['socks4', 'socks5']:
+        if await check_socks_proxy(proxy):
+            socks_proxy = f"{proxy_type}://{proxy.split('://')[1]}"
+            return await check_http_proxy(socks_proxy) and await check_https_proxy(socks_proxy)
+    return False
+
+async def check_proxies(proxies):
+    valid_proxies = []
+    for proxy in proxies:
+        if await check_proxy(proxy):
+            valid_proxies.append(proxy)
+    return valid_proxies
+
+async def run_proxy_check(server):
+    if server.config.get('check_proxies', 'False').lower() == 'true':
+        logging.info("开始检测代理地址...")
+        valid_proxies = await check_proxies(server.proxies)
+        if valid_proxies:
+            server.proxies = valid_proxies
+            server.proxy_cycle = cycle(valid_proxies)
+            server.current_proxy = next(server.proxy_cycle)
+            logging.info(f"有效代理地址: {valid_proxies}")
+        else:
+            logging.error("没有有效的代理地址")
+    else:
+        logging.info("代理检测已禁用")
+
 async def check_for_updates():
-    current_version = "ProxyCat-V1.5"
+    current_version = "ProxyCat-V1.6"
     try:
         async with AsyncClient() as client:
             response = await asyncio.wait_for(client.get("https://y.shironekosan.cn/1.html"), timeout=10)
@@ -457,6 +530,7 @@ if __name__ == '__main__':
     server = AsyncProxyServer(config)
     print_banner(config)
     asyncio.run(check_for_updates())
+    asyncio.run(run_proxy_check(server))
     status_thread = threading.Thread(target=update_status, args=(server,), daemon=True)
     status_thread.start()
     try:

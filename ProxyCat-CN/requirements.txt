@@ -3,3 +3,4 @@ pysocks
 colorama
 httpx
 packaging
+httpx[socks]
