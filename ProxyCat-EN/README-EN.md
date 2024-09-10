@@ -18,7 +18,7 @@ Thus, this tool was developed to transform short-lived IPs (lasting from 1 to 60
 
 ```
 Local Listening Service: Customizable listening ports, custom authentication for listening ports, Two monitoring protocols.
-Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies, Support proxy address validity check.
+Proxy Address Support: Four protocol types, timed proxy address changes, automatic address change after each request, API for automatic proxy retrieval, supports authenticated proxies, Support proxy address validity check, Support load balancing mode.
 Service Runtime: Changes proxy addresses only upon receiving requests, supports ultra-high concurrency, supports HTTP and HTTPS protocols, checks for version updates at startup.
 System Compatibility: Compatible with Windows, Linux, and MacOS; supports VPS remote deployment and local installation.
 ```
@@ -68,7 +68,7 @@ Configure parameters in `config.ini` (or a custom configuration file):
 # Local server listening port (default: 1080)
 port = 1080
 
-# Proxy address rotation mode: cycle means cyclic use, once means once used up (default is: cycle)
+# # Proxy address rotation mode: cycle means circular use, once means stop when used up, and load_balance means load balancing (default: cycle)
 mode = cycle
 
 # Proxy address change time (seconds), when set to 0, the IP will be changed for each request (default: 300)
@@ -113,7 +113,7 @@ If deployed publicly, replace `127.0.0.1` with your public IP address.
 
 ### Use API to Automatically Retrieve Proxy Addresses
 
-The tool supports directly calling the API for proxy address retrieval. When you set `use_getip = True`, the tool will no longer read from the local `ip.txt` and will instead execute **getip.py** to fetch new proxy addresses.
+The tool supports directly calling the API for proxy address retrieval. When you set `use_getip = True`, the tool will no longer read from the local `ip.txt` and will instead execute **getip.py** to fetch new proxy addresses(Please remember to whitelist your IP).
 
 In this case, you need to modify the contents of **getip.py** to use your own API, formatted as `IP:PORT`. The default is `socks5` protocol; change it manually if using `http`.
 
@@ -140,6 +140,12 @@ Current testing shows that under adequate server performance for proxy addresses
 - Your actions, including downloading, installing, or using, indicate that you have read and agree to these terms.
 
 ## Changelog
+
+**2024/09/10**
+
+- Optimize concurrency efficiency, support the next request in advance without receiving the response packet, thereby improving efficiency
+- Add a load balancing mode, in which requests will be randomly made to the proxy address, and use concurrent proxies to improve request efficiency
+- Agent validity detection modified to be asynchronous, thereby improving efficiency
 
 **2024/09/09**
 
@@ -194,7 +200,7 @@ Current testing shows that under adequate server performance for proxy addresses
 - [x] Add local server authentication to prevent malicious use in public.
 - [x] Introduce functionality to change IP on every request.
 - [x] Create a static proxy automatic retrieval module for permanent operation.
-- [ ] Introduce load balancing mode to use multiple proxy addresses simultaneously, effectively increasing concurrency and reducing load on a single server.
+- [x] Introduce load balancing mode to use multiple proxy addresses simultaneously, effectively increasing concurrency and reducing load on a single server.
 - [x] Add version detection functionality.
 - [x] Include support for proxy address authentication.
 - [x] Implement functionality for updating via `getip` only upon new requests to minimize IP usage.

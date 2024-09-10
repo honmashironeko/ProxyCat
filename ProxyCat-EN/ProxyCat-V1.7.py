@@ -1,8 +1,7 @@
-from httpx import AsyncClient
 from colorama import init, Fore
 from packaging import version
 from itertools import cycle
-import configparser, threading, logoprint, argparse, logging, asyncio, socket, base64, getip, httpx, time, re, struct
+import configparser, threading, logoprint, argparse, logging, asyncio, socket, base64, getip, httpx, time, re, struct, random
 
 init(autoreset=True)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,7 +13,7 @@ DEFAULT_CONFIG = {
     'username': '',
     'password': '',
     'use_getip': False,
-    'proxy_file': 'ip.txt'
+    'proxy_file': 'ip.txt',
 }
 
 def load_config(config_file='config.ini'):
@@ -38,7 +37,7 @@ class AsyncProxyServer:
         self.proxy_file = self.config['proxy_file']
         self.proxies = self.load_proxies()
         self.proxy_cycle = cycle(self.proxies)
-        self.current_proxy = next(self.proxy_cycle) if self.proxies else "No available proxies"
+        self.current_proxy = next(self.proxy_cycle) if self.proxies else "No available proxy"
         self.last_switch_time = time.time()
         self.rate_limiter = asyncio.Queue(maxsize=3000)
 
@@ -46,6 +45,8 @@ class AsyncProxyServer:
         return [getip.newip()] if self.use_getip else load_proxies(self.proxy_file)
 
     async def get_next_proxy(self):
+        if self.mode == 'load_balance':
+            return random.choice(self.proxies)
         if time.time() - self.last_switch_time >= self.interval:
             self.current_proxy = getip.newip() if self.use_getip else next(self.proxy_cycle)
             self.last_switch_time = time.time()
@@ -53,7 +54,7 @@ class AsyncProxyServer:
         return self.current_proxy
 
     def time_until_next_switch(self):
-        return max(0, self.interval - (time.time() - self.last_switch_time))
+        return float('inf') if self.mode == 'load_balance' else max(0, self.interval - (time.time() - self.last_switch_time))
 
     async def acquire(self):
         await self.rate_limiter.put(None)
@@ -175,9 +176,6 @@ class AsyncProxyServer:
             logging.error(f"SOCKS5 connection error: {e}")
             writer.write(b'\x05\x01\x00\x01\x00\x00\x00\x00\x00\x00')
             await writer.drain()
-        finally:
-            writer.close()
-            await writer.wait_closed()
 
     async def _handle_client_impl(self, reader, writer, first_byte):
         try:
@@ -252,7 +250,7 @@ class AsyncProxyServer:
         proxy_port = int(proxy_port)
 
         try:
-            remote_reader, remote_writer = await asyncio.wait_for(asyncio.open_connection(proxy_host, proxy_port),timeout=10)
+            remote_reader, remote_writer = await asyncio.wait_for(asyncio.open_connection(proxy_host, proxy_port), timeout=10)
 
             if proxy_type == 'http':
                 connect_headers = [f'CONNECT {host}:{port} HTTP/1.1', f'Host: {host}:{port}']
@@ -378,13 +376,13 @@ class AsyncProxyServer:
 def print_banner(config):
     auth_info = f"{config.get('username')}:{config.get('password')}" if config.get('username') and config.get('password') else "Not set (No authentication required)"
     banner_info = [
-        ('Public Account', 'Sakura Village\'s Honma White Cat'),
+        ('Public Account', 'Sakura Village’s Honma Shironeko'),
         ('Blog', 'https://y.shironekosan.cn'),
-        ('Quark Net Disk', 'https://pan.quark.cn/s/39b4b5674570'),
+        ('Quark Cloud Disk', 'https://pan.quark.cn/s/39b4b5674570'),
         ('Github', 'https://github.com/honmashironeko/ProxyCat'),
-        ('Baidu Net Disk', 'https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5'),
-        ('Proxy Rotation Mode', 'Cycle' if config.get('mode') == 'cycle' else 'Single Round'),
-        ('Proxy Switch Interval', f"{config.get('interval')} seconds"),
+        ('Baidu Cloud Disk', 'https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5'),
+        ('Proxy Rotation Mode', 'Cycle' if config.get('mode') == 'cycle' else 'Load Balance' if config.get('mode') == 'load_balance' else 'Single Round'),
+        ('Proxy Change Time', f"{config.get('interval')} seconds"),
         ('Default Username and Password', auth_info),
         ('Local Listening Address', f"http://{auth_info}@127.0.0.1:{config.get('port')}"),
         ('Local Listening Address', f"socks5://{auth_info}@127.0.0.1:{config.get('port')}"),
@@ -396,8 +394,11 @@ def print_banner(config):
 
 def update_status(server):
     while True:
-        time_left = server.time_until_next_switch()
-        status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Next Switch: {Fore.GREEN}{time_left:.1f} seconds"
+        if server.mode == 'load_balance':
+            status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy}"
+        else:
+            time_left = server.time_until_next_switch()
+            status = f"\r{Fore.YELLOW}Current Proxy: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}Next Switch: {Fore.GREEN}{time_left:.1f} seconds"
         print(status, end='', flush=True)
         time.sleep(1)
 
@@ -432,52 +433,48 @@ async def run_server(server):
             client.cancel()
         await asyncio.gather(*clients, return_exceptions=True)
 
-async def check_http_proxy(proxy):
-    try:
-        async with httpx.AsyncClient(proxies=proxy, timeout=10) as client:
-            response = await client.get('http://www.google.com')
-            if response.status_code == 200:
-                return True
-    except Exception as e:
-        logging.error(f"HTTP proxy {proxy} check failed: {e}")
-    return False
-
-async def check_https_proxy(proxy):
-    try:
-        async with httpx.AsyncClient(proxies=proxy, timeout=10) as client:
-            response = await client.get('https://www.google.com')
-            if response.status_code == 200:
-                return True
-    except Exception as e:
-        logging.error(f"HTTPS proxy {proxy} check failed: {e}")
-    return False
-
-async def check_socks_proxy(proxy):
-    try:
-        proxy_type, proxy_addr = proxy.split('://')
-        proxy_host, proxy_port = proxy_addr.split(':')
-        proxy_port = int(proxy_port)
-        reader, writer = await asyncio.open_connection(proxy_host, proxy_port)
-        writer.write(b'\x05\x01\x00')
-        await writer.drain()
-        response = await reader.readexactly(2)
-        if response == b'\x05\x00':
-            writer.close()
-            await writer.wait_closed()
-            return True
-    except Exception as e:
-        logging.error(f"SOCKS proxy {proxy} check failed: {e}")
-    return False
-
 async def check_proxy(proxy):
     proxy_type = proxy.split('://')[0]
-    if proxy_type in ['http', 'https']:
-        return await check_http_proxy(proxy) and await check_https_proxy(proxy)
-    elif proxy_type in ['socks4', 'socks5']:
-        if await check_socks_proxy(proxy):
-            socks_proxy = f"{proxy_type}://{proxy.split('://')[1]}"
-            return await check_http_proxy(socks_proxy) and await check_https_proxy(socks_proxy)
-    return False
+    check_funcs = {
+        'http': check_http_proxy,
+        'https': check_https_proxy,
+        'socks4': check_socks_proxy,
+        'socks5': check_socks_proxy
+    }
+    
+    if proxy_type not in check_funcs:
+        return False
+    
+    try:
+        return await check_funcs[proxy_type](proxy)
+    except Exception as e:
+        logging.error(f"{proxy_type.upper()} proxy {proxy} check failed: {e}")
+        return False
+
+async def check_http_proxy(proxy):
+    async with httpx.AsyncClient(proxies={'http': proxy}, timeout=10) as client:
+        response = await client.get('http://www.baidu.com')
+        return response.status_code == 200
+
+async def check_https_proxy(proxy):
+    async with httpx.AsyncClient(proxies={'https': proxy}, timeout=10) as client:
+        response = await client.get('https://www.baidu.com')
+        return response.status_code == 200
+
+async def check_socks_proxy(proxy):
+    proxy_type, proxy_addr = proxy.split('://')
+    proxy_host, proxy_port = proxy_addr.split(':')
+    proxy_port = int(proxy_port)
+    try:
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(proxy_host, proxy_port), timeout=5)
+        writer.write(b'\x05\x01\x00')
+        await writer.drain()
+        response = await asyncio.wait_for(reader.readexactly(2), timeout=5)
+        writer.close()
+        await writer.wait_closed()
+        return response == b'\x05\x00'
+    except Exception:
+        return False
 
 async def check_proxies(proxies):
     valid_proxies = []
@@ -496,43 +493,47 @@ async def run_proxy_check(server):
             server.current_proxy = next(server.proxy_cycle)
             logging.info(f"Valid proxy addresses: {valid_proxies}")
         else:
-            logging.error("No valid proxy addresses")
+            logging.error("No valid proxy addresses found")
     else:
-        logging.info("Proxy check is disabled")
+        logging.info("Proxy checking is disabled")
 
 async def check_for_updates():
-    current_version = "ProxyCat-V1.6"
     try:
-        async with AsyncClient() as client:
+        async with httpx.AsyncClient() as client:
             response = await asyncio.wait_for(client.get("https://y.shironekosan.cn/1.html"), timeout=10)
             response.raise_for_status()
             content = response.text
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                if version.parse(latest_version.split('-V')[1]) > version.parse(current_version.split('-V')[1]):
-                    print(f"{Fore.YELLOW}New version found! Current version: {current_version}, Latest version: {latest_version}")
+                CURRENT_VERSION = "ProxyCat-V1.7"
+                if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
+                    print(f"{Fore.YELLOW}New version found! Current version: {CURRENT_VERSION}, Latest version: {latest_version}")
                     print(f"{Fore.YELLOW}Please visit https://pan.quark.cn/s/39b4b5674570 to get the latest version.")
-                    print(f"{Fore.YELLOW}Please visit https://github.com/honmashironeko/ProxyCat to get the latest version.")
+                    print(f"{Fore.YELLOW}Please visit https://github.com/honmashironeko/ProxyCat for the latest version.")
                     print(f"{Fore.YELLOW}Please visit https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5 to get the latest version.")
                 else:
-                    print(f"{Fore.GREEN}Current version is up-to-date ({current_version})")
+                    print(f"{Fore.GREEN}You are using the latest version ({CURRENT_VERSION})")
             else:
                 print(f"{Fore.RED}Unable to find version information in the response")
     except Exception as e:
-        print(f"{Fore.RED}Error checking for updates: {e}")
+        print(f"{Fore.RED}Error occurred while checking for updates: {e}")
 
 if __name__ == '__main__':
+    import argparse
     parser = argparse.ArgumentParser(description=logoprint.logos())
-    parser.add_argument('-c', '--config', default='config.ini', help='Configuration file path')
+    parser.add_argument('-c', '--config', default='config.ini', help='Path to configuration file')
     args = parser.parse_args()
+    
     config = load_config(args.config)
     server = AsyncProxyServer(config)
     print_banner(config)
     asyncio.run(check_for_updates())
     asyncio.run(run_proxy_check(server))
+    
     status_thread = threading.Thread(target=update_status, args=(server,), daemon=True)
     status_thread.start()
+    
     try:
         asyncio.run(run_server(server))
     except KeyboardInterrupt:
