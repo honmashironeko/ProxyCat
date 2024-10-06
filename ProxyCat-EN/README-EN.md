@@ -280,8 +280,6 @@ After actual testing, when the proxy address server has sufficient performance, 
 
 If you have good ideas or encounter bugs during use, please contact the author through the following methods to provide feedback!
 
-WeChat Public Account: **Honma Shironeko of Sakura Dormitory**
-
 ## Acknowledgements
 
 No particular order is given. Thanks to the mentors who provided help for this project.
