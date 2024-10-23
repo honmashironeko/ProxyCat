@@ -35,6 +35,10 @@ In summary, **ProxyCat** was born! This tool aims to transform short-lived IPs, 
 
 ## Features
 
+**Upstream multi protocol monitoring**
+
+- **Dual protocol support**: Supports SOCKS5 and HTTP protocol listening, adapts to more tools.
+
 **Multi-Protocol Support**
 
 - **SOCKS5 Proxy**: Supports the SOCKS5 protocol, suitable for various network environments.
@@ -54,6 +58,7 @@ In summary, **ProxyCat** was born! This tool aims to transform short-lived IPs, 
 
 - **Automatic Validity Detection**: Automatically checks the availability of proxies at startup, filtering out invalid proxies to ensure the reliability of the proxy list.
 - **Supports Multiple Protocols for Verification**: Specifically checks HTTP, HTTPS, and SOCKS5 proxies to improve validation accuracy.
+- **Support proxy failure switching**: In the process of forwarding traffic, if the proxy server suddenly fails, it can automatically switch to a new proxy.
 
 **Authentication Mechanism**
 
@@ -204,6 +209,11 @@ After actual testing, when the proxy address server has sufficient performance, 
 
 ## Changelog
 
+### **2024/10/23**
+
+- Refactor the code structure and split some of the code into separate files.
+- During the proxy process, if the proxy server suddenly fails, it will automatically request to replace the proxy server and reset the replacement timer.
+
 ### 2024/09/29
 
 - Removed the less-used single cycle mode and replaced it with a custom mode, allowing users to customize the proxy switching logic based on needs.
@@ -277,6 +287,9 @@ After actual testing, when the proxy address server has sufficient performance, 
 - [x] Performed batch validity checks on proxy servers in `ip.txt` during the first startup.
 - [x] Added local SOCKS protocol listening or fully switched to SOCKS to adapt to more software.
 - [ ] Added detailed logging to record the identity of all IPs connecting to ProxyCat and support multiple users.
+- [ ] Increase the web UI and provide a more powerful and user-friendly interface.
+- [ ] Add Docker one click deployment, simple and easy to use.
+- [ ] Develop a babycat module that can run babycat on any server or host, turning it into a proxy server.
 
 If you have good ideas or encounter bugs during use, please contact the author through the following methods to provide feedback!
 
