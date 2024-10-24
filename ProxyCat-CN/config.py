@@ -6,7 +6,7 @@ DEFAULT_CONFIG = {
     'interval': 300,
     'username': '',
     'password': '',
-    'use_getip': True,
+    'use_getip': False,
     'proxy_file': 'ip.txt'
 }
 
