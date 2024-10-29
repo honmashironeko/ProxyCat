@@ -8,6 +8,7 @@ DEFAULT_CONFIG = {
     'password': '',
     'use_getip': False,
     'proxy_file': 'ip.txt',
+    'check_proxies' : True
 }
 
 def load_config(config_file='config.ini'):
