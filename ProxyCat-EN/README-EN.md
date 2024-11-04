@@ -35,52 +35,17 @@ In summary, **ProxyCat** was born! This tool aims to transform short-lived IPs, 
 
 ## Features
 
-**Upstream multi protocol monitoring**
-
-- **Dual protocol support**: Supports SOCKS5 and HTTP protocol listening, adapts to more tools.
-
-**Multi-Protocol Support**
-
-- **SOCKS5 Proxy**: Supports the SOCKS5 protocol, suitable for various network environments.
-- **HTTP/HTTPS Proxy**: Supports HTTP and HTTPS proxies to meet different application scenarios.
-
-**Proxy Rotation Modes**
-
-- **Cycle Mode**: Sequentially cycles through each proxy in the list, ensuring balanced usage.
-- **Load Balance Mode**: Randomly selects available proxies to distribute traffic load and enhance performance.
-- **Custom Mode**: Allows users to customize proxy selection logic to flexibly meet specific needs.
-
-**Dynamic Proxy Acquisition**
-
-- **Acquire Proxies Using GetIP Function**: Supports dynamically obtaining real-time available proxies through the GetIP function, ensuring the proxies are current and valid.
-
-**Proxy Verification**
-
-- **Automatic Validity Detection**: Automatically checks the availability of proxies at startup, filtering out invalid proxies to ensure the reliability of the proxy list.
-- **Supports Multiple Protocols for Verification**: Specifically checks HTTP, HTTPS, and SOCKS5 proxies to improve validation accuracy.
-- **Support proxy failure switching**: In the process of forwarding traffic, if the proxy server suddenly fails, it can automatically switch to a new proxy.
-
-**Authentication Mechanism**
-
-- **Username/Password Authentication**: Supports proxy authentication based on username and password to enhance security and prevent unauthorized access.
-
-**High Concurrency Handling**
-
-- **Asynchronous Architecture**: Implements asynchronous processing based on `asyncio`, supporting large-scale concurrent connections suitable for high-traffic demands.
-
-**Logging and Monitoring**
-
-- **Colored Log Output**: Utilizes `colorama` for colored logs, facilitating real-time monitoring and debugging.
-- **Real-Time Status Updates**: Displays the current proxy status and the next switch time to help users understand proxy dynamics.
-
-**Flexible Configuration**
-
-- **Configurable Files**: Easily adjust parameters such as port, mode, and authentication information through the `config.ini` file to adapt to different usage scenarios.
-- **Command-Line Arguments**: Supports specifying the configuration file path via command-line arguments for increased convenience.
-
-**Automatic Update Checks**
-
-- **Version Detection**: Built-in version detection feature automatically checks for the latest version and notifies users to ensure continuous software optimization.
+- **Dual Protocol Support**: Supports listening for SOCKS5 and HTTP protocols, adapting to more tools.
+- **Multiple Proxy Protocols**: Supports HTTP/HTTPS/SOCKS5 proxy servers to meet the needs of different application scenarios.
+- **Various Switching Modes**: Uses each proxy in the list in a cyclic order to ensure balanced use; randomly selects available proxies to distribute traffic load and enhance performance. Allows users to customize proxy selection logic to flexibly meet specific needs.
+- **Function to Acquire Proxies**: Supports dynamically acquiring instantly available proxies through the GetIP function, ensuring the timeliness and effectiveness of proxies.
+- **Automatic Detection of Validity**: Automatically detects the availability of proxies at startup, filters out invalid ones, and ensures the reliability of the proxy list.
+- **Switch Only When Forwarding Through Proxies**: Changes to a new proxy server only when there is a new request as the timer counts down to zero, preventing continuous resource consumption during runtime.
+- **Support for Proxy Failure Switching**: In case a proxy server suddenly fails during traffic forwarding, it can automatically switch to a new one.
+- **Proxy Pool Authentication**: Supports authentication based on username and password for enhanced security against unauthorized access.
+- **Real-time Status Updates**: Displays current proxy status and next switching time, helping users understand dynamic changes in proxies.
+- **Configurable File**: Easily adjust parameters such as ports, modes, authentication information through config.ini file, accommodating various usage scenarios.
+- **Version Checking**: Built-in version checking feature that automatically checks for updates and reminds users to upgrade, ensuring ongoing software optimization.
 
 ## Installation and Usage
 
