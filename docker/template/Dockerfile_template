@@ -1,0 +1,12 @@
+FROM python:3.8
+
+WORKDIR /app
+
+COPY . /app
+RUN python -m venv /venv
+
+RUN {pip_install_cmd}
+
+EXPOSE 1080
+
+ENTRYPOINT ["/venv/bin/python", "{run_file}"]
