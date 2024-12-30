@@ -4,7 +4,7 @@
   <a href="/docker/README.md">简体中文</a>
 </p>
 
-Warning:, this document uses machine translation
+Warning: this document uses machine translation
 
 ## Why Use a Script to Generate Dockerfiles
 
