@@ -1,7 +1,7 @@
 ![ProxyCat](https://socialify.git.ci/honmashironeko/ProxyCat/image?description=1&descriptionEditable=%E4%B8%80%E6%AC%BE%E8%BD%BB%E9%87%8F%E7%BA%A7%E7%9A%84%E4%BC%98%E7%A7%80%E4%BB%A3%E7%90%86%E6%B1%A0%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%8C%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%90%86%E7%9A%84%E8%87%AA%E5%8A%A8%E8%BD%AE%E6%8D%A2&font=Bitter&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F139044047%3Fv%3D4&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Dark)
 
 <p align="center">
-  <a href="/ProxyCat-EN/README-EN.md">English</a>
+  <a href="/README-EN.md">English</a>
   ·
   <a href="/README.md">简体中文</a>
 </p>
@@ -31,7 +31,7 @@
 
 综上所述，**ProxyCat** 应运而生！本工具旨在将持续时间仅有1分钟至60分钟不等的短效IP转变为固定IP供其他工具使用，形成代理池服务器，部署一次即可永久使用。
 
-![项目原理图](./assets/202408260021207.png)
+![项目原理图](./assets/项目原理图.png)
 
 ## 功能特点
 
@@ -42,7 +42,7 @@
 - **自动检测有效性**：在启动时自动检测代理的可用性，过滤无效代理，确保代理列表的可靠性。
 - **仅在代理转发时切换**：在计时器归零时，有新的请求才会更换为新的代理服务器，防止运行时一直消耗资源。
 - **支持代理失效切换**：在转发流量过程中，遇到代理服务器突然失效，可自动切换到新的代理上。
-- **代理池身份认证**：支持基于用户名和密码的代理认证，增强代理的安全性，防止未授权访问。
+- **代理池身份认证**：支持基于用户名和密码的代理认证和黑白名单机制的代理认证，增强代理的安全性，防止未授权访问。
 - **实时状态更新**：显示当前代理状态和下次切换时间，帮助用户了解代理动态。
 - **可配置文件**：通过 config.ini 文件轻松调整端口、模式、认证信息等参数，适应不同使用场景。
 - **版本检测**：内置版本检测功能，自动检查最新版本并提醒用户更新，确保软件的持续优化。
@@ -124,6 +124,21 @@ proxy_file = ip.txt
 
 # 是否启用代理检测功能 True or False(默认为True)
 check_proxies = True
+
+# 语言设置 (cn/en)
+# Language setting (cn/en)
+language = cn
+
+# IP白名单文件路径（留空则不启用白名单）
+whitelist_file = whitelist.txt
+
+# IP黑名单文件路径（留空则不启用黑名单）
+blacklist_file = blacklist.txt
+
+# IP认证优先级（whitelist/blacklist）
+# whitelist: 优先判断白名单，在白名单中的IP直接放行
+# blacklist: 优先判断黑名单，在黑名单中的IP直接拒绝
+ip_auth_priority = whitelist
 ```
 
 配置对应参数后即可使用：
@@ -145,11 +160,11 @@ socks5://127.0.0.1:1080
 
 如果您是部署在公网，将 `127.0.0.1` 替换为您的公网IP即可。
 
-![界面展示图](./assets/Clip_2024-08-29_10-15-56.png)
+![主界面图](./assets/主界面图.png)
 
 ### 使用接口自动获取代理地址
 
-工具支持直接调用代理地址获取的API接口。当您配置 `use_getip = True` 时，工具将不再从本地 `ip.txt` 中读取代理地址，而是通过执行 **getip.py** 脚本来获取新的代理地址（请确保您的IP已加白名单）。
+工具支持直接调用代理地址获取的API接口。当您配置 `use_getip = True` 时，工具将不再从本地 `ip.txt` 中读取代理地址，而是通过执行 **getip.py** 脚本来获取新的代理地址（请确保您的IP已加白名单，并且格式为IP:端口，每次只能使用一个代理地址）。
 
 此时，您需要将 **getip.py** 的内容修改为您自己的接口，格式为 `IP:PORT`。默认为 `socks5` 协议，如需使用 `http`，请手动更改。
 
@@ -157,7 +172,7 @@ socks5://127.0.0.1:1080
 
 经过实际测试，在代理地址服务器性能充足的情况下，ProxyCat 能够处理 **1000** 并发连接且不丢包，基本可以覆盖大部分扫描和渗透测试需求。
 
-![性能测试图](./assets/8e3f79309626ed0e653ba51b6482bff.png)
+![性能测试图](./assets/性能测试图.png)
 
 ## 免责申明
 
@@ -169,6 +184,15 @@ socks5://127.0.0.1:1080
 - 您的下载、安装、使用等行为即视为您已阅读并同意上述协议的约束。
 
 ## 更新日志
+
+### 2025/01/02
+
+- 重构软件结构，更加整洁易用。
+- 新增支持黑白名单机制进行身份认证。
+- 在使用GetIP方式的时候，需要先收到一次请求才会获取代理，防止每次运行都浪费资金。
+- 语言配置逻辑更改，不再分为两个版本，通过config.ini文件中的语言配置参数进行显示。
+- 配置信息面板更新，不配置账号密码的情况下也能直接复制地址使用。
+- 新增docker方式部署。
 
 ### **2024/10/23**
 
@@ -249,7 +273,7 @@ socks5://127.0.0.1:1080
 - [x] 增加本地监听 SOCKS 协议，或全面改成 SOCKS，以适配更多软件。
 - [ ] 增加详细日志记录，记录所有连接 ProxyCat 的 IP 身份，支持多用户。
 - [ ] 增加Web UI，提供更加强大易用的界面。
-- [ ] 增加docker一键部署，简单易用。
+- [x] 增加docker一键部署，简单易用。
 - [ ] 开发 babycat 模块，可将 babycat 在任意服务器或主机上运行，即可变成一台代理服务器。
 
 如果您有好的创意，或在使用过程中遇到bug，请通过以下方式联系作者反馈！
@@ -262,7 +286,10 @@ socks5://127.0.0.1:1080
 
 - [AabyssZG (曾哥)](https://github.com/AabyssZG)
 - [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
+- [gh0stkey (EvilChen)](https://github.com/gh0stkey)
 - chars6
+- qianzai（千载）
+- ziwindlu
 
 ![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)
 
@@ -270,9 +297,11 @@ socks5://127.0.0.1:1080
 
 开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
 
-![赞助](./assets/202408260020820.png)
+![赞助](./assets/赞助.png)
 
 ## 代理推荐
 
 - [第一家便宜大碗代理购买，用邀请码注册得5000免费IP+10元优惠券](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
+- [国外匿名代理](https://www.ipmart.io?source=Shironeko)
+

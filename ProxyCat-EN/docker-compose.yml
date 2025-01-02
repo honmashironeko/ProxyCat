@@ -1,9 +1,0 @@
-services:
-  app:
-    build: .
-    volumes:
-      - "./config.ini:/app/config.ini"
-      - "./getip.py:/app/getip.py"
-      - "./ip.txt:/app/ip.txt"
-    ports:
-      - "1080:1080"
