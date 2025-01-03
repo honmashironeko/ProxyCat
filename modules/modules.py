@@ -328,7 +328,7 @@ async def check_for_updates(language='cn'):
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                CURRENT_VERSION = "ProxyCat-V1.9.1"
+                CURRENT_VERSION = "ProxyCat-V1.9.2"
                 if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
                     print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}")
                     print(f"{Fore.YELLOW}{get_message('visit_quark', language)}")
