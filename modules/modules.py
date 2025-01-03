@@ -325,7 +325,7 @@ async def check_for_updates(language='cn'):
             response = await asyncio.wait_for(client.get("https://y.shironekosan.cn/1.html"), timeout=10)
             response.raise_for_status()
             content = response.text
-            match = re.search(r'<p>(ProxyCat-V\d+\.\d+)</p>', content)
+            match = re.search(r'<p>(ProxyCat-V\d+\.\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
                 CURRENT_VERSION = "ProxyCat-V1.9.2"
