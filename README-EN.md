@@ -17,6 +17,7 @@
   - [Configuration File](#configuration-file)
   - [Demo Effect](#demo-effect)
   - [Using API for Automatic Proxy Retrieval](#using-api-for-automatic-proxy-retrieval)
+- [Docker Deployment](#docker-deployment)
 - [Performance](#performance)
 - [Disclaimer](#disclaimer)
 - [Change Log](#change-log)
@@ -164,6 +165,26 @@ The tool supports direct API calls to obtain proxy addresses. When you configure
 
 In this case, you need to modify the content of **getip.py** to your own API, with format `IP:PORT`. Default protocol is `socks5`, manually change to `http` if needed.
 
+### Docker Deployment
+
+Please install Docker and Docker-compose in advance. You can search for installation methods online.
+
+```
+# Clone the project source code locally
+git clone https://github.com/honmashironeko/ProxyCat.git
+
+# Modify the content in the config.ini file in the config folder
+
+# Enter the ProxyCat folder, build the image and start the container
+docker-compose up -d --build
+
+# Stop and start the service (you need to restart the service after modifying the configuration each time)
+docker-compose down | docker-compose up -d
+
+# View log information
+docker logs proxycat-app-1
+```
+
 ## Performance
 
 Through actual testing, when proxy server performance is sufficient, ProxyCat can handle **1000** concurrent connections without packet loss, covering most scanning and penetration testing needs.
@@ -180,6 +201,11 @@ Through actual testing, when proxy server performance is sufficient, ProxyCat ca
 - Your download, installation, and usage actions indicate you have read and agreed to be bound by the above agreement.
 
 ## Change Log
+
+### 2025/01/03
+
+- Centralize the management of configuration parameters into configuration files to improve maintenance convenience.
+- Fix some known bugs and improve stability and concurrency capabilities.
 
 ### 2025/01/02
 

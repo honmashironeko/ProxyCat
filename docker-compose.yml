@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    volumes:
+      - "./config:/app/config"
+    network_mode: host
+    command: ["python", "ProxyCat.py", "-c", "/app/config/config.ini"]

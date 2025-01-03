@@ -17,6 +17,7 @@
   - [配置文件](#配置文件)
   - [演示效果](#演示效果)
   - [使用接口自动获取代理地址](#使用接口自动获取代理地址)
+- [Docker方式部署](#Docker方式部署)
 - [性能表现](#性能表现)
 - [免责申明](#免责申明)
 - [更新日志](#更新日志)
@@ -35,7 +36,7 @@
 
 ## 功能特点
 
-- **双协议支持**：支持 SOCKS5 和 HTTP 协议监听，适配更多工具
+- **双协议支持**：支持 SOCKS5 和 HTTP 协议监听地址，适配更多工具。
 - **多重代理协议**：支持 HTTP/HTTPS/SOCKS5 代理服务器，满足不同应用场景需求。
 - **多种切换模式**：按照顺序循环使用代理列表中的每一个代理，确保均衡使用；随机选择可用代理，分摊流量负载，提升性能。允许用户自定义代理选择逻辑，灵活满足特定需求。
 - **函数获取代理**：支持通过 GetIP 函数动态获取即时可用的代理，保证代理的实时性和有效性。
@@ -119,6 +120,9 @@ password = 123456
 # 是否使用 getip 模块获取代理地址 True or False(默认为:False)
 use_getip = False
 
+# 获取新代理地址的URL
+getip_url = http://example.com/getip
+
 # 代理地址列表文件(默认为:ip.txt)
 proxy_file = ip.txt
 
@@ -126,7 +130,6 @@ proxy_file = ip.txt
 check_proxies = True
 
 # 语言设置 (cn/en)
-# Language setting (cn/en)
 language = cn
 
 # IP白名单文件路径（留空则不启用白名单）
@@ -166,7 +169,27 @@ socks5://127.0.0.1:1080
 
 工具支持直接调用代理地址获取的API接口。当您配置 `use_getip = True` 时，工具将不再从本地 `ip.txt` 中读取代理地址，而是通过执行 **getip.py** 脚本来获取新的代理地址（请确保您的IP已加白名单，并且格式为IP:端口，每次只能使用一个代理地址）。
 
-此时，您需要将 **getip.py** 的内容修改为您自己的接口，格式为 `IP:PORT`。默认为 `socks5` 协议，如需使用 `http`，请手动更改。
+此时，您需要保证 **getip.py** 获取到的地址信息格式为 `IP:PORT`。默认为 `socks5` 协议，如需使用 `http`，请手动更改。
+
+## Docker方式部署
+
+请提前安装好Docker和Docker-compose，具体安装方法可自行百度查询。
+
+```
+# 拉取项目源码到本地
+git clone https://github.com/honmashironeko/ProxyCat.git
+
+# 修改config文件夹中的config.ini中的内容
+
+# 进入ProxyCat文件夹中并构建镜像和启动容器
+docker-compose up -d --build
+
+# 停止服务和启动服务（每次修改完配置后需要重启服务）
+docker-compose down | docker-compose up -d
+
+# 查看日志信息
+docker logs proxycat-app-1
+```
 
 ## 性能表现
 
@@ -184,6 +207,11 @@ socks5://127.0.0.1:1080
 - 您的下载、安装、使用等行为即视为您已阅读并同意上述协议的约束。
 
 ## 更新日志
+
+### 2025/01/03
+
+- 集中配置参数到配置文件中管理，提升维护便利。
+- 修复部分已知BUG，并提升稳定性和并发能力。
 
 ### 2025/01/02
 
