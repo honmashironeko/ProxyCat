@@ -64,7 +64,7 @@ class AsyncProxyServer:
                 valid_proxies.append(new_ip)
                 break
         else:
-            logging.error("Failed to get a valid proxy after multiple attempts")
+            logging.error(get_message('multiple_proxy_fail', self.language))
             exit(1)
         return valid_proxies[0]
 
@@ -74,11 +74,11 @@ class AsyncProxyServer:
                 proxies = [line.strip() for line in file if '://' in line]
             valid_proxies = [p for p in proxies if validate_proxy(p)]
             if not valid_proxies:
-                logging.error("No valid proxies found in the file")
+                logging.error(get_message('no_valid_proxies', self.language))
                 exit(1)
             return valid_proxies
         except FileNotFoundError:
-            logging.error(f"Proxy file not found: {self.proxy_file}")
+            logging.error(get_message('proxy_file_not_found', self.language, self.proxy_file))
             exit(1)
 
     async def get_proxy(self):
@@ -87,7 +87,7 @@ class AsyncProxyServer:
         else:
             self.current_proxy = next(self.proxy_cycle)
         self.last_switch_time = time.time()
-        logging.info(f"Switched to proxy: {self.current_proxy}")
+        logging.info(get_message('proxy_switch', self.language, self.current_proxy))
 
     async def custom_proxy_switch(self):
         return self.proxies[0] if self.proxies else "No proxies available"
@@ -369,11 +369,11 @@ class AsyncProxyServer:
                 self._pipe(remote_reader, writer)
             )
         except asyncio.TimeoutError:
-            logging.error("Connection timeout")
+            logging.error(get_message('connect_timeout', self.language))
             writer.write(b'HTTP/1.1 504 Gateway Timeout\r\n\r\n')
             await writer.drain()
         except Exception as e:
-            logging.error("Proxy invalid, switching")
+            logging.error(get_message('proxy_invalid_switch', self.language))
             if not self.proxy_failed: 
                 self.proxy_failed = True  
                 await self.get_proxy() 

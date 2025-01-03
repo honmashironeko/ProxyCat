@@ -1,6 +1,4 @@
-requests
-pysocks
-colorama
-httpx
-packaging
-httpx[socks]
+colorama==0.4.6
+httpx==0.27.2
+packaging==24.1
+Requests==2.32.3
