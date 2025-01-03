@@ -40,6 +40,7 @@ class AsyncProxyServer:
         self.proxy_failed = False
         self.proxy_fail_count = 0
         self.max_fail_count = 2
+        self.semaphore = asyncio.Semaphore(10000)
 
     async def get_next_proxy(self):
         if self.mode == 'load_balance':
@@ -114,29 +115,30 @@ class AsyncProxyServer:
             return not self.blacklist
 
     async def handle_client(self, reader, writer):
-        try:
-            client_ip = writer.get_extra_info('peername')[0]
-            if not self.check_ip_auth(client_ip):
-                logging.warning(get_message('unauthorized_ip', self.language, client_ip))
+        async with self.semaphore:
+            try:
+                client_ip = writer.get_extra_info('peername')[0]
+                if not self.check_ip_auth(client_ip):
+                    logging.warning(get_message('unauthorized_ip', self.language, client_ip))
+                    writer.close()
+                    await writer.wait_closed()
+                    return
+
+                first_byte = await reader.read(1)
+                if not first_byte:
+                    return
+                
+                if (first_byte == b'\x05'):
+                    await self.handle_socks5_connection(reader, writer)
+                else: 
+                    await self._handle_client_impl(reader, writer, first_byte)
+            except asyncio.CancelledError:
+                logging.info(get_message('client_cancelled', self.language))
+            except Exception as e:
+                logging.error(get_message('client_error', self.language, e))
+            finally:
                 writer.close()
                 await writer.wait_closed()
-                return
-
-            first_byte = await reader.read(1)
-            if not first_byte:
-                return
-            
-            if (first_byte == b'\x05'):
-                await self.handle_socks5_connection(reader, writer)
-            else: 
-                await self._handle_client_impl(reader, writer, first_byte)
-        except asyncio.CancelledError:
-            logging.info(get_message('client_cancelled', self.language))
-        except Exception as e:
-            logging.error(get_message('client_error', self.language, e))
-        finally:
-            writer.close()
-            await writer.wait_closed()
 
     async def handle_socks5_connection(self, reader, writer):
         try:
@@ -238,7 +240,7 @@ class AsyncProxyServer:
 
     async def _pipe(self, reader, writer):
         try:
-            buffer_size = 32768
+            buffer_size = 65536 
             while True:
                 try:
                     data = await asyncio.wait_for(reader.read(buffer_size), timeout=30)
@@ -468,7 +470,7 @@ class AsyncProxyServer:
             writer.write(b'\r\n')
             await writer.drain()
 
-            async for chunk in response.aiter_bytes(chunk_size=32768):
+            async for chunk in response.aiter_bytes(chunk_size=65536):
                 if asyncio.current_task().cancelled():
                     raise asyncio.CancelledError
                 writer.write(f'{len(chunk):X}\r\n'.encode('utf-8', errors='ignore'))

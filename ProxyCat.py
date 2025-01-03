@@ -4,7 +4,6 @@ from modules.proxyserver import AsyncProxyServer
 from colorama import init, Fore, Style
 from itertools import cycle
 
-
 init(autoreset=True)
 
 class ColoredFormatter(logging.Formatter):
