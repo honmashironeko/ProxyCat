@@ -40,7 +40,10 @@ class AsyncProxyServer:
         self.proxy_failed = False
         self.proxy_fail_count = 0
         self.max_fail_count = 2
-        self.semaphore = asyncio.Semaphore(10000)
+        self.semaphore = asyncio.Semaphore(20000)
+        self.buffer_size = 256 * 1024
+        self.proxy_cache = {}
+        self.proxy_cache_ttl = 10
 
     async def get_next_proxy(self):
         if self.mode == 'load_balance':
@@ -240,10 +243,9 @@ class AsyncProxyServer:
 
     async def _pipe(self, reader, writer):
         try:
-            buffer_size = 65536 
             while True:
                 try:
-                    data = await asyncio.wait_for(reader.read(buffer_size), timeout=30)
+                    data = await asyncio.wait_for(reader.read(self.buffer_size), timeout=30)
                     if not data:
                         break
                     writer.write(data)
@@ -470,7 +472,8 @@ class AsyncProxyServer:
             writer.write(b'\r\n')
             await writer.drain()
 
-            async for chunk in response.aiter_bytes(chunk_size=65536):
+            chunk_size = 256 * 1024
+            async for chunk in response.aiter_bytes(chunk_size=chunk_size):
                 if asyncio.current_task().cancelled():
                     raise asyncio.CancelledError
                 writer.write(f'{len(chunk):X}\r\n'.encode('utf-8', errors='ignore'))
@@ -515,3 +518,14 @@ class AsyncProxyServer:
         await self.get_proxy()
         self.last_switch_time = time.time()
         logging.info(get_message('proxy_switched', self.language, old_proxy, self.current_proxy))
+
+    async def check_proxy(self, proxy):
+        current_time = time.time()
+        if proxy in self.proxy_cache:
+            cache_time, is_valid = self.proxy_cache[proxy]
+            if current_time - cache_time < self.proxy_cache_ttl:
+                return is_valid
+                
+        is_valid = await self._check_proxy_impl(proxy)
+        self.proxy_cache[proxy] = (current_time, is_valid)
+        return is_valid

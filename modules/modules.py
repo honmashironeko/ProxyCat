@@ -1,4 +1,4 @@
-import asyncio, logging, random, httpx, re, os
+import asyncio, logging, random, httpx, re, os, time
 from configparser import ConfigParser
 from packaging import version
 from colorama import Fore
@@ -270,7 +270,16 @@ def load_ip_list(file_path):
     with open(file_path, 'r') as f:
         return {line.strip() for line in f if line.strip()}
 
+_proxy_check_cache = {}
+_proxy_check_ttl = 10
+
 async def check_proxy(proxy):
+    current_time = time.time()
+    if proxy in _proxy_check_cache:
+        cache_time, is_valid = _proxy_check_cache[proxy]
+        if current_time - cache_time < _proxy_check_ttl:
+            return is_valid
+            
     proxy_type = proxy.split('://')[0]
     check_funcs = {
         'http': check_http_proxy,
@@ -282,9 +291,12 @@ async def check_proxy(proxy):
         return False
     
     try:
-        return await check_funcs[proxy_type](proxy)
+        is_valid = await check_funcs[proxy_type](proxy)
+        _proxy_check_cache[proxy] = (current_time, is_valid)
+        return is_valid
     except Exception as e:
         logging.error(f"{proxy_type.upper()}代理 {proxy} 检测失败: {e}")
+        _proxy_check_cache[proxy] = (current_time, False)
         return False
 
 async def check_http_proxy(proxy):

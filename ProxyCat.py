@@ -51,7 +51,12 @@ async def run_server(server):
     clients = set()
     server_instance = None
     try:
-        server_instance = await asyncio.start_server(lambda r, w: handle_client_wrapper(server, r, w, clients),'0.0.0.0', int(server.config['port']))
+        server_instance = await asyncio.start_server(
+            lambda r, w: handle_client_wrapper(server, r, w, clients),
+            '0.0.0.0', 
+            int(server.config['port']),
+            limit=256 * 1024
+        )
         async with server_instance:
             await server_instance.serve_forever()
     except asyncio.CancelledError:

@@ -202,10 +202,15 @@ Through actual testing, when proxy server performance is sufficient, ProxyCat ca
 
 ## Change Log
 
+### 2025/01/07
+
+- Added caching mechanism to proxy detection module to prevent frequent checks
+- Optimized error handling and logging
+
 ### 2025/01/03
 
-- Centralize the management of configuration parameters into configuration files to improve maintenance convenience.
-- Fix some known bugs and improve stability and concurrency capabilities.
+- Centralized configuration parameters management into config files for better maintenance
+- Fixed known bugs and improved stability and concurrency capabilities
 
 ### 2025/01/02
 
@@ -220,6 +225,47 @@ Through actual testing, when proxy server performance is sufficient, ProxyCat ca
 
 - Restructured code, split into separate files
 - Added automatic proxy switching when current proxy fails during forwarding
+
+### 2024/09/29
+
+- Removed less-used single cycle mode, replaced with custom mode for customizable proxy switching logic
+- Changed proxy validity checking to asynchronous for better speed
+- Removed problematic SOCKS4 protocol support
+- Beautified logging system
+- Improved exception handling logic
+- Added proxy format validation
+
+### 2024/09/10
+
+- Optimized concurrency efficiency, supporting next request before receiving response
+- Added load balancing mode for random proxy selection and concurrent proxy usage
+- Changed proxy validity checking to asynchronous for better efficiency
+
+### 2024/09/09
+
+- Added option to validate proxies in ip.txt at startup
+- Function downgrade to support lower Python versions
+
+### 2024/09/03
+
+- Added local SOCKS5 listening for wider software compatibility
+- Changed some functions to support lower Python versions
+- Beautified output display
+
+### 2024/08/31
+
+- Major project structure adjustment
+- Beautified display with continuous proxy switch time indication
+- Added Ctrl+C support for stopping
+- Major adjustment to async requests, improved concurrency efficiency
+- Changed from runtime parameters to local ini config file
+- Added support for local authentication-free mode
+- Added version detection
+- Added proxy server authentication
+- Added GetIP update only on request feature
+- Added proxy protocol auto-detection
+- Added HTTPS protocol support
+- Changed asyncio.timeout() to asyncio.wait_for() for lower Python version support
 
 [Additional change log entries follow similar pattern...]
 
