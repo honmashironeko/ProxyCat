@@ -47,6 +47,10 @@ class AsyncProxyServer:
         self.last_switch_attempt = 0
         self.switch_cooldown = 3
         self.switching_proxy = False
+        self.proxy_check_cache = {} 
+        self.proxy_check_ttl = 5   
+        self.check_cooldown = 1     
+        self.last_check_time = {}   
 
     async def get_next_proxy(self):
         if self.mode == 'load_balance':
@@ -517,6 +521,19 @@ class AsyncProxyServer:
     async def check_current_proxy(self):
         try:
             proxy = self.current_proxy
+            current_time = time.time()
+
+            if proxy in self.last_check_time:
+                if current_time - self.last_check_time[proxy] < self.check_cooldown:
+                    return self.proxy_check_cache.get(proxy, (current_time, True))[1]
+
+            if proxy in self.proxy_check_cache:
+                cache_time, is_valid = self.proxy_check_cache[proxy]
+                if current_time - cache_time < self.proxy_check_ttl:
+                    return is_valid
+
+            self.last_check_time[proxy] = current_time
+
             proxy_type = proxy.split('://')[0]
             async with httpx.AsyncClient(
                 proxies={f"{proxy_type}://": proxy},
@@ -524,9 +541,29 @@ class AsyncProxyServer:
                 verify=False
             ) as client:
                 response = await client.get('https://www.baidu.com')
-                return response.status_code == 200
+                is_valid = response.status_code == 200
+                self.proxy_check_cache[proxy] = (current_time, is_valid)
+                return is_valid
+
         except Exception:
+            self.proxy_check_cache[proxy] = (current_time, False)
             return False
+
+        finally:
+            self._clean_proxy_cache()
+
+    def _clean_proxy_cache(self):
+        current_time = time.time()
+        self.proxy_check_cache = {
+            proxy: (cache_time, is_valid)
+            for proxy, (cache_time, is_valid) in self.proxy_check_cache.items()
+            if current_time - cache_time < self.proxy_check_ttl
+        }
+        self.last_check_time = {
+            proxy: check_time
+            for proxy, check_time in self.last_check_time.items()
+            if current_time - check_time < self.proxy_check_ttl
+        }
 
     async def handle_proxy_failure(self):
         current_time = time.time()
