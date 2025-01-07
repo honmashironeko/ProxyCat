@@ -182,7 +182,7 @@ docker-compose up -d --build
 docker-compose down | docker-compose up -d
 
 # View log information
-docker logs proxycat-app-1
+docker logs proxycat
 ```
 
 ## Performance

@@ -189,7 +189,7 @@ docker-compose up -d --build
 docker-compose down | docker-compose up -d
 
 # 查看日志信息
-docker logs proxycat-app-1
+docker logs proxycat
 ```
 
 ## 性能表现
