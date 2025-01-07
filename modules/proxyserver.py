@@ -44,6 +44,9 @@ class AsyncProxyServer:
         self.buffer_size = 256 * 1024
         self.proxy_cache = {}
         self.proxy_cache_ttl = 10
+        self.last_switch_attempt = 0
+        self.switch_cooldown = 3
+        self.switching_proxy = False
 
     async def get_next_proxy(self):
         if self.mode == 'load_balance':
@@ -193,26 +196,50 @@ class AsyncProxyServer:
 
             dst_port = struct.unpack('!H', await reader.readexactly(2))[0]
 
-            proxy = await self.get_next_proxy()
-            proxy_type, proxy_addr = proxy.split('://')
-            proxy_auth, proxy_host_port = self._split_proxy_auth(proxy_addr)
-            proxy_host, proxy_port = proxy_host_port.split(':')
-            proxy_port = int(proxy_port)
+            retry_count = 2
+            while retry_count > 0:
+                try:
+                    proxy = await self.get_next_proxy()
+                    proxy_type, proxy_addr = proxy.split('://')
+                    proxy_auth, proxy_host_port = self._split_proxy_auth(proxy_addr)
+                    proxy_host, proxy_port = proxy_host_port.split(':')
+                    proxy_port = int(proxy_port)
 
-            remote_reader, remote_writer = await asyncio.open_connection(proxy_host, proxy_port)
+                    remote_reader, remote_writer = await asyncio.wait_for(
+                        asyncio.open_connection(proxy_host, proxy_port),
+                        timeout=10
+                    )
 
-            if proxy_type == 'socks5':
-                await self._initiate_socks5(remote_reader, remote_writer, dst_addr, dst_port)
-            elif proxy_type in ['http', 'https']:
-                await self._initiate_http(remote_reader, remote_writer, dst_addr, dst_port, proxy_auth)
+                    if proxy_type == 'socks5':
+                        await self._initiate_socks5(remote_reader, remote_writer, dst_addr, dst_port)
+                    elif proxy_type in ['http', 'https']:
+                        await self._initiate_http(remote_reader, remote_writer, dst_addr, dst_port, proxy_auth)
 
-            writer.write(b'\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00')
+                    writer.write(b'\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00')
+                    await writer.drain()
+
+                    await asyncio.gather(
+                        self._pipe(reader, remote_writer),
+                        self._pipe(remote_reader, writer)
+                    )
+                    self.proxy_fail_count = 0
+                    return
+
+                except (asyncio.TimeoutError, ConnectionRefusedError, ConnectionResetError):
+                    logging.warning(get_message('request_retry', self.language, retry_count-1))
+                    await self.handle_proxy_failure()
+                    retry_count -= 1
+                    if retry_count > 0:
+                        await asyncio.sleep(1)
+                    continue
+                except Exception as e:
+                    logging.error(get_message('socks5_connection_error', self.language, e))
+                    await self.handle_proxy_failure()
+                    break
+
+            writer.write(b'\x05\x01\x00\x01\x00\x00\x00\x00\x00\x00')
             await writer.drain()
 
-            await asyncio.gather(
-                self._pipe(reader, remote_writer),
-                self._pipe(remote_reader, writer)
-            )
         except Exception as e:
             logging.error(get_message('socks5_connection_error', self.language, e))
             writer.write(b'\x05\x01\x00\x01\x00\x00\x00\x00\x00\x00')
@@ -502,6 +529,11 @@ class AsyncProxyServer:
             return False
 
     async def handle_proxy_failure(self):
+        current_time = time.time()
+        
+        if self.switching_proxy or (current_time - self.last_switch_attempt) < self.switch_cooldown:
+            return
+            
         if await self.check_current_proxy():
             self.proxy_fail_count += 1
             if self.proxy_fail_count >= self.max_fail_count:
@@ -512,12 +544,24 @@ class AsyncProxyServer:
             await self.force_switch_proxy()
 
     async def force_switch_proxy(self):
-        self.proxy_failed = True
-        self.proxy_fail_count = 0
-        old_proxy = self.current_proxy
-        await self.get_proxy()
-        self.last_switch_time = time.time()
-        logging.info(get_message('proxy_switched', self.language, old_proxy, self.current_proxy))
+        current_time = time.time()
+        
+        if self.switching_proxy or (current_time - self.last_switch_attempt) < self.switch_cooldown:
+            return
+            
+        try:
+            self.switching_proxy = True
+            self.last_switch_attempt = current_time
+            
+            self.proxy_failed = True
+            self.proxy_fail_count = 0
+            old_proxy = self.current_proxy
+            await self.get_proxy()
+            self.last_switch_time = current_time
+            logging.info(get_message('proxy_switched', self.language, old_proxy, self.current_proxy))
+            self.proxy_failed = False
+        finally:
+            self.switching_proxy = False
 
     async def check_proxy(self, proxy):
         current_time = time.time()
