@@ -550,8 +550,6 @@ class AsyncProxyServer:
             self.switching_proxy = True
             self.last_switch_attempt = current_time
             
-            self.proxy_failed = True
-            self.proxy_fail_count = 0
             old_proxy = self.current_proxy
             await self.get_proxy()
             self.last_switch_time = current_time

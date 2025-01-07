@@ -204,8 +204,9 @@ Through actual testing, when proxy server performance is sufficient, ProxyCat ca
 
 ### 2025/01/07
 
-- Added caching mechanism to proxy detection module to prevent frequent checks
-- Optimized error handling and logging
+- Introduced connection pool mechanism to improve performance.
+- Optimized error handling and logging.
+- Enhanced proxy switching mechanism.
 
 ### 2025/01/03
 
@@ -266,8 +267,6 @@ Through actual testing, when proxy server performance is sufficient, ProxyCat ca
 - Added proxy protocol auto-detection
 - Added HTTPS protocol support
 - Changed asyncio.timeout() to asyncio.wait_for() for lower Python version support
-
-[Additional change log entries follow similar pattern...]
 
 ## Development Plan
 
