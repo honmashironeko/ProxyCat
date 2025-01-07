@@ -1,7 +1,9 @@
 services:
   app:
     build: .
+    container_name: proxycat
     volumes:
       - "./config:/app/config"
     network_mode: host
     command: ["python", "ProxyCat.py", "-c", "/app/config/config.ini"]
+    restart: always
