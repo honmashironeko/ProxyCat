@@ -1,5 +1,6 @@
 from modules.modules import load_config, DEFAULT_CONFIG, check_proxies, check_for_updates, get_message, print_banner, logos
-import threading, argparse, logging, asyncio, time
+import threading, argparse, logging, asyncio, time, socket, signal, sys, os
+from concurrent.futures import ThreadPoolExecutor
 from modules.proxyserver import AsyncProxyServer
 from colorama import init, Fore, Style
 from itertools import cycle
@@ -82,6 +83,67 @@ async def run_proxy_check(server):
             logging.error(get_message('no_valid_proxies', server.language))
     else:
         logging.info(get_message('proxy_check_disabled', server.language))
+
+class ProxyCat:
+    def __init__(self):
+        self.executor = ThreadPoolExecutor(
+            max_workers=min(32, (os.cpu_count() or 1) * 4),
+            thread_name_prefix="proxy_worker"
+        )
+
+        loop = asyncio.get_event_loop()
+        loop.set_default_executor(self.executor)
+        
+        if hasattr(asyncio, 'WindowsSelectorEventLoopPolicy'):
+            if os.name == 'nt':
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        socket.setdefaulttimeout(30)
+        if hasattr(socket, 'TCP_NODELAY'):
+            socket.TCP_NODELAY = True
+        
+        self.running = True
+
+        signal.signal(signal.SIGINT, self.handle_shutdown)
+        signal.signal(signal.SIGTERM, self.handle_shutdown)
+
+    async def start_server(self):
+        try:
+            server = await asyncio.start_server(
+                self.handle_client,
+                self.config.get('SERVER', 'host'),
+                self.config.get('SERVER', 'port')
+            )
+            print(f"代理服务器运行在 {self.config.get('SERVER', 'host')}:{self.config.get('SERVER', 'port')}")
+            
+            async with server:
+                await server.serve_forever()
+        except Exception as e:
+            print(f"服务器启动错误: {e}")
+            sys.exit(1)
+
+    def handle_shutdown(self, signum, frame):
+        print("\n正在关闭服务器...")
+        self.running = False
+        self.executor.shutdown(wait=True)
+        sys.exit(0)
+
+    async def handle_client(self, reader, writer):
+        try:
+            await asyncio.get_event_loop().run_in_executor(
+                self.executor, 
+                self.process_client_request,
+                reader, 
+                writer
+            )
+        except Exception as e:
+            print(f"处理客户端请求时出错: {e}")
+        finally:
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except:
+                pass
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=logos())
