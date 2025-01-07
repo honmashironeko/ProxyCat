@@ -30,12 +30,23 @@ logging.basicConfig(level=logging.INFO, handlers=[console_handler])
 
 def update_status(server):
     while True:
-        if server.mode == 'load_balance':
-            status = f"\r{Fore.YELLOW}{get_message('current_proxy', server.language)}: {Fore.GREEN}{server.current_proxy}"
-        else:
-            time_left = server.time_until_next_switch()
-            status = f"\r{Fore.YELLOW}{get_message('current_proxy', server.language)}: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}{get_message('next_switch', server.language)}: {Fore.GREEN}{time_left:.1f}{get_message('seconds', server.language)}"
-        print(status, end='', flush=True)
+        try:
+            if server.mode == 'load_balance':
+                status = f"\r{Fore.YELLOW}{get_message('current_proxy', server.language)}: {Fore.GREEN}{server.current_proxy}"
+            else:
+                time_left = server.time_until_next_switch()
+                if time_left == float('inf'):
+                    status = f"\r{Fore.YELLOW}{get_message('current_proxy', server.language)}: {Fore.GREEN}{server.current_proxy}"
+                else:
+                    status = f"\r{Fore.YELLOW}{get_message('current_proxy', server.language)}: {Fore.GREEN}{server.current_proxy} | {Fore.YELLOW}{get_message('next_switch', server.language)}: {Fore.GREEN}{time_left:.1f}{get_message('seconds', server.language)}"
+
+            if os.path.exists('/.dockerenv'):
+                logging.info(status)
+            else:
+                print(status, end='', flush=True)
+                
+        except Exception as e:
+            logging.error(f"Status update error: {e}")
         time.sleep(1)
 
 async def handle_client_wrapper(server, reader, writer, clients):

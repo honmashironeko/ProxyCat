@@ -10,5 +10,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 1080
 
-CMD ["python", "ProxyCat.py", "-c", "/app/config/config.ini"]
+CMD ["python", "ProxyCat.py"]
 

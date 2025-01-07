@@ -1,4 +1,4 @@
-import asyncio, httpx, logging, re, socket, struct, time, socket, base64, random
+import asyncio, httpx, logging, re, socket, struct, time, socket, base64, random, os
 from modules.modules import get_message, load_ip_list
 from asyncio import TimeoutError
 from itertools import cycle
@@ -612,3 +612,16 @@ class AsyncProxyServer:
             print(f"{direction} 数据传输超时")
         except Exception as e:
             print(f"{direction} 数据传输错误: {e}")
+
+    def is_docker():
+        return os.path.exists('/.dockerenv')
+
+    async def get_proxy_status(self):
+        if self.mode == 'load_balance':
+            return f"{get_message('current_proxy', self.language)}: {self.current_proxy}"
+        else:
+            time_left = self.time_until_next_switch()
+            if time_left == float('inf'):
+                return f"{get_message('current_proxy', self.language)}: {self.current_proxy}"
+            else:
+                return f"{get_message('current_proxy', self.language)}: {self.current_proxy} | {get_message('next_switch', self.language)}: {time_left:.1f}{get_message('seconds', self.language)}"
