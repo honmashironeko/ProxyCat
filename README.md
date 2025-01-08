@@ -43,7 +43,7 @@
 
 ## 工具使用
 
-[ProxyCat操作手册](../ProxyCat-Manual/Operation%20Manual.md)
+[ProxyCat操作手册](../main/ProxyCat-Manual/Operation%20Manual.md)
 
 ## 报错排查
 
