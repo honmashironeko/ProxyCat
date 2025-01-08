@@ -43,11 +43,11 @@
 
 ## 工具使用
 
-[ProxyCat操作手册](#./ProxyCat-Manual/Operation Manual.md)
+[ProxyCat操作手册](../ProxyCat-Manual/Operation Manual.md)
 
 ## 报错排查
 
-[ProxyCat排查手册](./ProxyCat-Manual/Investigation Manual.md)
+[ProxyCat排查手册](../ProxyCat-Manual/Investigation Manual.md)
 
 ## 免责申明
 
@@ -60,7 +60,7 @@
 
 ## 更新日志
 
-[更新日志记录](./ProxyCat-Manual/logs.md)
+[更新日志记录](../ProxyCat-Manual/logs.md)
 
 ## 开发计划
 
