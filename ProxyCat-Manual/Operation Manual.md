@@ -6,7 +6,7 @@
 
 **Windows&Mac**：浏览器访问位于 Github 的源码存储库并下载：[ProxyCat](https://github.com/honmashironeko/ProxyCat)
 
-![Windows Download](./%E6%93%8D%E4%BD%9C%E6%89%8B%E5%86%8C.assets/Windows Download.png)
+![Windows Download](./Operation Manual.assets/Windows Download.png)
 
 **Linux**：通过 Git 方法拉取项目到本地
 
@@ -14,7 +14,7 @@
 git clone https://github.com/honmashironeko/ProxyCat.git
 ```
 
-![Linux Download](./%E6%93%8D%E4%BD%9C%E6%89%8B%E5%86%8C.assets/Linux Download.png)
+![Linux Download](./Operation Manual.assets/Linux Download.png)
 
 安装 Python 依赖（**请尽量保证Python版本为3.8-3.11**）
 
@@ -51,17 +51,17 @@ getip_url = 获取代理地址的 API 接口
 python ProxyCat.py
 ```
 
-![Run](./%E6%93%8D%E4%BD%9C%E6%89%8B%E5%86%8C.assets/Run.png)
+![Run](./Operation Manual.assets/Run.png)
 
 ### Docker 手册
 
 Windows 可以下载 Docker 官方工具：[Docker Desktop](docs.dockerd.com.cn)
 
-![Docker Desktop Download](./%E6%93%8D%E4%BD%9C%E6%89%8B%E5%86%8C.assets/Docker Desktop Download.png)
+![Docker Desktop Download](./Operation Manual.assets/Docker Desktop Download.png)
 
 Linux 可以通过清华大学源提供的脚本一键安装：[清华大学安装脚本](https://mirrors.tuna.tsinghua.edu.cn/help/docker-ce/)
 
-![Docker Download](./%E6%93%8D%E4%BD%9C%E6%89%8B%E5%86%8C.assets/Docker Download.png)
+![Docker Download](./Operation Manual.assets/Docker Download.png)
 
 安装完成后请测试docker、docker-compose是否安装成功，如果安装失败请百度
 
