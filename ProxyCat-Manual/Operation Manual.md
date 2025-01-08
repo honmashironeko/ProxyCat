@@ -6,7 +6,7 @@
 
 **Windows&Mac**：浏览器访问位于 Github 的源码存储库并下载：[ProxyCat](https://github.com/honmashironeko/ProxyCat)
 
-![Windows Download](./Operation Manual.assets/Windows Download.png)
+![Windows Download](./Operation%20Manual.assets/Windows%20Download.png)
 
 **Linux**：通过 Git 方法拉取项目到本地
 
