@@ -81,7 +81,7 @@ docker logs proxycat
 ## 问题Q&A
 
 Q：为什么运行后我的XXX工具代理还是没换？
-A：ProxyCat 并不是全局代理工具，需要XXX工具支持使用代理，将流量发送到 ProxyCat 的本地监听端口才会进过代理池。
+A：ProxyCat 并不是全局代理工具，需要XXX工具支持使用代理，将流量发送到 ProxyCat 的本地监听端口才会经过代理池。
 
 
 
