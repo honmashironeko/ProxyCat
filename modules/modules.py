@@ -149,11 +149,19 @@ MESSAGES = {
     }
 }
 
-def get_message(key, lang='cn', *args):
-    try:
-        return MESSAGES[lang][key].format(*args) if args else MESSAGES[lang][key]
-    except KeyError:
-        return MESSAGES['cn'][key] if key in MESSAGES['cn'] else key
+class MessageManager:
+    def __init__(self, messages=MESSAGES):
+        self.messages = messages
+        self.default_lang = 'cn'
+
+    def get(self, key, lang='cn', *args):
+        try:
+            return self.messages[lang][key].format(*args) if args else self.messages[lang][key]
+        except KeyError:
+            return self.messages[self.default_lang][key] if key in self.messages[self.default_lang] else key
+
+message_manager = MessageManager(MESSAGES)
+get_message = message_manager.get
 
 def print_banner(config):
     language = config.get('language', 'cn').lower()
@@ -275,6 +283,21 @@ def load_ip_list(file_path):
 _proxy_check_cache = {}
 _proxy_check_ttl = 10
 
+def parse_proxy(proxy):
+    try:
+        protocol = proxy.split('://')[0]
+        remaining = proxy.split('://')[1]
+        
+        if '@' in remaining:
+            auth, address = remaining.split('@')
+            host, port = address.split(':')
+            return protocol, auth, host, int(port)
+        else:
+            host, port = remaining.split(':')
+            return protocol, None, host, int(port)
+    except Exception:
+        return None, None, None, None
+
 async def check_proxy(proxy):
     current_time = time.time()
     if proxy in _proxy_check_cache:
@@ -302,27 +325,71 @@ async def check_proxy(proxy):
         return False
 
 async def check_http_proxy(proxy):
-    async with httpx.AsyncClient(proxies={'http://': proxy}, timeout=10) as client:
-        response = await client.get('http://www.baidu.com')
-        return response.status_code == 200
+    protocol, auth, host, port = parse_proxy(proxy)
+    proxies = {}
+    if auth:
+        proxies['http://'] = f'{protocol}://{auth}@{host}:{port}'
+        proxies['https://'] = f'{protocol}://{auth}@{host}:{port}'
+    else:
+        proxies['http://'] = f'{protocol}://{host}:{port}'
+        proxies['https://'] = f'{protocol}://{host}:{port}'
+        
+    try:
+        async with httpx.AsyncClient(proxies=proxies, timeout=10, verify=False) as client:
+            try:
+                response = await client.get('https://www.baidu.com')
+                return response.status_code == 200
+            except:
+                response = await client.get('http://www.baidu.com')
+                return response.status_code == 200
+    except:
+        return False
 
 async def check_https_proxy(proxy):
-    async with httpx.AsyncClient(proxies={'https://': proxy}, timeout=10) as client:
-        response = await client.get('https://www.baidu.com')
-        return response.status_code == 200
+    return await check_http_proxy(proxy)
 
 async def check_socks_proxy(proxy):
-    proxy_type, proxy_addr = proxy.split('://')
-    proxy_host, proxy_port = proxy_addr.split(':')
-    proxy_port = int(proxy_port)
+    protocol, auth, host, port = parse_proxy(proxy)
+    if not all([host, port]):
+        return False
+        
     try:
-        reader, writer = await asyncio.wait_for(asyncio.open_connection(proxy_host, proxy_port), timeout=5)
-        writer.write(b'\x05\x01\x00')
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=5)
+        
+        if auth:
+            writer.write(b'\x05\x02\x00\x02')
+        else:
+            writer.write(b'\x05\x01\x00')
+            
         await writer.drain()
-        response = await asyncio.wait_for(reader.readexactly(2), timeout=5)
+        
+        auth_method = await asyncio.wait_for(reader.readexactly(2), timeout=5)
+        if auth_method[0] != 0x05:
+            return False
+            
+        if auth_method[1] == 0x02 and auth:
+            username, password = auth.split(':')
+            auth_packet = bytes([0x01, len(username)]) + username.encode() + bytes([len(password)]) + password.encode()
+            writer.write(auth_packet)
+            await writer.drain()
+            
+            auth_response = await asyncio.wait_for(reader.readexactly(2), timeout=5)
+            if auth_response[1] != 0x00:
+                return False
+        
+        domain = b"www.baidu.com"
+        writer.write(b'\x05\x01\x00\x03' + bytes([len(domain)]) + domain + b'\x00\x50')
+        await writer.drain()
+        
+        response = await asyncio.wait_for(reader.readexactly(10), timeout=5)
         writer.close()
-        await writer.wait_closed()
-        return response == b'\x05\x00'
+        try:
+            await writer.wait_closed()
+        except:
+            pass
+        
+        return response[1] == 0x00
+        
     except Exception:
         return False
 

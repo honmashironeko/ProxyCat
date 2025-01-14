@@ -10,8 +10,13 @@ def load_proxies(file_path='ip.txt'):
         return [line.strip() for line in file if '://' in line]
 
 def validate_proxy(proxy):
-    pattern = re.compile(r'^(?P<scheme>socks5|http|https)://(?P<host>[^:]+):(?P<port>\d+)$')
-    return pattern.match(proxy) is not None
+    pattern = re.compile(r'^(?P<scheme>socks5|http|https)://(?:(?P<auth>[^@]+)@)?(?P<host>[^:]+):(?P<port>\d+)$')
+    match = pattern.match(proxy)
+    if not match:
+        return False
+    
+    port = int(match.group('port'))
+    return 0 < port < 65536
 
 class AsyncProxyServer:
     def __init__(self, config):
@@ -258,14 +263,56 @@ class AsyncProxyServer:
             await writer.drain()
 
     async def _initiate_socks5(self, remote_reader, remote_writer, dst_addr, dst_port):
-        remote_writer.write(b'\x05\x01\x00')
-        await remote_writer.drain()
-        await remote_reader.readexactly(2)
-        
-        remote_writer.write(b'\x05\x01\x00' + (b'\x03' + len(dst_addr).to_bytes(1, 'big') + dst_addr.encode() if isinstance(dst_addr, str) else b'\x01' + socket.inet_aton(dst_addr)) + struct.pack('!H', dst_port))
-        await remote_writer.drain()
-        
-        await remote_reader.readexactly(10)
+        try:
+            auth = None
+            proxy_type, proxy_addr = self.current_proxy.split('://')
+            if '@' in proxy_addr:
+                auth, _ = proxy_addr.split('@')
+
+            if auth:
+                remote_writer.write(b'\x05\x02\x00\x02')
+            else:
+                remote_writer.write(b'\x05\x01\x00')
+                
+            await remote_writer.drain()
+            
+            auth_method = await remote_reader.readexactly(2)
+            if auth_method[0] != 0x05:
+                raise Exception("Invalid SOCKS5 proxy response")
+                
+            if auth_method[1] == 0x02 and auth:
+                username, password = auth.split(':')
+                auth_packet = bytes([0x01, len(username)]) + username.encode() + bytes([len(password)]) + password.encode()
+                remote_writer.write(auth_packet)
+                await remote_writer.drain()
+                
+                auth_response = await remote_reader.readexactly(2)
+                if auth_response[1] != 0x00:
+                    raise Exception("Authentication failed")
+
+            if isinstance(dst_addr, str):
+                remote_writer.write(b'\x05\x01\x00\x03' + len(dst_addr).to_bytes(1, 'big') + 
+                                  dst_addr.encode() + dst_port.to_bytes(2, 'big'))
+            else:
+                remote_writer.write(b'\x05\x01\x00\x01' + socket.inet_aton(dst_addr) + 
+                                  dst_port.to_bytes(2, 'big'))
+            
+            await remote_writer.drain()
+            
+            response = await remote_reader.readexactly(4)
+            if response[1] != 0x00:
+                raise Exception(f"Connection failed with code {response[1]}")
+
+            if response[3] == 0x01: 
+                await remote_reader.readexactly(6)
+            elif response[3] == 0x03:
+                domain_len = (await remote_reader.readexactly(1))[0]
+                await remote_reader.readexactly(domain_len + 2) 
+            elif response[3] == 0x04: 
+                await remote_reader.readexactly(18) 
+                
+        except Exception as e:
+            raise Exception(f"SOCKS5 initialization failed: {str(e)}")
 
     async def _initiate_http(self, remote_reader, remote_writer, dst_addr, dst_port, proxy_auth):
         connect_request = f'CONNECT {dst_addr}:{dst_port} HTTP/1.1\r\nHost: {dst_addr}:{dst_port}\r\n'
@@ -421,6 +468,77 @@ class AsyncProxyServer:
             if username and password:
                 return f"{username}:{password}", host
         return None, proxy_addr
+
+    async def _handle_request(self, method, path, headers, reader, writer):
+        async with self.request_semaphore:
+            try:
+                proxy = await self.get_next_proxy()
+                key = f"{proxy}:{path}"
+                
+                proxy_headers = headers.copy()
+                proxy_type, proxy_addr = proxy.split('://')
+                if '@' in proxy_addr:
+                    auth, _ = proxy_addr.split('@')
+                    auth_header = f'Basic {base64.b64encode(auth.encode()).decode()}'
+                    proxy_headers['Proxy-Authorization'] = auth_header
+                
+                if key in self.connection_pool:
+                    client = self.connection_pool[key]
+                else:
+                    client = await self._create_client(proxy)
+                    self.connection_pool[key] = client
+
+                async with client.stream(
+                    method,
+                    path,
+                    headers=proxy_headers, 
+                    content=reader,
+                ) as response:
+                    writer.write(f'HTTP/1.1 {response.status_code} {response.reason_phrase}\r\n'.encode())
+                    
+                    for header_name, header_value in response.headers.items():
+                        if header_name.lower() != 'transfer-encoding': 
+                            writer.write(f'{header_name}: {header_value}\r\n'.encode())
+                    writer.write(b'\r\n')
+                    
+                    async for chunk in response.aiter_bytes(chunk_size=self.buffer_size):
+                        writer.write(chunk)
+                        if len(chunk) >= self.buffer_size:
+                            await writer.drain()
+                    
+                    await writer.drain()
+                    
+            except Exception as e:
+                logging.error(f"请求处理错误: {e}")
+                writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
+                await writer.drain()
+            finally:
+                await self._cleanup_connections()
+
+    async def _create_client(self, proxy):
+        proxy_type, proxy_addr = proxy.split('://')
+        proxy_auth = None
+        
+        if '@' in proxy_addr:
+            auth, proxy_addr = proxy_addr.split('@')
+            proxy_auth = auth
+        
+        if proxy_auth:
+            proxy_url = f"{proxy_type}://{proxy_auth}@{proxy_addr}"
+        else:
+            proxy_url = f"{proxy_type}://{proxy_addr}"
+            
+        return httpx.AsyncClient(
+            proxies={"all://": proxy_url},
+            limits=httpx.Limits(
+                max_keepalive_connections=100,
+                max_connections=1000,
+                keepalive_expiry=30
+            ),
+            timeout=30.0,
+            http2=True,
+            verify=False 
+        )
 
     async def _handle_request(self, method, path, headers, reader, writer):
         async with self.request_semaphore:
@@ -625,3 +743,22 @@ class AsyncProxyServer:
                 return f"{get_message('current_proxy', self.language)}: {self.current_proxy}"
             else:
                 return f"{get_message('current_proxy', self.language)}: {self.current_proxy} | {get_message('next_switch', self.language)}: {time_left:.1f}{get_message('seconds', self.language)}"
+
+    async def _handle_proxy_error(self, error_type, details=None):
+        error_messages = {
+            'timeout': get_message('connect_timeout', self.language),
+            'invalid': get_message('proxy_invalid', self.language, details),
+            'switch': get_message('proxy_invalid_switching', self.language)
+        }
+        logging.error(error_messages.get(error_type, str(details)))
+        if error_type in ['timeout', 'invalid']:
+            await self.handle_proxy_failure()
+
+    async def check_proxy(self, proxy):
+        cache_key = f"{proxy}_{time.time() // self.proxy_cache_ttl}"
+        if cache_key in self.proxy_cache:
+            return self.proxy_cache[cache_key]
+
+        is_valid = await self._check_proxy_impl(proxy)
+        self.proxy_cache[cache_key] = is_valid
+        return is_valid
