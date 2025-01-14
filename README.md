@@ -81,6 +81,7 @@
 - [AabyssZG (曾哥)](https://github.com/AabyssZG)
 - [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
 - [gh0stkey (EvilChen)](https://github.com/gh0stkey)
+- [huangzheng2016(HydrogenE7)](https://github.com/huangzheng2016)
 - chars6
 - qianzai（千载）
 - ziwindlu
