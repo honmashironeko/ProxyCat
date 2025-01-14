@@ -29,7 +29,10 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 1️⃣如果您的代理服务器地址为固定的连接，不需要动态更换，可以使用本地 ip.txt 的方式提供格式如下所示
 
 ```
-# 支持 http/https/socks5 三种代理服务器地址
+# 支持 http/https/socks5 三种代理服务器地址，支持账号密码校验
+socks5://neko:123456@127.0.0.1:7890
+https://neko:123456@127.0.0.1:7890
+http://neko:123456@127.0.0.1:7890
 socks5://127.0.0.1:7890
 https://127.0.0.1:7890
 http://127.0.0.1:7890
@@ -95,6 +98,17 @@ A：ProxyCat 为了节约硬件资源和代理服务器资源，特意修改运�
 Q：为什么我用 getip 方式获取代理地址的时候，首次运行会报 None ，没有可用的代理地址？
 
 A：为了防止资源浪费，通过 getip 获取的情况一般是付费购买静态短效IP，运行就获取的话会浪费大量资源从而导致资金损耗，为避免这种情况发生，首次运行不会主动获取，您只需要正常使用发包，ProxyCat 会自动获取并发送。
+
+
+
+Q：getip.py 当中的appKey和anquanma是做什么的？
+
+A：这两个参数是用作自动将当前请求IP添加到服务商（请查看readme中最下面的第一个推荐）的白名单中，免去每次IP变更需重新添加的烦恼，其中anquanma(安全码)需要到个人中心配置。
+
+
+
+Q：我自己有静态IP提供地址该怎么用？
+A：将地址填入getip_url，如果有账号密码请写在 proxy_username 、proxy_password 。
 
 
 
