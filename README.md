@@ -90,6 +90,8 @@
 
 开源不易，如果您觉得工具不错，或许可以试着赞助一下作者的开发哦~
 
+[赞助榜单](https://github.com/honmashironeko/Thanks-for-sponsorship)
+
 ![赞助](./assets/赞助.png)
 
 ## 代理推荐
