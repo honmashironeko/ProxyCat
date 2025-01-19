@@ -96,7 +96,7 @@
 |  1   |      **陆沉**       |    1266.62     |
 |  2   | **柯林斯.民间新秀** |      696       |
 |  3   |      **taffy**      |      150       |
-[赞助榜单](https://github.com/honmashironeko/Thanks-for-sponsorship) 您的每一份赞助都是作者源源不断的动力！
+|  [赞助榜单](https://github.com/honmashironeko/Thanks-for-sponsorship)   |     您的每一份赞助都是作者源源不断的动力！      |      (´∀｀)♡       |
 
 ---
 ![赞助](./assets/赞助.png)
