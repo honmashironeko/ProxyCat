@@ -40,7 +40,7 @@ class AsyncProxyServer:
         else:
             self.proxies = []
             self.proxy_cycle = None
-            self.current_proxy = None
+            self.current_proxy = get_message('api_mode_notice', self.language)
         
         self.last_switch_time = time.time()
         self.rate_limiter = asyncio.Queue(maxsize=3000)

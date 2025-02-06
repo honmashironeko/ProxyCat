@@ -73,7 +73,8 @@ MESSAGES = {
         'consecutive_failures': '检测到连续代理失败: {}',
         'invalid_proxy': '当前代理无效: {}',
         'proxy_switched': '已从代理 {} 切换到 {}',
-        'whitelist_error': '添加白名单失败: {}'
+        'whitelist_error': '添加白名单失败: {}',
+        'api_mode_notice': '当前为API模式，收到请求将自动获取代理地址'
     },
     'en': {
         'getting_new_proxy': 'Getting new proxy IP',
@@ -145,7 +146,8 @@ MESSAGES = {
         'consecutive_failures': 'Consecutive proxy failures detected for {}',
         'invalid_proxy': 'Current proxy is invalid: {}',
         'proxy_switched': 'Switched from proxy {} to {}',
-        'whitelist_error': 'Failed to add whitelist: {}'
+        'whitelist_error': 'Failed to add whitelist: {}',
+        'api_mode_notice': 'Currently in API mode, proxy address will be automatically obtained upon request'
     }
 }
 
@@ -409,7 +411,7 @@ async def check_for_updates(language='cn'):
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                CURRENT_VERSION = "ProxyCat-V1.9.4"
+                CURRENT_VERSION = "ProxyCat-V1.9.5"
                 if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
                     print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}")
                     print(f"{Fore.YELLOW}{get_message('visit_quark', language)}")

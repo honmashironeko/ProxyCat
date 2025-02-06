@@ -4,9 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip -i https://pypi.mirrors.ustc.edu.cn/simple/
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.mirrors.ustc.edu.cn/simple/
 
 EXPOSE 1080
 

@@ -1,10 +1,8 @@
 from modules.modules import get_message, load_config
 import requests
-
-first_run_flag = True
+import time
 
 def newip():
-    global first_run_flag
     config = load_config()
     language = config.get('language', 'cn')
 
@@ -14,13 +12,6 @@ def newip():
         raise ValueError(f"{error_type}: {details}")
 
     try:
-        if first_run_flag:
-            appKey = ""
-            anquanma = ""
-            whitelist_url = f"https://sch.shanchendaili.com/api.html?action=addWhiteList&appKey={appKey}&anquanma={anquanma}"
-            requests.get(whitelist_url).raise_for_status()
-            first_run_flag = False
-
         url = config.get('getip_url', '')
         username = config.get('proxy_username', '')
         password = config.get('proxy_password', '')
@@ -28,9 +19,19 @@ def newip():
         if not url:
             raise ValueError('getip_url')
             
-        response = requests.get(url)
-        response.raise_for_status()
-        proxy = response.text.split("\r\n")[0]
+        def get_proxy():
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.text.split("\r\n")[0]
+            
+        proxy = get_proxy()
+        if proxy == "error000x-13":
+            appKey = ""
+            anquanma = ""
+            whitelist_url = f"https://sch.shanchendaili.com/api.html?action=addWhiteList&appKey={appKey}&anquanma={anquanma}"
+            requests.get(whitelist_url).raise_for_status()
+            time.sleep(1)
+            proxy = get_proxy()
         
         if username and password:
             return f"socks5://{username}:{password}@{proxy}"
