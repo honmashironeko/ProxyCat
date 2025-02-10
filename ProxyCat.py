@@ -94,7 +94,6 @@ async def run_proxy_check(server):
             logging.error(get_message('no_valid_proxies', server.language))
     else:
         logging.info(get_message('proxy_check_disabled', server.language))
-    logging.info(get_message('api_mode_notice', server.language))
 
 class ProxyCat:
     def __init__(self):
@@ -165,7 +164,10 @@ if __name__ == '__main__':
     server = AsyncProxyServer(config)
     print_banner(config)
     asyncio.run(check_for_updates(config.get('language', 'cn').lower()))
-    asyncio.run(run_proxy_check(server))
+    if not config.get('use_getip', 'False').lower() == 'true':
+        asyncio.run(run_proxy_check(server))
+    else:
+        logging.info(get_message('api_mode_notice', server.language))
     
     status_thread = threading.Thread(target=update_status, args=(server,), daemon=True)
     status_thread.start()
