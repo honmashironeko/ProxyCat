@@ -74,7 +74,11 @@ MESSAGES = {
         'invalid_proxy': '当前代理无效: {}',
         'proxy_switched': '已从代理 {} 切换到 {}',
         'whitelist_error': '添加白名单失败: {}',
-        'api_mode_notice': '当前为API模式，收到请求将自动获取代理地址'
+        'api_mode_notice': '当前为API模式，收到请求将自动获取代理地址',
+        'server_running': '代理服务器运行在 {}:{}',
+        'server_start_error': '服务器启动错误: {}',
+        'server_shutting_down': '正在关闭服务器...',
+        'client_process_error': '处理客户端请求时出错: {}',
     },
     'en': {
         'getting_new_proxy': 'Getting new proxy IP',
@@ -147,7 +151,11 @@ MESSAGES = {
         'invalid_proxy': 'Current proxy is invalid: {}',
         'proxy_switched': 'Switched from proxy {} to {}',
         'whitelist_error': 'Failed to add whitelist: {}',
-        'api_mode_notice': 'Currently in API mode, proxy address will be automatically obtained upon request'
+        'api_mode_notice': 'Currently in API mode, proxy address will be automatically obtained upon request',
+        'server_running': 'Proxy server running at {}:{}',
+        'server_start_error': 'Server startup error: {}',
+        'server_shutting_down': 'Shutting down server...',
+        'client_process_error': 'Error processing client request: {}',
     }
 }
 

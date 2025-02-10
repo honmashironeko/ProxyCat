@@ -117,6 +117,7 @@ class ProxyCat:
 
         signal.signal(signal.SIGINT, self.handle_shutdown)
         signal.signal(signal.SIGTERM, self.handle_shutdown)
+        self.language = config.get('language', 'cn').lower()
 
     async def start_server(self):
         try:
@@ -125,16 +126,18 @@ class ProxyCat:
                 self.config.get('SERVER', 'host'),
                 self.config.get('SERVER', 'port')
             )
-            print(f"代理服务器运行在 {self.config.get('SERVER', 'host')}:{self.config.get('SERVER', 'port')}")
+            logging.info(get_message('server_running', self.language,
+                self.config.get('SERVER', 'host'),
+                self.config.get('SERVER', 'port')))
             
             async with server:
                 await server.serve_forever()
         except Exception as e:
-            print(f"服务器启动错误: {e}")
+            logging.error(get_message('server_start_error', self.language, e))
             sys.exit(1)
 
     def handle_shutdown(self, signum, frame):
-        print("\n正在关闭服务器...")
+        logging.info(get_message('server_shutting_down', self.language))
         self.running = False
         self.executor.shutdown(wait=True)
         sys.exit(0)
@@ -148,7 +151,7 @@ class ProxyCat:
                 writer
             )
         except Exception as e:
-            print(f"处理客户端请求时出错: {e}")
+            logging.error(get_message('client_process_error', self.language, e))
         finally:
             try:
                 writer.close()
