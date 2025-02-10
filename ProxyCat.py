@@ -92,9 +92,9 @@ async def run_proxy_check(server):
             logging.info(get_message('valid_proxies', server.language, valid_proxies))
         else:
             logging.error(get_message('no_valid_proxies', server.language))
-        logging.info(get_message('api_mode_notice', server.language))
     else:
         logging.info(get_message('proxy_check_disabled', server.language))
+    logging.info(get_message('api_mode_notice', server.language))
 
 class ProxyCat:
     def __init__(self):
