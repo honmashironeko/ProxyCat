@@ -79,6 +79,10 @@ MESSAGES = {
         'server_start_error': '服务器启动错误: {}',
         'server_shutting_down': '正在关闭服务器...',
         'client_process_error': '处理客户端请求时出错: {}',
+        'request_handling_error': '请求处理错误: {}',
+        'proxy_forward_error': '代理转发错误: {}',
+        'data_transfer_timeout': '{}数据传输超时',
+        'data_transfer_error': '{}数据传输错误: {}',
     },
     'en': {
         'getting_new_proxy': 'Getting new proxy IP',
@@ -156,6 +160,10 @@ MESSAGES = {
         'server_start_error': 'Server startup error: {}',
         'server_shutting_down': 'Shutting down server...',
         'client_process_error': 'Error processing client request: {}',
+        'request_handling_error': 'Request handling error: {}',
+        'proxy_forward_error': 'Proxy forwarding error: {}',
+        'data_transfer_timeout': '{} data transfer timeout',
+        'data_transfer_error': '{} data transfer error: {}',
     }
 }
 
@@ -329,8 +337,7 @@ async def check_proxy(proxy):
         is_valid = await check_funcs[proxy_type](proxy)
         _proxy_check_cache[proxy] = (current_time, is_valid)
         return is_valid
-    except Exception as e:
-        logging.error(f"{proxy_type.upper()}代理 {proxy} 检测失败: {e}")
+    except Exception:
         _proxy_check_cache[proxy] = (current_time, False)
         return False
 

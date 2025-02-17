@@ -45,8 +45,8 @@ def update_status(server):
             else:
                 print(status, end='', flush=True)
                 
-        except Exception as e:
-            logging.error(f"Status update error: {e}")
+        except Exception:
+            pass
         time.sleep(1)
 
 async def handle_client_wrapper(server, reader, writer, clients):

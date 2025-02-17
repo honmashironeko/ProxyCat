@@ -509,7 +509,7 @@ class AsyncProxyServer:
                     await writer.drain()
                     
             except Exception as e:
-                logging.error(f"请求处理错误: {e}")
+                logging.error(get_message('request_handling_error', self.language, e))
                 writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
                 await writer.drain()
             finally:
@@ -568,7 +568,7 @@ class AsyncProxyServer:
                     await writer.drain()
                     
             except Exception as e:
-                logging.error(f"请求处理错误: {e}")
+                logging.error(get_message('request_handling_error', self.language, e))
                 writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
                 await writer.drain()
             finally:
@@ -707,7 +707,7 @@ class AsyncProxyServer:
                 print(f"连接超时，重试 {retry + 1}/{self.retry_count}")
                 continue
             except Exception as e:
-                print(f"代理转发错误: {e}")
+                logging.error(get_message('proxy_forward_error', self.language, e))
                 if retry == self.retry_count - 1:
                     raise
                 continue
@@ -727,9 +727,9 @@ class AsyncProxyServer:
                 writer.write(data)
                 await writer.drain()
         except TimeoutError:
-            print(f"{direction} 数据传输超时")
+            logging.error(get_message('data_transfer_timeout', self.language, direction))
         except Exception as e:
-            print(f"{direction} 数据传输错误: {e}")
+            logging.error(get_message('data_transfer_error', self.language, direction, e))
 
     def is_docker():
         return os.path.exists('/.dockerenv')
