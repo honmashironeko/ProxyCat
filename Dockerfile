@@ -2,13 +2,16 @@ FROM python:3.11
 
 WORKDIR /app
 
+COPY requirements.txt .
+
+RUN pip install --upgrade pip -i https://pypi.mirrors.ustc.edu.cn/simple/ && \
+    pip install --no-cache-dir -r requirements.txt -i https://pypi.mirrors.ustc.edu.cn/simple/
+
 COPY . .
 
-RUN pip install --upgrade pip -i https://pypi.mirrors.ustc.edu.cn/simple/
+RUN rm -f config/config.ini
 
-RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.mirrors.ustc.edu.cn/simple/
+VOLUME ["/app/config"]
 
-EXPOSE 1080
-
-CMD ["python", "ProxyCat.py"]
+CMD ["python", "app.py"]
 

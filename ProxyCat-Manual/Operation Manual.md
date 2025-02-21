@@ -79,7 +79,101 @@ docker-compose down | docker-compose up -d
 
 # 查看日志信息
 docker logs proxycat
+
+# docker端口默认为1080和5000,1080为监听端口，5000为web页面管理如需其他端口请对应修改并放行
 ```
+
+### 配置文件介绍
+
+```
+# 日志显示级别(默认为:1)
+# 0: 仅显示代理切换和错误信息
+# 1: 显示代理切换、倒计时和错误信息
+# 2: 显示所有详细信息
+display_level = 1
+
+# 本地服务器监听端口(默认为:1080)
+# Local server listening port (default:1080)
+port = 1080
+
+# Web 管理页面端口(默认为:5000)
+web_port = 5000
+
+# 代理地址轮换模式：cycle 表示循环使用，custom 表示使用自定义模式，load_balance 表示负载均衡(默认为:cycle)
+# Proxy rotation mode: cycle means cyclic use, custom means custom mode, load_balance means load balancing (default:cycle)
+mode = cycle
+
+# 代理地址更换时间（秒），设置为 0 时每次请求都更换 IP(默认为:300)
+# Proxy address rotation interval (seconds), when set to 0, IP changes with each request (default:300)
+interval = 300
+
+# 是否使用 getip 模块获取代理地址 True or False(默认为:False)
+# Whether to use getip module to obtain proxy addresses True or False (default:False)
+use_getip = False
+
+# 获取新代理地址的URL
+# URL to get new proxy address
+getip_url = http://example.com/getip
+
+# 代理服务器认证用户名(如果代理服务器需要认证)
+# Proxy server authentication username (if proxy server requires authentication)
+proxy_username = 
+
+# 代理服务器认证密码(如果代理服务器需要认证)
+# Proxy server authentication password (if proxy server requires authentication)
+proxy_password = 
+
+# 代理地址列表文件(默认为:ip.txt)
+# Proxy address list file (default:ip.txt)
+proxy_file = ip.txt
+
+# 是否启用代理检测功能 True or False(默认为True)
+# Whether to enable proxy detection feature True or False (default:True)
+check_proxies = True
+
+# 语言设置 (cn/en)
+# Language setting (cn/en)
+language = cn
+
+# IP白名单文件路径（留空则不启用白名单）
+# IP whitelist file path (leave empty to disable whitelist)
+whitelist_file = whitelist.txt
+
+# IP黑名单文件路径（留空则不启用黑名单）
+# IP blacklist file path (leave empty to disable blacklist)
+blacklist_file = blacklist.txt
+
+# IP认证优先级（whitelist/blacklist）
+# IP authentication priority (whitelist/blacklist)
+# whitelist: 优先判断白名单，在白名单中的IP直接放行
+# whitelist: prioritize whitelist check, IPs in whitelist are allowed directly
+# blacklist: 优先判断黑名单，在黑名单中的IP直接拒绝
+# blacklist: prioritize blacklist check, IPs in blacklist are rejected directly
+ip_auth_priority = whitelist
+
+# Web 管理页面访问token，留空则无需token(默认为:honmashironeko)
+token = honmashironeko
+
+# 在[Users]下面是用户管理组，"账号=密码"一行一个，留空时代理无需身份鉴别(默认为:neko=123456)
+[Users]
+neko=123456
+```
+
+### Web 控制面板
+
+采用源码部署的话通过 **python app.py** 启动 Web 控制面板，并根据提示访问 Web
+
+![Clip_2025-02-21_16-23-35](./Operation%20Manual.assets/Clip_2025-02-21_16-23-35.png)
+
+![Clip_2025-02-21_16-32-14](./Operation%20Manual.assets/Clip_2025-02-21_16-32-14.png)
+
+![Clip_2025-02-21_16-28-30](./Operation%20Manual.assets/Clip_2025-02-21_16-28-30-1740126513899-10.png)
+
+![Clip_2025-02-21_16-29-21](./Operation%20Manual.assets/Clip_2025-02-21_16-29-21.png)
+
+![Clip_2025-02-21_16-29-45](./Operation%20Manual.assets/Clip_2025-02-21_16-29-45.png)
+
+![Clip_2025-02-21_16-30-51](./Operation%20Manual.assets/Clip_2025-02-21_16-30-51.png)
 
 ## 问题Q&A
 

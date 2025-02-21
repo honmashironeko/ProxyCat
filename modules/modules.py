@@ -1,7 +1,20 @@
 import asyncio, logging, random, httpx, re, os, time
 from configparser import ConfigParser
 from packaging import version
-from colorama import Fore
+from colorama import Fore, Style
+
+class ColoredFormatter(logging.Formatter):
+    COLORS = {
+        logging.INFO: Fore.GREEN,
+        logging.WARNING: Fore.YELLOW,
+        logging.ERROR: Fore.RED,
+        logging.CRITICAL: Fore.RED + Style.BRIGHT,
+    }
+
+    def format(self, record):
+        log_color = self.COLORS.get(record.levelno, Fore.WHITE)
+        record.msg = f"{log_color}{record.msg}{Style.RESET_ALL}"
+        return super().format(record)
 
 MESSAGES = {
     'cn': {
@@ -45,30 +58,26 @@ MESSAGES = {
         'local_http': '本地监听地址 (HTTP)',
         'local_socks5': '本地监听地址 (SOCKS5)',
         'star_project': '开源项目求 Star',
-        'client_request_error': '客户端请求错误: {}',
         'client_handle_error': '客户端处理错误: {}',
         'proxy_invalid_switch': '代理无效，切换代理',
         'request_fail_retry': '请求失败，重试剩余次数: {}',
-        'request_error': '请求错误: {}',
         'user_interrupt': '用户中断程序',
         'new_version_found': '发现新版本！',
-        'visit_quark': '请访问 https://pan.quark.cn/s/39b4b5674570 获取最新版本。',
-        'visit_github': '请访问 https://github.com/honmashironeko/ProxyCat 获取最新版本。',
-        'visit_baidu': '请访问 https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5 获取最新版本。',
-        'latest_version': '当前版本已是最新',
-        'version_info_not_found': '无法在响应中找到版本信息',
-        'update_check_error': '检查更新时发生错误: {}',
+        'visit_quark': '夸克网盘: https://pan.quark.cn/s/39b4b5674570',
+        'visit_github': 'GitHub: https://github.com/honmashironeko/ProxyCat',
+        'visit_baidu': '百度网盘: https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5',
+        'latest_version': '当前已是最新版本',
+        'version_info_not_found': '未找到版本信息',
+        'update_check_error': '检查更新失败: {}',
         'unauthorized_ip': '未授权的IP尝试访问: {}',
         'client_cancelled': '客户端连接已取消',
         'socks5_connection_error': 'SOCKS5连接错误: {}',
         'connect_timeout': '连接超时',
         'connection_reset': '连接被重置',
         'transfer_cancelled': '传输已取消',
-        'client_request_error': '客户端请求处理错误: {}',
+        'client_request_error': '客户端请求错误: {}',
         'unsupported_protocol': '不支持的协议: {}',
-        'proxy_invalid_switch': '代理无效，正在切换',
         'request_retry': '请求失败，重试中 (剩余{}次)',
-        'request_error': '请求过程中出错: {}',
         'response_write_error': '写入响应时出错: {}',
         'consecutive_failures': '检测到连续代理失败: {}',
         'invalid_proxy': '当前代理无效: {}',
@@ -83,6 +92,101 @@ MESSAGES = {
         'proxy_forward_error': '代理转发错误: {}',
         'data_transfer_timeout': '{}数据传输超时',
         'data_transfer_error': '{}数据传输错误: {}',
+        'status_update_error': '状态更新出错',
+        'display_level_notice': '当前显示级别: {}',
+        'display_level_desc': '''显示级别说明:
+0: 仅显示代理切换和错误信息
+1: 显示代理切换、倒计时和错误信息
+2: 显示所有详细信息''',
+        'new_client_connect': '新客户端连接 - IP: {}, 用户: {}',
+        'no_auth': '无认证',
+        'proxy_changed': '代理变更: {} -> {}',
+        'connection_error': '连接处理错误: {}',
+        'cleanup_error': '清理IP错误: {}',
+        'port_changed': '端口已更改: {} -> {}，需要重启服务器生效',
+        'config_updated': '服务器配置已更新',
+        'load_proxy_file_error': '加载代理文件失败: {}',
+        'manual_switch': '手动切换代理: {} -> {}',
+        'auto_switch': '自动切换代理: {} -> {}',
+        'proxy_check_result': '代理检查完成，有效代理：{}个',
+        'no_proxy': '无代理',
+        'cycle_mode': '循环模式',
+        'load_balance_mode': '负载均衡模式',
+        'proxy_check_start': '开始检查代理...',
+        'proxy_check_complete': '代理检查完成',
+        'proxy_save_success': '代理保存成功',
+        'proxy_save_failed': '代理保存失败: {}',
+        'ip_list_save_success': 'IP名单保存成功',
+        'ip_list_save_failed': 'IP名单保存失败: {}',
+        'switch_success': '代理切换成功',
+        'switch_failed': '代理切换失败: {}',
+        'service_start_success': '服务启动成功',
+        'service_start_failed': '服务启动失败',
+        'service_already_running': '服务已在运行',
+        'service_stop_success': '服务停止成功',
+        'service_not_running': '服务未在运行',
+        'service_restart_success': '服务重启成功',
+        'service_restart_failed': '服务重启失败',
+        'invalid_action': '无效的操作',
+        'operation_failed': '操作失败: {}',
+        'logs_cleared': '日志已清除',
+        'clear_logs_failed': '清除日志失败: {}',
+        'unsupported_language': '不支持的语言',
+        'language_changed': '语言已切换为{}',
+        'loading': '加载中...',
+        'get_proxy_failed': '获取新代理失败: {}',
+        'log_level_all': '全部',
+        'log_level_info': '信息',
+        'log_level_warning': '警告',
+        'log_level_error': '错误',
+        'log_level_critical': '严重错误',
+        'confirm_clear_logs': '确定要清除所有日志吗？此操作不可恢复。',
+        'language_label': '语言',
+        'chinese': '中文',
+        'english': 'English',
+        'manual_switch_btn': '手动切换',
+        'service_control_title': '服务控制',
+        'language_switch_success': '',
+        'language_switch_failed': '',
+        'refresh_failed': '刷新数据失败: {}',
+        'auth_username_label': '认证用户名',
+        'auth_password_label': '认证密码',
+        'proxy_auth_username_label': '代理认证用户名',
+        'proxy_auth_password_label': '代理认证密码',
+        'progress_bar_label': '切换进度',
+        'proxy_settings_title': '代理设置',
+        'config_save_success': '配置保存成功',
+        'config_save_failed': '配置保存失败：{}',
+        'config_restart_required': '配置已更改，需要重启服务器生效',
+        'confirm_restart_service': '是否立即重启服务器？',
+        'service_status': '服务状态',
+        'running': '运行中',
+        'stopped': '已停止',
+        'restarting': '重启中',
+        'unknown': '未知',
+        'service_start_failed': '服务启动失败：{}',
+        'service_stop_failed': '服务停止失败：{}',
+        'service_restart_failed': '服务重启失败：{}',
+        'invalid_token': '无效的访问令牌',
+        'config_file_changed': '检测到配置文件更改，正在重新加载...',
+        'proxy_file_changed': '代理文件已更改，正在重新加载...',
+        'test_target_label': '测试目标地址',
+        'invalid_test_target': '无效的测试目标地址',
+        'users_save_success': '用户保存成功',
+        'users_save_failed': '用户保存失败：{}',
+        'user_management_title': '用户管理',
+        'username_column': '用户名',
+        'password_column': '密码',
+        'actions_column': '操作',
+        'add_user_btn': '添加用户',
+        'enter_username': '请输入用户名',
+        'enter_password': '请输入密码',
+        'confirm_delete_user': '确定要删除该用户吗？',
+        'no_logs_found': '未找到匹配的日志',
+        'clear_search': '清除搜索',
+        'web_panel_url': '网页控制面板地址: {}',
+        'web_panel_notice': '请使用浏览器访问上述地址来管理代理服务器',
+        'api_proxy_settings_title': 'API代理设置',
     },
     'en': {
         'getting_new_proxy': 'Getting new proxy IP',
@@ -125,19 +229,17 @@ MESSAGES = {
         'local_http': 'Local Listening Address (HTTP)',
         'local_socks5': 'Local Listening Address (SOCKS5)',
         'star_project': 'Star the Project',
-        'client_request_error': 'Client request error: {}',
         'client_handle_error': 'Client handling error: {}',
         'proxy_invalid_switch': 'Proxy invalid, switching proxy',
         'request_fail_retry': 'Request failed, retrying remaining times: {}',
-        'request_error': 'Request error: {}',
         'user_interrupt': 'User interrupted the program',
-        'new_version_found': 'New version found!',
-        'visit_quark': 'Please visit https://pan.quark.cn/s/39b4b5674570 to get the latest version.',
-        'visit_github': 'Please visit https://github.com/honmashironeko/ProxyCat to get the latest version.',
-        'visit_baidu': 'Please visit https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5 to get the latest version.',
+        'new_version_found': 'New version available!',
+        'visit_quark': 'Quark Drive: https://pan.quark.cn/s/39b4b5674570',
+        'visit_github': 'GitHub: https://github.com/honmashironeko/ProxyCat',
+        'visit_baidu': 'Baidu Drive: https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5',
         'latest_version': 'You are using the latest version',
-        'version_info_not_found': 'Version information not found in the response',
-        'update_check_error': 'Error occurred while checking for updates: {}',
+        'version_info_not_found': 'Version information not found',
+        'update_check_error': 'Failed to check for updates: {}',
         'unauthorized_ip': 'Unauthorized IP attempt: {}',
         'client_cancelled': 'Client connection cancelled',
         'socks5_connection_error': 'SOCKS5 connection error: {}',
@@ -147,7 +249,6 @@ MESSAGES = {
         'data_transfer_error': 'Data transfer error: {}',
         'client_request_error': 'Client request handling error: {}',
         'unsupported_protocol': 'Unsupported protocol: {}',
-        'proxy_invalid_switch': 'Proxy invalid, switching',
         'request_retry': 'Request failed, retrying ({} left)',
         'request_error': 'Error during request: {}',
         'response_write_error': 'Error writing response: {}',
@@ -164,6 +265,101 @@ MESSAGES = {
         'proxy_forward_error': 'Proxy forwarding error: {}',
         'data_transfer_timeout': '{} data transfer timeout',
         'data_transfer_error': '{} data transfer error: {}',
+        'status_update_error': 'Status update error',
+        'display_level_notice': 'Current display level: {}',
+        'display_level_desc': '''Display level description:
+0: Show only proxy switches and errors
+1: Show proxy switches, countdown and errors
+2: Show all detailed information''',
+        'new_client_connect': 'New client connection - IP: {}, User: {}',
+        'no_auth': 'No authentication',
+        'proxy_changed': 'Proxy changed: {} -> {}',
+        'connection_error': 'Connection handling error: {}',
+        'cleanup_error': 'IP cleanup error: {}',
+        'port_changed': 'Port changed: {} -> {}, server restart required',
+        'config_updated': 'Server configuration updated',
+        'load_proxy_file_error': 'Failed to load proxy file: {}',
+        'manual_switch': 'Manual proxy switch: {} -> {}',
+        'auto_switch': 'Auto switch proxy: {} -> {}',
+        'proxy_check_result': 'Proxy check completed, valid proxies: {}',
+        'no_proxy': 'No proxy',
+        'cycle_mode': 'Cycle Mode',
+        'load_balance_mode': 'Load Balance Mode',
+        'proxy_check_start': 'Starting proxy check...',
+        'proxy_check_complete': 'Proxy check completed',
+        'proxy_save_success': 'Proxies saved successfully',
+        'proxy_save_failed': 'Failed to save proxies: {}',
+        'ip_list_save_success': 'IP lists saved successfully',
+        'ip_list_save_failed': 'Failed to save IP lists: {}',
+        'switch_success': 'Proxy switched successfully',
+        'switch_failed': 'Failed to switch proxy: {}',
+        'service_start_success': 'Service started successfully',
+        'service_start_failed': 'Failed to start service',
+        'service_already_running': 'Service is already running',
+        'service_stop_success': 'Service stopped successfully',
+        'service_not_running': 'Service is not running',
+        'service_restart_success': 'Service restarted successfully',
+        'service_restart_failed': 'Failed to restart service',
+        'invalid_action': 'Invalid action',
+        'operation_failed': 'Operation failed: {}',
+        'logs_cleared': 'Logs cleared',
+        'clear_logs_failed': 'Failed to clear logs: {}',
+        'unsupported_language': 'Unsupported language',
+        'language_changed': 'Language changed to {}',
+        'loading': 'Loading...',
+        'get_proxy_failed': 'Failed to get new proxy: {}',
+        'log_level_all': 'All',
+        'log_level_info': 'Info',
+        'log_level_warning': 'Warning',
+        'log_level_error': 'Error',
+        'log_level_critical': 'Critical',
+        'confirm_clear_logs': 'Are you sure you want to clear all logs? This action cannot be undone.',
+        'language_label': 'Language',
+        'chinese': 'Chinese',
+        'english': 'English',
+        'manual_switch_btn': 'Manual Switch',
+        'service_control_title': 'Service Control',
+        'language_switch_success': '',
+        'language_switch_failed': '',
+        'refresh_failed': 'Failed to refresh data: {}',
+        'auth_username_label': 'Auth Username',
+        'auth_password_label': 'Auth Password',
+        'proxy_auth_username_label': 'Proxy Auth Username',
+        'proxy_auth_password_label': 'Proxy Auth Password',
+        'progress_bar_label': 'Switch Progress',
+        'proxy_settings_title': 'Proxy Settings',
+        'config_save_success': 'Configuration saved successfully',
+        'config_save_failed': 'Failed to save configuration: {}',
+        'config_restart_required': 'Configuration changed, server restart required',
+        'confirm_restart_service': 'Restart server now?',
+        'service_status': 'Service Status',
+        'running': 'Running',
+        'stopped': 'Stopped',
+        'restarting': 'Restarting',
+        'unknown': 'Unknown',
+        'service_start_failed': 'Failed to start service: {}',
+        'service_stop_failed': 'Failed to stop service: {}',
+        'service_restart_failed': 'Failed to restart service: {}',
+        'invalid_token': 'Invalid access token',
+        'config_file_changed': 'Configuration file change detected, reloading...',
+        'proxy_file_changed': 'Proxy file changed, reloading...',
+        'test_target_label': 'Test Target URL',
+        'invalid_test_target': 'Invalid test target URL',
+        'users_save_success': 'Users saved successfully',
+        'users_save_failed': 'Failed to save users: {}',
+        'user_management_title': 'User Management',
+        'username_column': 'Username',
+        'password_column': 'Password',
+        'actions_column': 'Actions',
+        'add_user_btn': 'Add User',
+        'enter_username': 'Enter username',
+        'enter_password': 'Enter password',
+        'confirm_delete_user': 'Are you sure you want to delete this user?',
+        'no_logs_found': 'No matching logs found',
+        'clear_search': 'Clear Search',
+        'web_panel_url': 'Web control panel URL: {}',
+        'web_panel_notice': 'Please use a browser to visit the above URL to manage the proxy server',
+        'api_proxy_settings_title': 'API Proxy Settings',
     }
 }
 
@@ -201,8 +397,14 @@ def print_banner(config):
     ]
     print(f"{Fore.MAGENTA}{'=' * 55}")
     for key, value in banner_info:
-        print(f"{Fore.YELLOW}{key}: {Fore.GREEN}{value}")
+        print(f"{Fore.YELLOW}{key}: {Fore.GREEN}{value}{Style.RESET_ALL}")
     print(f"{Fore.MAGENTA}{'=' * 55}\n")
+
+    display_level = config.get('display_level', '1')
+    if int(display_level) >= 2:
+        print(f"\n{Fore.CYAN}{get_message('display_level_desc', language)}{Style.RESET_ALL}")
+    else:
+        print(f"\n{Fore.CYAN}{get_message('display_level_notice', language).format(display_level)}{Style.RESET_ALL}")
 
 logo1 = r"""
       |\      _,,,---,,_  by 本间白猫
@@ -281,14 +483,17 @@ def load_config(config_file='config/config.ini'):
     config.read(config_file, encoding='utf-8')
     
     settings = {}
-    if config.has_section('SETTINGS'):
-        settings.update(dict(config.items('SETTINGS')))
-
+    if config.has_section('Server'):
+        settings.update(dict(config.items('Server')))
+        
+        config_dir = os.path.dirname(config_file)
         for key in ['proxy_file', 'whitelist_file', 'blacklist_file']:
             if key in settings and settings[key]:
-                config_dir = os.path.dirname(config_file)
                 settings[key] = os.path.join(config_dir, settings[key])
-            
+    
+    if config.has_section('DEFAULT'):
+        settings.update(dict(config.items('DEFAULT')))
+    
     return {**DEFAULT_CONFIG, **settings}
 
 def load_ip_list(file_path):
@@ -316,32 +521,7 @@ def parse_proxy(proxy):
     except Exception:
         return None, None, None, None
 
-async def check_proxy(proxy):
-    current_time = time.time()
-    if proxy in _proxy_check_cache:
-        cache_time, is_valid = _proxy_check_cache[proxy]
-        if current_time - cache_time < _proxy_check_ttl:
-            return is_valid
-            
-    proxy_type = proxy.split('://')[0]
-    check_funcs = {
-        'http': check_http_proxy,
-        'https': check_https_proxy,
-        'socks5': check_socks_proxy
-    }
-    
-    if proxy_type not in check_funcs:
-        return False
-    
-    try:
-        is_valid = await check_funcs[proxy_type](proxy)
-        _proxy_check_cache[proxy] = (current_time, is_valid)
-        return is_valid
-    except Exception:
-        _proxy_check_cache[proxy] = (current_time, False)
-        return False
-
-async def check_http_proxy(proxy):
+async def check_http_proxy(proxy, test_url='https://www.baidu.com'):
     protocol, auth, host, port = parse_proxy(proxy)
     proxies = {}
     if auth:
@@ -354,18 +534,21 @@ async def check_http_proxy(proxy):
     try:
         async with httpx.AsyncClient(proxies=proxies, timeout=10, verify=False) as client:
             try:
-                response = await client.get('https://www.baidu.com')
+                response = await client.get(test_url)
                 return response.status_code == 200
             except:
-                response = await client.get('http://www.baidu.com')
-                return response.status_code == 200
+                if test_url.startswith('https://'):
+                    http_url = 'http://' + test_url[8:]
+                    response = await client.get(http_url)
+                    return response.status_code == 200
+                return False
     except:
         return False
 
-async def check_https_proxy(proxy):
-    return await check_http_proxy(proxy)
+async def check_https_proxy(proxy, test_url='https://www.baidu.com'):
+    return await check_http_proxy(proxy, test_url)
 
-async def check_socks_proxy(proxy):
+async def check_socks_proxy(proxy, test_url='www.baidu.com'):
     protocol, auth, host, port = parse_proxy(proxy)
     if not all([host, port]):
         return False
@@ -394,7 +577,10 @@ async def check_socks_proxy(proxy):
             if auth_response[1] != 0x00:
                 return False
         
-        domain = b"www.baidu.com"
+        from urllib.parse import urlparse
+        domain = urlparse(test_url).netloc if '://' in test_url else test_url
+        domain = domain.encode()
+        
         writer.write(b'\x05\x01\x00\x03' + bytes([len(domain)]) + domain + b'\x00\x50')
         await writer.drain()
         
@@ -410,10 +596,38 @@ async def check_socks_proxy(proxy):
     except Exception:
         return False
 
-async def check_proxies(proxies):
+async def check_proxy(proxy, test_url=None):
+    current_time = time.time()
+    cache_key = f"{proxy}:{test_url}"
+    
+    if cache_key in _proxy_check_cache:
+        cache_time, is_valid = _proxy_check_cache[cache_key]
+        if current_time - cache_time < _proxy_check_ttl:
+            return is_valid
+            
+    proxy_type = proxy.split('://')[0]
+    check_funcs = {
+        'http': check_http_proxy,
+        'https': check_https_proxy,
+        'socks5': check_socks_proxy
+    }
+    
+    if proxy_type not in check_funcs:
+        return False
+    
+    try:
+        test_url = test_url or 'https://www.baidu.com'
+        is_valid = await check_funcs[proxy_type](proxy, test_url)
+        _proxy_check_cache[cache_key] = (current_time, is_valid)
+        return is_valid
+    except Exception:
+        _proxy_check_cache[cache_key] = (current_time, False)
+        return False
+
+async def check_proxies(proxies, test_url=None):
     valid_proxies = []
     for proxy in proxies:
-        if await check_proxy(proxy):
+        if await check_proxy(proxy, test_url):
             valid_proxies.append(proxy)
     return valid_proxies
 
@@ -426,15 +640,15 @@ async def check_for_updates(language='cn'):
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                CURRENT_VERSION = "ProxyCat-V1.9.5"
+                CURRENT_VERSION = "ProxyCat-V2.0.0"
                 if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
-                    print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}")
-                    print(f"{Fore.YELLOW}{get_message('visit_quark', language)}")
-                    print(f"{Fore.YELLOW}{get_message('visit_github', language)}")
-                    print(f"{Fore.YELLOW}{get_message('visit_baidu', language)}")
+                    print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}{get_message('visit_quark', language)}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}{get_message('visit_github', language)}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}{get_message('visit_baidu', language)}{Style.RESET_ALL}")
                 else:
-                    print(f"{Fore.GREEN}{get_message('latest_version', language)} ({CURRENT_VERSION})")
+                    print(f"{Fore.GREEN}{get_message('latest_version', language)} ({CURRENT_VERSION}){Style.RESET_ALL}")
             else:
-                print(f"{Fore.RED}{get_message('version_info_not_found', language)}")
+                print(f"{Fore.RED}{get_message('version_info_not_found', language)}{Style.RESET_ALL}")
     except Exception as e:
-        print(f"{Fore.RED}{get_message('update_check_error', language, e)}")
+        print(f"{Fore.RED}{get_message('update_check_error', language, e)}{Style.RESET_ALL}")

@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page_title">ProxyCat 控制面板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #50c878;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .status-card {
+            height: 100%;
+            min-height: 140px;
+        }
+
+        .status-card .card-title {
+            color: var(--primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .status-card .card-text {
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            background-color: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .btn {
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: var(--primary-color);
+        }
+
+        .nav-tabs .nav-link.active {
+            border: none;
+            color: var(--primary-color);
+            position: relative;
+        }
+
+        .nav-tabs .nav-link.active:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+
+        .log-container {
+            height: 400px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .log-entry {
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+        }
+
+        .log-INFO { background-color: #e8f5e9; color: #2e7d32; }
+        .log-WARNING { background-color: #fff3e0; color: #f57c00; }
+        .log-ERROR { background-color: #ffebee; color: #c62828; }
+        .log-CRITICAL { background-color: #ffebee; color: #b71c1c; font-weight: bold; }
+
+        .language-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 8px 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            padding: 12px;
+        }
+
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .status-card {
+                margin-bottom: 15px;
+            }
+            
+            .language-switch {
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        /* 添加搜索框样式 */
+        .log-search {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .log-search input {
+            padding-right: 40px;
+        }
+
+        .log-search .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            display: none;
+        }
+
+        .log-search .clear-search:hover {
+            color: var(--danger-color);
+        }
+
+        .log-highlight {
+            background-color: #fff3cd;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        /* 动画效果 */
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 卡片悬浮效果 */
+        .card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 状态卡片样式优化 */
+        .status-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .status-card .card-title {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-card .card-text {
+            color: #34495e;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        /* 按钮样式优化 */
+        .btn {
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #50c878 0%, #3cb371 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        /* 表格样式优化 */
+        .table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            color: #2c3e50;
+            font-weight: 600;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 进度条样式优化 */
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            transition: width 0.3s ease;
+        }
+
+        /* 表单控件样式优化 */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        /* 日志容器样式优化 */
+        .log-container {
+            height: 500px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            transition: all 0.2s ease;
+        }
+
+        .log-entry:hover {
+            transform: translateX(5px);
+        }
+
+        /* 日志级别样式 */
+        .log-INFO { 
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .log-WARNING {
+            background-color: #fff3e0;
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+        }
+
+        .log-ERROR {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .log-CRITICAL {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left: 4px solid #b71c1c;
+            font-weight: bold;
+        }
+
+        /* 搜索框样式优化 */
+        .log-search {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .log-search input {
+            padding-right: 40px;
+            padding-left: 40px;
+            border-radius: 25px;
+        }
+
+        .log-search i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .log-search .clear-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .log-search .clear-search:hover {
+            color: #dc3545;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .status-card {
+                margin-bottom: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .table-responsive {
+                margin-bottom: 20px;
+            }
+
+            .log-container {
+                height: 300px;
+            }
+        }
+
+        /* 暗色模式支持 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+
+            .card {
+                background-color: #2d2d2d;
+                color: #ffffff;
+            }
+
+            .table {
+                background-color: #2d2d2d;
+                color: #ffffff;
+            }
+
+            .table thead th {
+                background-color: #3d3d3d;
+                color: #ffffff;
+            }
+
+            .form-control, .form-select {
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border-color: #3d3d3d;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4 fade-in">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4" data-i18n="title">ProxyCat 控制面板</h1>
+            </div>
+        </div>
+
+        <!-- 状态卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card status-card">
+                    <div class="card-body">
+                        <h5 class="card-title" data-i18n="current_proxy_title">当前代理</h5>
+                        <p class="card-text" id="current-proxy" data-i18n="loading">加载中...</p>
+                        <button class="btn btn-sm btn-primary" onclick="switchProxy()" data-i18n="manual_switch_btn">手动切换</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card status-card">
+                    <div class="card-body">
+                        <h5 class="card-title" data-i18n="run_mode_title">运行模式</h5>
+                        <p class="card-text" id="proxy-mode" data-i18n="loading">加载中...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card status-card">
+                    <div class="card-body">
+                        <h5 class="card-title" data-i18n="proxy_total_title">代理总数</h5>
+                        <p class="card-text" id="total-proxies" data-i18n="loading">加载中...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card status-card">
+                    <div class="card-body">
+                        <h5 class="card-title" data-i18n="next_switch_title">下次切换</h5>
+                        <p class="card-text" id="next-switch" data-i18n="loading">加载中...</p>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%" aria-label="切换进度" data-i18n="progress_bar_label"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 服务控制卡片 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3" data-i18n="service_control_title">服务控制</h5>
+                <div class="btn-group">
+                    <button class="btn btn-success me-2" onclick="controlService('start')" data-i18n="start_service">
+                        <i class="fa fa-play me-1"></i>启动服务
+                    </button>
+                    <button class="btn btn-danger me-2" onclick="controlService('stop')" data-i18n="stop_service">
+                        <i class="fa fa-stop me-1"></i>停止服务
+                    </button>
+                    <button class="btn btn-warning" onclick="controlService('restart')" data-i18n="restart_service">
+                        <i class="fa fa-refresh me-1"></i>重启服务
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 在状态卡片区域后添加新的信息卡片 -->
+        <div class="col-md-12 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="card-title" data-i18n="local_addresses_title">本地监听地址</h5>
+                            <p class="card-text">
+                                <span data-i18n="local_http_text">本地监听地址 (HTTP): </span><span id="http-address"></span><br>
+                                <span data-i18n="local_socks5_text">本地监听地址 (SOCKS5): </span><span id="socks5-address"></span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="card-title" data-i18n="about_info_title">关于信息</h5>
+                            <p class="card-text">
+                                <span data-i18n="star_project_text">开源项目求 Star: </span>
+                                <a href="https://github.com/honmashironeko/ProxyCat" target="_blank" data-i18n="github_link">https://github.com/honmashironeko/ProxyCat</a><br>
+                                <span data-i18n="public_account_text">公众号: </span>
+                                <span data-i18n="public_account_name">樱花庄的本间白猫</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 选项卡 -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#config" data-i18n="config_tab">配置设置</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#proxies" data-i18n="proxies_tab">代理管理</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#ip-lists" data-i18n="ip_lists_tab">IP名单</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#logs" data-i18n="logs_tab">运行日志</a>
+            </li>
+        </ul>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content mt-3">
+            <!-- 配置设置 -->
+            <div class="tab-pane fade show active" id="config">
+                <div class="row">
+                    <!-- 左侧：基本配置和API代理设置 -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="config-form">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <!-- 基本配置 -->
+                                            <h5 class="mb-3" data-i18n="basic_config_title">基本配置</h5>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="port_label">端口</label>
+                                                <input type="number" class="form-control" name="port">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="switch_interval_label">切换间隔(秒)</label>
+                                                <input type="number" class="form-control" name="interval">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="run_mode_label">运行模式</label>
+                                                <select class="form-select" name="mode">
+                                                    <option value="cycle" data-i18n="cycle_mode">循环模式</option>
+                                                    <option value="load_balance" data-i18n="load_balance_mode">负载均衡</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="language_label">语言</label>
+                                                <select class="form-select" name="language">
+                                                    <option value="cn" data-i18n="chinese">中文</option>
+                                                    <option value="en" data-i18n="english">English</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <!-- API代理设置 -->
+                                            <h5 class="mb-3" data-i18n="api_proxy_settings_title">API代理设置</h5>
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="use_getip" id="use-getip">
+                                                    <label class="form-check-label" for="use-getip" data-i18n="use_api_label">使用API获取代理</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="api_url_label">API地址</label>
+                                                <input type="text" class="form-control" name="getip_url">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="proxy_auth_username_label">代理认证用户名</label>
+                                                <input type="text" class="form-control" name="proxy_username">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label" data-i18n="proxy_auth_password_label">代理认证密码</label>
+                                                <input type="text" class="form-control" name="proxy_password">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="check_proxies" id="check-proxies">
+                                                    <label class="form-check-label" for="check-proxies" data-i18n="enable_proxy_check_label">启用代理检测</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-3" data-i18n="save_config">保存配置</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：用户管理 -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0" data-i18n="user_management_title">用户管理</h5>
+                                    <button class="btn btn-sm btn-primary" onclick="addUser()" data-i18n="add_user_btn">
+                                        <i class="fa fa-plus me-1"></i>添加用户
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="user-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="username_column">用户名</th>
+                                                <th data-i18n="password_column">密码</th>
+                                                <th data-i18n="actions_column">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 代理管理 -->
+            <div class="tab-pane fade" id="proxies">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="proxy_list">代理列表</label>
+                            <textarea class="form-control" id="proxy-list" rows="10"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="test_target_label">测试目标地址</label>
+                            <input type="text" class="form-control" id="test-target-url">
+                        </div>
+                        <button class="btn btn-primary me-2" onclick="saveProxies()" data-i18n="save_proxy_btn">保存代理</button>
+                        <button class="btn btn-warning" onclick="checkProxies()" data-i18n="check_proxy_btn">检测代理</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IP名单 -->
+            <div class="tab-pane fade" id="ip-lists">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" data-i18n="whitelist_title">白名单</label>
+                                    <textarea class="form-control" id="whitelist" rows="10"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" data-i18n="blacklist_title">黑名单</label>
+                                    <textarea class="form-control" id="blacklist" rows="10"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="ip_auth_priority_label">IP认证优先级</label>
+                            <select class="form-select" name="ip_auth_priority">
+                                <option value="whitelist" data-i18n="whitelist_first">白名单优先</option>
+                                <option value="blacklist" data-i18n="blacklist_first">黑名单优先</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveIpLists()" data-i18n="save_list_btn">保存名单</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运行日志 -->
+            <div class="tab-pane fade" id="logs">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="form-label me-2" data-i18n="log_level_label">日志级别</label>
+                                    <select class="form-select me-3" id="log-level" onchange="updateLogs(true)">
+                                        <option value="ALL" data-i18n="log_level_all">全部</option>
+                                        <option value="INFO" data-i18n="log_level_info">信息</option>
+                                        <option value="WARNING" data-i18n="log_level_warning">警告</option>
+                                        <option value="ERROR" data-i18n="log_level_error">错误</option>
+                                        <option value="CRITICAL" data-i18n="log_level_critical">严重错误</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <button class="btn btn-danger" onclick="clearLogs()" data-i18n="clear_logs_btn">清除日志</button>
+                                </div>
+                            </div>
+                            <!-- 添加搜索框 -->
+                            <div class="log-search">
+                                <i class="fa fa-search"></i>
+                                <input type="text" class="form-control" placeholder="搜索日志..." id="log-search-input">
+                                <button class="clear-search" id="clear-search">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="log-container" id="log-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在导航栏或其他合适位置添加语言切换按钮 -->
+    <div class="language-switch">
+        <button id="languageToggle" class="btn btn-outline-secondary">
+            <span class="cn-text">English</span>
+            <span class="en-text" style="display: none;">中文</span>
+        </button>
+    </div>
+
+    <!-- 添加加载动画 -->
+    <div class="loading-overlay" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script>
+        let lastLogId = 0;
+        let searchTimeout = null;
+        const searchInput = document.getElementById('log-search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+
+        function getToken() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('token') || '';
+        }
+
+        function appendToken(url) {
+            const token = getToken();
+            const separator = url.includes('?') ? '&' : '?';
+            return token ? `${url}${separator}token=${token}` : url;
+        }
+
+        function updateAddresses(config) {
+            const username = config.username || '';
+            const password = config.password || '';
+            const port = config.port || '1080';
+            
+            let httpAddress = `http://127.0.0.1:${port}`;
+            let socks5Address = `socks5://127.0.0.1:${port}`;
+            
+            if (username && password) {
+                httpAddress = `http://${username}:${password}@127.0.0.1:${port}`;
+                socks5Address = `socks5://${username}:${password}@127.0.0.1:${port}`;
+            }
+            
+            $('#http-address').text(httpAddress);
+            $('#socks5-address').text(socks5Address);
+        }
+
+        function updateStatus() {
+            $.get(appendToken('/api/status'), function(data) {
+                $('#current-proxy').text(data.current_proxy || translations[currentLanguage].no_proxy);
+                $('#proxy-mode').text(translations[currentLanguage][data.mode + '_mode'] || data.mode);
+                $('#total-proxies').text(data.total_proxies || translations[currentLanguage].no_data);
+                
+                if (data.time_left !== undefined) {
+                    const timeLeft = Math.max(0, Math.ceil(data.time_left));
+                    $('#next-switch').text(`${timeLeft} ${translations[currentLanguage].seconds}`);
+                } else {
+                    $('#next-switch').text(translations[currentLanguage].no_data);
+                }
+                
+                updateAddresses(data.config);
+            });
+        }
+
+        function updateCountdown() {
+            $.get(appendToken('/api/status'), function(data) {
+                if (data.time_left !== undefined && data.interval) {
+                    const timeLeft = Math.max(0, Math.ceil(data.time_left));
+                    const progress = Math.min(100, ((data.interval - data.time_left) / data.interval) * 100);
+                    
+                    $('.progress-bar').css('width', progress + '%');
+                    $('#next-switch').text(timeLeft + ' ' + translations[currentLanguage]['seconds']);
+                }
+            });
+        }
+
+        function loadConfig() {
+            $.get(appendToken('/api/status'), function(data) {
+                const config = data.config;
+                Object.keys(config).forEach(key => {
+                    const input = $(`[name="${key}"]`);
+                    if (input.length) {
+                        if (input.attr('type') === 'checkbox') {
+                            input.prop('checked', config[key].toLowerCase() === 'true');
+                        } else {
+                            input.val(config[key]);
+                        }
+                    }
+                });
+            });
+        }
+
+        function loadProxies() {
+            $.get(appendToken('/api/proxies'), function(data) {
+                $('#proxy-list').val(data.proxies.join('\n'));
+            });
+        }
+
+        function loadIpLists() {
+            $.get(appendToken('/api/ip_lists'), function(data) {
+                $('#whitelist').val(data.whitelist.join('\n'));
+                $('#blacklist').val(data.blacklist.join('\n'));
+            });
+        }
+
+        function updateLogs(forceRefresh = false) {
+            const level = $('#log-level').val();
+            const searchText = $('#log-search-input').val().toLowerCase();
+            
+            $.get(appendToken(`/api/logs?level=${level}&search=${encodeURIComponent(searchText)}`), function(data) {
+                const container = $('#log-container');
+                container.empty();
+                
+                data.logs.forEach(log => {
+                    let message = log.message;
+                    
+                    // 如果有搜索文本，高亮显示匹配内容
+                    if (searchText) {
+                        const regex = new RegExp(`(${searchText})`, 'gi');
+                        message = message.replace(regex, '<span class="log-highlight">$1</span>');
+                    }
+                    
+                    const logEntry = $(`<div class="log-entry log-${log.level}">
+                        <span class="log-time">${log.time}</span> - 
+                        <span class="log-level">${log.level}</span> - 
+                        <span class="log-message">${message}</span>
+                    </div>`);
+                    
+                    container.append(logEntry);
+                });
+                
+                // 如果是搜索结果，自动滚动到第一个匹配项
+                if (searchText && data.logs.length > 0) {
+                    const firstHighlight = container.find('.log-highlight').first();
+                    if (firstHighlight.length) {
+                        container.scrollTop(firstHighlight.position().top);
+                    }
+                }
+            });
+        }
+
+        function switchProxy() {
+            $.get(appendToken('/api/switch_proxy'), function(data) {
+                if (data.status === 'success') {
+                    updateStatus(); 
+                } else {
+                    console.error('Failed to switch proxy:', data.message);
+                }
+            });
+        }
+
+        function saveProxies() {
+            const proxies = $('#proxy-list').val().split('\n').filter(line => line.trim());
+            $.ajax({
+                url: appendToken('/api/proxies'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ proxies: proxies }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showMessage('proxy_save_success');
+                    } else {
+                        showMessage('proxy_save_failed', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showMessage('proxy_save_failed', error);
+                }
+            });
+        }
+
+        function checkProxies() {
+            const testUrl = $('#test-target-url').val().trim() || 'https://www.baidu.com';
+            $.get(appendToken('/api/check_proxies'), { test_url: testUrl }, function(data) {
+                if (data.status === 'success') {
+                    $('#proxy-list').val(data.valid_proxies.join('\n'));
+                    showMessage('proxy_check_success', data.total);
+                } else {
+                    showMessage('proxy_check_failed', data.message);
+                }
+            });
+        }
+
+        function saveIpLists() {
+            const whitelist = $('#whitelist').val().split('\n').filter(line => line.trim());
+            const blacklist = $('#blacklist').val().split('\n').filter(line => line.trim());
+            const ipAuthPriority = $('select[name="ip_auth_priority"]').val();
+            
+            $.ajax({
+                url: appendToken('/api/ip_lists'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ type: 'whitelist', list: whitelist }),
+                success: function() {
+                    $.ajax({
+                        url: appendToken('/api/ip_lists'),
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ type: 'blacklist', list: blacklist }),
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                showMessage('ip_list_save_success');
+                            } else {
+                                showMessage('ip_list_save_failed', response.message);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function controlService(action) {
+            $.ajax({
+                url: appendToken('/api/service'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: action }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showMessage(`service_${action}_success`);
+                    } else {
+                        showMessage('operation_failed', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showMessage('operation_failed', error);
+                }
+            });
+        }
+
+        function clearLogs() {
+            if (confirm(translations[currentLanguage].confirm_clear_logs)) {
+                $.ajax({
+                    url: appendToken('/api/logs/clear'),
+                    method: 'POST',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            showMessage('logs_cleared');
+                            updateLogs(true);
+                        } else {
+                            showMessage('clear_logs_failed', response.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        function saveConfig() {
+            const formData = new FormData(document.getElementById('config-form'));
+            const config = {};
+            for (let [key, value] of formData.entries()) {
+                config[key] = value;
+            }
+            
+            $('input[type="checkbox"]').each(function() {
+                config[$(this).attr('name')] = $(this).is(':checked') ? 'True' : 'False';
+            });
+            
+            $.get(appendToken('/api/status'), function(data) {
+                const currentPort = data.config.port;
+                
+                const portChanged = currentPort !== config.port;
+                
+                $.ajax({
+                    url: appendToken('/api/config'),
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(config),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            showMessage('config_save_success');
+                            
+                            if (portChanged) {
+                                if (confirm(translations[currentLanguage].confirm_restart)) {
+                                    controlService('restart');
+                                }
+                            }
+                            
+                            loadConfig();
+                        } else {
+                            showMessage('config_save_failed', response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 401) {
+                            showMessage('invalid_token');
+                        } else {
+                            showMessage('config_save_failed', error);
+                        }
+                    }
+                });
+            });
+            
+            return false;
+        }
+
+        $('#config-form').on('submit', function(e) {
+            e.preventDefault();
+            saveConfig();
+        });
+
+        const translations = {
+            cn: {
+                'title': 'ProxyCat 控制面板',
+                'page_title': 'ProxyCat 控制面板',
+                'current_proxy_title': '当前代理',
+                'run_mode_title': '运行模式',
+                'proxy_total_title': '代理总数',
+                'next_switch_title': '下次切换',
+                'service_control_title': '服务控制',
+                'proxy_settings_title': '代理设置',
+                'local_addresses_title': '本地监听地址',
+                'about_info_title': '关于信息',
+                'star_project_text': '开源项目求 Star: ',
+                'public_account_text': '公众号: ',
+                'public_account_name': '樱花庄的本间白猫',
+                'github_link': 'https://github.com/honmashironeko/ProxyCat',
+                'local_http_text': '本地监听地址 (HTTP): ',
+                'local_socks5_text': '本地监听地址 (SOCKS5): ',
+                'current_proxy': '当前代理',
+                'run_mode': '运行模式',
+                'proxy_count': '代理总数',
+                'service_control': '服务控制',
+                'start_service': '启动服务',
+                'stop_service': '停止服务',
+                'restart_service': '重启服务',
+                'config_settings': '配置设置',
+                'proxy_management': '代理管理',
+                'ip_lists': 'IP名单',
+                'run_logs': '运行日志',
+                'basic_config': '基本配置',
+                'port': '端口',
+                'switch_interval': '切换间隔(秒)',
+                'run_mode_text': '运行模式',
+                'cycle_mode': '循环模式',
+                'load_balance_mode': '负载均衡',
+                'language_text': '语言',
+                'auth_config': '认证配置',
+                'username': '用户名',
+                'password': '密码',
+                'proxy_settings': '代理设置',
+                'use_api': '使用API获取代理',
+                'api_address': 'API地址',
+                'enable_proxy_check': '启用代理检测',
+                'proxy_list': '代理列表',
+                'save_proxy': '保存代理',
+                'check_proxy': '检测代理',
+                'whitelist': '白名单',
+                'blacklist': '黑名单',
+                'ip_auth_priority': 'IP认证优先级',
+                'whitelist_first': '白名单优先',
+                'blacklist_first': '黑名单优先',
+                'save_list': '保存名单',
+                'log_level': '日志级别',
+                'all': '全部',
+                'info': '信息',
+                'warning': '警告',
+                'critical': '严重错误',
+                'save_config': '保存配置',
+                'proxy_username': '代理用户名',
+                'proxy_password': '代理密码',
+                'clear_logs': '清除日志',
+                'confirm_clear_logs': '确定要清除所有日志吗？此操作不可恢复。',
+                'logs_cleared': '日志已清除',
+                'clear_logs_failed': '清除日志失败：{}',
+                'config_tab': '配置设置',
+                'proxies_tab': '代理管理',
+                'ip_lists_tab': 'IP名单',
+                'logs_tab': '运行日志',
+                'port_label': '端口',
+                'save_success': '保存成功',
+                'save_failed': '保存失败',
+                'confirm_restart': '配置已更改，需要重启服务器才能生效。是否立即重启？',
+                'service_start_success': '服务启动成功',
+                'service_stop_success': '服务停止成功',
+                'service_restart_success': '服务重启成功',
+                'operation_failed': '操作失败：{}',
+                'loading': '加载中...',
+                'run_mode_title': '运行模式',
+                'proxy_total': '代理总数',
+                'next_switch_title': '下次切换',
+                'basic_config_title': '基本配置',
+                'switch_interval_label': '切换间隔(秒)',
+                'run_mode_label': '运行模式',
+                'cycle_mode': '循环模式',
+                'load_balance_mode': '负载均衡',
+                'auth_config_title': '认证配置',
+                'use_api_label': '使用API获取代理',
+                'api_url_label': 'API地址',
+                'enable_proxy_check_label': '启用代理检测',
+                'proxy_list_label': '代理列表',
+                'save_proxy_btn': '保存代理',
+                'check_proxy_btn': '检测代理',
+                'whitelist_title': '白名单',
+                'blacklist_title': '黑名单',
+                'ip_auth_priority_label': 'IP认证优先级',
+                'whitelist_first': '白名单优先',
+                'blacklist_first': '黑名单优先',
+                'save_list_btn': '保存名单',
+                'log_level_label': '日志级别',
+                'log_level_all': '全部',
+                'log_level_info': '信息',
+                'log_level_warning': '警告',
+                'log_level_error': '错误',
+                'log_level_critical': '严重错误',
+                'clear_logs_btn': '清除日志',
+                'no_data': '暂无数据',
+                'local_http': '本地监听地址 (HTTP)',
+                'local_socks5': '本地监听地址 (SOCKS5)',
+                'about_info': '关于信息',
+                'star_project': '开源项目求 Star',
+                'public_account': '公众号',
+                'public_account_name': '樱花庄的本间白猫',
+                'version_latest': '当前版本已是最新 ({})',
+                'version_update_available': '发现新版本！\n当前版本: {}\n最新版本: {}\n\n请访问以下地址获取最新版本：\n1. https://github.com/honmashironeko/ProxyCat\n2. https://pan.quark.cn/s/39b4b5674570\n3. https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5',
+                'seconds': '秒',
+                'config_save_success': '配置保存成功',
+                'config_save_failed': '配置保存失败：{}',
+                'proxy_save_success': '代理保存成功',
+                'proxy_save_failed': '代理保存失败：{}',
+                'ip_list_save_success': 'IP名单保存成功',
+                'ip_list_save_failed': 'IP名单保存失败：{}',
+                'service_start_success': '服务启动成功',
+                'service_stop_success': '服务停止成功',
+                'service_restart_success': '服务重启成功',
+                'confirm_restart': '配置已更改，需要重启服务器才能生效。是否立即重启？',
+                'invalid_token': '无效的访问令牌，请检查 URL 中的 token 参数',
+                'version_info_not_found': '未找到版本信息',
+                'update_check_error': '检查更新失败：{}',
+                'version_check_failed': '版本检查失败：{}',
+                'proxy_check_start': '开始检查代理...',
+                'proxy_check_complete': '代理检查完成',
+                'proxy_check_result': '代理检查完成，有效代理：{}个',
+                'proxy_check_failed': '代理检查失败：{}',
+                'language_label': '语言',
+                'progress_bar_label': '切换进度',
+                'proxy_check_success': '检查完成，有效代理：{}个',
+                'test_target_label': '测试目标地址',
+                'test_target_placeholder': '输入测试目标地址 (例如: https://www.baidu.com)',
+                'invalid_test_target': '无效的测试目标地址',
+                'user_management_title': '用户管理',
+                'username_column': '用户名',
+                'password_column': '密码',
+                'actions_column': '操作',
+                'add_user_btn': '添加用户',
+                'enter_username': '请输入用户名',
+                'enter_password': '请输入密码',
+                'confirm_delete_user': '确定要删除该用户吗？',
+                'users_save_success': '用户保存成功',
+                'users_save_failed': '用户保存失败：{}',
+                'enter_new_password': '请输入新密码',
+                'password_changed': '密码修改成功',
+                'password_change_failed': '密码修改失败：{}',
+                'api_proxy_settings_title': 'API代理设置'
+            },
+            en: {
+                'title': 'ProxyCat Control Panel',
+                'page_title': 'ProxyCat Control Panel',
+                'current_proxy_title': 'Current Proxy',
+                'run_mode_title': 'Run Mode',
+                'proxy_total_title': 'Total Proxies',
+                'next_switch_title': 'Next Switch',
+                'service_control_title': 'Service Control',
+                'proxy_settings_title': 'Proxy Settings',
+                'local_addresses_title': 'Local Listening Addresses',
+                'about_info_title': 'About',
+                'star_project_text': 'Star Project on GitHub: ',
+                'public_account_text': 'WeChat Official Account: ',
+                'public_account_name': 'Honma Shirone Cat',
+                'github_link': 'https://github.com/honmashironeko/ProxyCat',
+                'local_http_text': 'Local HTTP Address: ',
+                'local_socks5_text': 'Local SOCKS5 Address: ',
+                'current_proxy': 'Current Proxy',
+                'run_mode': 'Run Mode',
+                'proxy_count': 'Proxy Count',
+                'service_control': 'Service Control',
+                'start_service': 'Start Service',
+                'stop_service': 'Stop Service',
+                'restart_service': 'Restart Service',
+                'config_settings': 'Config Settings',
+                'proxy_management': 'Proxy Management',
+                'ip_lists': 'IP Lists',
+                'run_logs': 'Run Logs',
+                'basic_config': 'Basic Config',
+                'port': 'Port',
+                'switch_interval': 'Switch Interval(s)',
+                'run_mode_text': 'Run Mode',
+                'cycle_mode': 'Cycle Mode',
+                'load_balance_mode': 'Load Balance',
+                'language_text': 'Language',
+                'auth_config': 'Auth Config',
+                'username': 'Username',
+                'password': 'Password',
+                'proxy_settings': 'Proxy Settings',
+                'use_api': 'Use API',
+                'api_address': 'API Address',
+                'enable_proxy_check': 'Enable Proxy Check',
+                'proxy_list': 'Proxy List',
+                'save_proxy': 'Save Proxy',
+                'check_proxy': 'Check Proxy',
+                'whitelist': 'Whitelist',
+                'blacklist': 'Blacklist',
+                'ip_auth_priority': 'IP Auth Priority',
+                'whitelist_first': 'Whitelist First',
+                'blacklist_first': 'Blacklist First',
+                'save_list': 'Save List',
+                'log_level': 'Log Level',
+                'all': 'All',
+                'info': 'Info',
+                'warning': 'Warning',
+                'error': 'Error',
+                'critical': 'Critical',
+                'save_config': 'Save Config',
+                'proxy_username': 'Proxy Username',
+                'proxy_password': 'Proxy Password',
+                'clear_logs': 'Clear Logs',
+                'confirm_clear_logs': 'Are you sure you want to clear all logs? This action cannot be undone.',
+                'logs_cleared': 'Logs cleared',
+                'clear_logs_failed': 'Failed to clear logs: {}',
+                'config_tab': 'Configuration',
+                'proxies_tab': 'Proxy Management',
+                'ip_lists_tab': 'IP Lists',
+                'logs_tab': 'Logs',
+                'port_label': 'Port',
+                'save_success': 'Save successful',
+                'save_failed': 'Save failed',
+                'confirm_restart': 'Configuration has changed, server restart is required. Restart now?',
+                'service_start_success': 'Service started successfully',
+                'service_stop_success': 'Service stopped successfully',
+                'service_restart_success': 'Service restarted successfully',
+                'operation_failed': 'Operation failed: {}',
+                'loading': 'Loading...',
+                'run_mode_title': 'Run Mode',
+                'proxy_total': 'Total Proxies',
+                'next_switch_title': 'Next Switch',
+                'basic_config_title': 'Basic Configuration',
+                'switch_interval_label': 'Switch Interval(s)',
+                'run_mode_label': 'Run Mode',
+                'cycle_mode': 'Cycle Mode',
+                'load_balance_mode': 'Load Balance',
+                'auth_config_title': 'Authentication',
+                'use_api_label': 'Use API for Proxy',
+                'api_url_label': 'API URL',
+                'enable_proxy_check_label': 'Enable Proxy Check',
+                'proxy_list_label': 'Proxy List',
+                'save_proxy_btn': 'Save Proxies',
+                'check_proxy_btn': 'Check Proxies',
+                'whitelist_title': 'Whitelist',
+                'blacklist_title': 'Blacklist',
+                'ip_auth_priority_label': 'IP Auth Priority',
+                'whitelist_first': 'Whitelist First',
+                'blacklist_first': 'Blacklist First',
+                'save_list_btn': 'Save Lists',
+                'proxy_check_success': 'Check completed, valid proxies: {}',
+                'proxy_check_failed': 'Check failed: {}',
+                'proxy_save_success': 'Proxies saved successfully',
+                'proxy_save_failed': 'Save failed: {}',
+                'ip_list_save_success': 'IP lists saved successfully',
+                'ip_list_save_failed': 'Save failed: {}',
+                'manual_switch_btn': 'Manual Switch',
+                'switch_success': 'Switch successful',
+                'switch_failed': 'Switch failed: {}',
+                'no_proxy': 'No Proxy',
+                'seconds': 's',
+                'username_label': 'Username',
+                'password_label': 'Password',
+                'proxy_username_label': 'Proxy Username',
+                'proxy_password_label': 'Proxy Password',
+                'progress_bar_label': 'Switch Progress',
+                'auth_username_label': 'Auth Username',
+                'auth_password_label': 'Auth Password',
+                'proxy_auth_username_label': 'Proxy Auth Username',
+                'proxy_auth_password_label': 'Proxy Auth Password',
+                'language_switch_success': 'Language switched successfully',
+                'language_switch_failed': 'Failed to switch language: {}',
+                'refresh_failed': 'Failed to refresh data: {}',
+                'log_level_label': 'Log Level',
+                'log_level_all': 'All',
+                'log_level_info': 'Info',
+                'log_level_warning': 'Warning',
+                'log_level_error': 'Error',
+                'log_level_critical': 'Critical',
+                'clear_logs_btn': 'Clear Logs',
+                'confirm_clear_logs': 'Are you sure you want to clear all logs? This action cannot be undone.',
+                'logs_cleared': 'Logs cleared',
+                'clear_logs_failed': 'Failed to clear logs: {}',
+                'logs_tab': 'Logs',
+                'config_save_success': 'Configuration saved successfully',
+                'config_save_failed': 'Failed to save configuration: {}',
+                'proxy_save_success': 'Proxies saved successfully',
+                'proxy_save_failed': 'Failed to save proxies: {}',
+                'ip_list_save_success': 'IP lists saved successfully',
+                'ip_list_save_failed': 'Failed to save IP lists: {}',
+                'service_start_success': 'Service started successfully',
+                'service_stop_success': 'Service stopped successfully',
+                'service_restart_success': 'Service restarted successfully',
+                'confirm_restart': 'Configuration has changed, server restart is required. Restart now?',
+                'invalid_token': 'Invalid access token, please check the token parameter in URL',
+                'version_info_not_found': 'Version information not found',
+                'update_check_error': 'Failed to check for updates: {}',
+                'version_check_failed': 'Version check failed: {}',
+                'proxy_check_start': 'Starting proxy check...',
+                'proxy_check_complete': 'Proxy check completed',
+                'proxy_check_result': 'Proxy check completed, valid proxies: {}',
+                'proxy_check_failed': 'Proxy check failed: {}',
+                'language_label': 'Language',
+                'test_target_label': 'Test Target URL',
+                'test_target_placeholder': 'Enter test target URL (e.g. https://www.baidu.com)',
+                'invalid_test_target': 'Invalid test target URL',
+                'user_management_title': 'User Management',
+                'username_column': 'Username',
+                'password_column': 'Password',
+                'actions_column': 'Actions',
+                'add_user_btn': 'Add User',
+                'enter_username': 'Enter username',
+                'enter_password': 'Enter password',
+                'confirm_delete_user': 'Are you sure you want to delete this user?',
+                'users_save_success': 'Users saved successfully',
+                'users_save_failed': 'Failed to save users: {}',
+                'enter_new_password': 'Enter new password',
+                'password_changed': 'Password changed successfully',
+                'password_change_failed': 'Failed to change password: {}',
+                'api_proxy_settings_title': 'API Proxy Settings'
+            }
+        };
+
+        let currentLanguage = 'cn';
+
+        function updatePageLanguage(language) {
+            const texts = translations[language];
+            for (const [key, value] of Object.entries(texts)) {
+                const elements = document.querySelectorAll(`[data-i18n="${key}"]`);
+                elements.forEach(el => el.textContent = value);
+            }
+            
+            document.querySelector('.cn-text').style.display = language === 'cn' ? 'inline' : 'none';
+            document.querySelector('.en-text').style.display = language === 'en' ? 'inline' : 'none';
+            
+            updateLogLevelOptions();
+        }
+
+        document.getElementById('languageToggle').addEventListener('click', async function() {
+            const newLanguage = currentLanguage === 'cn' ? 'en' : 'cn';
+            
+            try {
+                const response = await fetch(appendToken('/api/language'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ language: newLanguage })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // 刷新页面以应用新的语言设置
+                    window.location.reload();
+                } else {
+                    console.error('Failed to switch language:', data.message);
+                }
+            } catch (error) {
+                console.error('Failed to switch language:', error);
+            }
+        });
+
+        async function initializeLanguage() {
+            try {
+                const response = await fetch(appendToken('/api/status'));
+                const data = await response.json();
+                currentLanguage = data.config.language || 'cn';
+                updatePageLanguage(currentLanguage);
+            } catch (error) {
+                console.error('Failed to initialize language:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeLanguage);
+
+        loadConfig();
+        loadProxies();
+        loadIpLists();
+        
+        setInterval(updateStatus, 2000); 
+        setInterval(updateCountdown, 1000); 
+        setInterval(updateLogs, 2000);
+        updateStatus();
+        updateCountdown();
+        updateLogs();
+        function showMessage(key, ...args) {
+            let message = translations[currentLanguage][key] || key;
+            if (typeof args[0] === 'number') {
+                message = message.replace('{}', args[0]);
+            } else {
+                args.forEach((arg, index) => {
+                    message = message.replace(`{${index}}`, arg);
+                });
+            }
+            alert(message);
+        }
+
+        function updateLogLevelOptions() {
+            const logLevelSelect = document.getElementById('log-level');
+            const options = logLevelSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const key = `log_level_${option.value.toLowerCase()}`;
+                if (translations[currentLanguage][key]) {
+                    option.text = translations[currentLanguage][key];
+                }
+            }
+        }
+
+        async function checkVersion() {
+            try {
+                const lastCheck = localStorage.getItem('lastVersionCheck');
+                const now = Date.now();
+                
+                if (!lastCheck || (now - parseInt(lastCheck)) > 24 * 60 * 60 * 1000) {
+                    const response = await fetch(appendToken('/api/version'));
+                    const data = await response.json();
+                    
+                    if (data.status === 'success' && !data.is_latest) {
+                        const message = translations[currentLanguage].version_update_available
+                            .replace('{}', data.current_version)
+                            .replace('{}', data.latest_version);
+                        
+                        alert(message);
+                    }
+                    
+                    localStorage.setItem('lastVersionCheck', now.toString());
+                }
+            } catch (error) {
+                console.error('Failed to check version:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkVersion, 3000); 
+        });
+
+        $(document).ready(function() {
+            $('#test-target-url').attr('placeholder', 
+                translations[currentLanguage]['test_target_placeholder']);
+        });
+
+        async function switchLanguage(newLanguage) {
+            try {
+                const response = await fetch(appendToken('/api/language'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language: newLanguage })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentLanguage = newLanguage;
+                    updatePageLanguage(newLanguage);
+                    await Promise.all([refreshStatus(), refreshLogs()]);
+                }
+            } catch (error) {
+                console.error('Failed to switch language:', error);
+            }
+        }
+
+        function loadUsers() {
+            $.get(appendToken('/api/users'), function(data) {
+                const tbody = $('#user-table tbody');
+                tbody.empty();
+                
+                Object.entries(data.users).forEach(([username, password]) => {
+                    tbody.append(`
+                        <tr>
+                            <td>${username}</td>
+                            <td>${password}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-1" onclick="editUserPassword('${username}')" title="修改密码">
+                                    <i class="fa fa-key"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${username}')" title="删除用户">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            });
+        }
+
+        function addUser() {
+            const username = prompt(translations[currentLanguage].enter_username);
+            if (!username) return;
+            
+            const password = prompt(translations[currentLanguage].enter_password);
+            if (!password) return;
+            
+            const users = {};
+            $('#user-table tbody tr').each(function() {
+                const tds = $(this).find('td');
+                users[$(tds[0]).text()] = $(tds[1]).text();
+            });
+            
+            users[username] = password;
+            
+            saveUsers(users);
+        }
+
+        function deleteUser(username) {
+            if (!confirm(translations[currentLanguage].confirm_delete_user)) return;
+            
+            const users = {};
+            $('#user-table tbody tr').each(function() {
+                const tds = $(this).find('td');
+                const user = $(tds[0]).text();
+                if (user !== username) {
+                    users[user] = $(tds[1]).text();
+                }
+            });
+            
+            saveUsers(users);
+        }
+
+        function saveUsers(users) {
+            $.ajax({
+                url: appendToken('/api/users'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ users: users }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showMessage('users_save_success');
+                        loadUsers();
+                    } else {
+                        showMessage('users_save_failed', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showMessage('users_save_failed', error);
+                }
+            });
+        }
+
+        function editUserPassword(username) {
+            const newPassword = prompt(translations[currentLanguage].enter_new_password);
+            if (!newPassword) return;
+            
+            const users = {};
+            $('#user-table tbody tr').each(function() {
+                const tds = $(this).find('td');
+                const user = $(tds[0]).text();
+                users[user] = user === username ? newPassword : $(tds[1]).text();
+            });
+            
+            saveUsers(users);
+        }
+
+        // 在页面加载时加载用户列表
+        $(document).ready(function() {
+            loadUsers();
+        });
+
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+            
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            searchTimeout = setTimeout(() => {
+                updateLogs(true);
+            }, 300);
+        });
+        
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            this.style.display = 'none';
+            updateLogs(true);
+        });
+    </script>
+</body>
+</html> 

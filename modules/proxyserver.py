@@ -3,6 +3,7 @@ from modules.modules import get_message, load_ip_list
 from asyncio import TimeoutError
 from itertools import cycle
 from config import getip
+from configparser import ConfigParser
 
 
 def load_proxies(file_path='ip.txt'):
@@ -21,17 +22,27 @@ def validate_proxy(proxy):
 class AsyncProxyServer:
     def __init__(self, config):
         self.config = config
-        self.username = self.config['username'].strip()
-        self.password = self.config['password'].strip()
-        self.auth_required = bool(self.username and self.password)
-        self.mode = self.config['mode']
-        self.interval = int(self.config['interval'])
+        self.username = self.config.get('username', '').strip()
+        self.password = self.config.get('password', '').strip()
+        self.mode = self.config.get('mode', 'cycle')
+        self.interval = int(self.config.get('interval', '300'))
         self.use_getip = self.config.get('use_getip', 'False').lower() == 'true'
-        self.proxy_file = self.config['proxy_file']
+        self.proxy_file = self.config.get('proxy_file', 'ip.txt')
         self.language = self.config.get('language', 'cn').lower()
-        self.whitelist = load_ip_list(config.get('whitelist_file', ''))
-        self.blacklist = load_ip_list(config.get('blacklist_file', ''))
-        self.ip_auth_priority = config.get('ip_auth_priority', 'whitelist')
+        
+        config_parser = ConfigParser()
+        config_parser.read('config/config.ini', encoding='utf-8')
+        
+        self.users = {}
+        if config_parser.has_section('Users'):
+            self.users = dict(config_parser.items('Users'))
+        self.auth_required = bool(self.users)
+        
+        self.whitelist_file = self.config.get('whitelist_file', '')
+        self.blacklist_file = self.config.get('blacklist_file', '')
+        self.whitelist = load_ip_list(self.whitelist_file)
+        self.blacklist = load_ip_list(self.blacklist_file)
+        self.ip_auth_priority = self.config.get('ip_auth_priority', 'whitelist')
         
         if not self.use_getip:
             self.proxies = self._load_file_proxies()
@@ -64,6 +75,57 @@ class AsyncProxyServer:
         self.request_semaphore = asyncio.Semaphore(self.max_concurrent_requests)
         self.connection_pool = {}
         self.pipeline_enabled = True
+        self.connected_clients = set()
+        self.known_clients = set() 
+        self.last_proxy = None 
+        
+        self.running = False
+        self.stop_server = False
+        self.server_instance = None
+        self.tasks = set()
+
+    async def start(self):
+        if not self.running:
+            self.stop_server = False
+            self.running = True
+            try:
+                self.server_instance = await asyncio.start_server(
+                    self.handle_client,
+                    '0.0.0.0',
+                    int(self.config.get('port', '1080'))
+                )
+                logging.info(get_message('server_running', self.language, '0.0.0.0', self.config.get('port', '1080')))
+                
+                async with self.server_instance:
+                    await self.server_instance.serve_forever()
+            except Exception as e:
+                if not self.stop_server:
+                    logging.error(get_message('server_start_error', self.language, str(e)))
+            finally:
+                self.running = False
+                self.server_instance = None
+
+    async def stop(self):
+        if self.running:
+            self.stop_server = True
+            if self.server_instance:
+                self.server_instance.close()
+                await self.server_instance.wait_closed()
+                self.server_instance = None
+            
+            for task in self.tasks:
+                task.cancel()
+            if self.tasks:
+                await asyncio.gather(*self.tasks, return_exceptions=True)
+            self.tasks.clear()
+            
+            self.running = False
+            logging.info(get_message('server_shutting_down', self.language))
+
+    async def restart(self):
+        await self.stop()
+        await asyncio.sleep(1) 
+        await self.start()
 
     async def get_next_proxy(self):
         if self.mode == 'load_balance':
@@ -110,7 +172,6 @@ class AsyncProxyServer:
         else:
             self.current_proxy = next(self.proxy_cycle)
         self.last_switch_time = time.time()
-        logging.info(get_message('proxy_switch', self.language, self.current_proxy))
 
     async def custom_proxy_switch(self):
         return self.proxies[0] if self.proxies else "No proxies available"
@@ -138,30 +199,62 @@ class AsyncProxyServer:
             return not self.blacklist
 
     async def handle_client(self, reader, writer):
-        async with self.semaphore:
-            try:
-                client_ip = writer.get_extra_info('peername')[0]
-                if not self.check_ip_auth(client_ip):
-                    logging.warning(get_message('unauthorized_ip', self.language, client_ip))
+        task = asyncio.current_task()
+        self.tasks.add(task)
+        try:
+            peername = writer.get_extra_info('peername')
+            if not peername:
+                return
+            
+            client_ip = peername[0]
+            
+            if client_ip not in self.known_clients:
+                self.known_clients.add(client_ip)
+                auth_info = f"{self.username}:{self.password}" if self.auth_required else get_message('no_auth', self.language)
+                logging.info(get_message('new_client_connect', self.language, client_ip, auth_info))
+            
+            self.connected_clients.add(client_ip)
+            
+            if self.current_proxy != self.last_proxy:
+                self.last_proxy = self.current_proxy
+                logging.info(get_message('proxy_switch', self.language, self.current_proxy))
+            
+            async with self.semaphore:
+                try:
+                    if not self.check_ip_auth(client_ip):
+                        logging.warning(get_message('unauthorized_ip', self.language, client_ip))
+                        writer.close()
+                        await writer.wait_closed()
+                        return
+
+                    first_byte = await reader.read(1)
+                    if not first_byte:
+                        return
+                    
+                    if (first_byte == b'\x05'):
+                        await self.handle_socks5_connection(reader, writer)
+                    else: 
+                        await self._handle_client_impl(reader, writer, first_byte)
+                except asyncio.CancelledError:
+                    logging.info(get_message('client_cancelled', self.language))
+                except Exception as e:
+                    logging.error(get_message('client_error', self.language, e))
+                finally:
                     writer.close()
                     await writer.wait_closed()
-                    return
-
-                first_byte = await reader.read(1)
-                if not first_byte:
-                    return
-                
-                if (first_byte == b'\x05'):
-                    await self.handle_socks5_connection(reader, writer)
-                else: 
-                    await self._handle_client_impl(reader, writer, first_byte)
-            except asyncio.CancelledError:
-                logging.info(get_message('client_cancelled', self.language))
-            except Exception as e:
-                logging.error(get_message('client_error', self.language, e))
-            finally:
+                    if client_ip in self.connected_clients:
+                        self.connected_clients.discard(client_ip)
+        except Exception as e:
+            logging.error(get_message('connection_error', self.language, str(e)))
+        finally:
+            self.tasks.discard(task)
+            try:
                 writer.close()
                 await writer.wait_closed()
+                if client_ip in self.connected_clients:
+                    self.connected_clients.discard(client_ip)
+            except:
+                pass
 
     async def handle_socks5_connection(self, reader, writer):
         try:
@@ -383,18 +476,20 @@ class AsyncProxyServer:
             logging.error(get_message('client_request_error', self.language, e))
 
     def _authenticate(self, headers):
-        if not self.auth_required:
+        if not self.users:
             return True
         
         auth = headers.get('proxy-authorization')
         if not auth:
             return False
+        
         try:
             scheme, credentials = auth.split()
             if scheme.lower() != 'basic':
                 return False
+            
             username, password = base64.b64decode(credentials).decode().split(':')
-            return username == self.username and password == self.password
+            return username in self.users and self.users[username] == password
         except:
             return False
 
@@ -540,52 +635,6 @@ class AsyncProxyServer:
             verify=False 
         )
 
-    async def _handle_request(self, method, path, headers, reader, writer):
-        async with self.request_semaphore:
-            try:
-                proxy = await self.get_next_proxy()
-                key = f"{proxy}:{path}"
-                
-                if key in self.connection_pool:
-                    client = self.connection_pool[key]
-                else:
-                    client = await self._create_client(proxy)
-                    self.connection_pool[key] = client
-
-                async with client.stream(
-                    method,
-                    path,
-                    headers=headers,
-                    content=reader,
-                ) as response:
-                    writer.write(f'HTTP/1.1 {response.status_code} {response.reason_phrase}\r\n'.encode())
-                    
-                    async for chunk in response.aiter_bytes(chunk_size=self.buffer_size):
-                        writer.write(chunk)
-                        if len(chunk) >= self.buffer_size:
-                            await writer.drain()
-                    
-                    await writer.drain()
-                    
-            except Exception as e:
-                logging.error(get_message('request_handling_error', self.language, e))
-                writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
-                await writer.drain()
-            finally:
-                await self._cleanup_connections()
-
-    async def _create_client(self, proxy):
-        return httpx.AsyncClient(
-            proxies={"all://": proxy},
-            limits=httpx.Limits(
-                max_keepalive_connections=100,
-                max_connections=1000,
-                keepalive_expiry=30
-            ),
-            timeout=30.0,
-            http2=True,
-        )
-
     async def _cleanup_connections(self):
         current_time = time.time()
         expired_keys = [
@@ -626,9 +675,6 @@ class AsyncProxyServer:
         except Exception:
             self.proxy_check_cache[proxy] = (current_time, False)
             return False
-
-        finally:
-            self._clean_proxy_cache()
 
     def _clean_proxy_cache(self):
         current_time = time.time()
@@ -671,65 +717,53 @@ class AsyncProxyServer:
             old_proxy = self.current_proxy
             await self.get_proxy()
             self.last_switch_time = current_time
-            logging.info(get_message('proxy_switched', self.language, old_proxy, self.current_proxy))
+            
+            if self.connected_clients:
+                clients = ", ".join(sorted(self.connected_clients))
+                logging.info(get_message('proxy_switch_clients', self.language, clients))
+            logging.info(get_message('proxy_changed', self.language, old_proxy, self.current_proxy))
+            
             self.proxy_failed = False
         finally:
             self.switching_proxy = False
 
     async def check_proxy(self, proxy):
-        current_time = time.time()
-        if proxy in self.proxy_cache:
-            cache_time, is_valid = self.proxy_cache[proxy]
-            if current_time - cache_time < self.proxy_cache_ttl:
-                return is_valid
-                
+        cache_key = f"{proxy}_{time.time() // self.proxy_cache_ttl}"
+        if cache_key in self.proxy_cache:
+            return self.proxy_cache[cache_key]
+
         is_valid = await self._check_proxy_impl(proxy)
-        self.proxy_cache[proxy] = (current_time, is_valid)
+        self.proxy_cache[cache_key] = is_valid
         return is_valid
 
-    async def handle_request(self, client_reader, client_writer, target_host, target_port):
-        for retry in range(self.retry_count):
-            try:
-                target_reader, target_writer = await asyncio.wait_for(
-                    asyncio.open_connection(target_host, target_port),
-                    timeout=self.timeout
-                )
-                forward_task = asyncio.create_task(
-                    self.forward_data(client_reader, target_writer, "客户端 -> 目标")
-                )
-                backward_task = asyncio.create_task(
-                    self.forward_data(target_reader, client_writer, "目标 -> 客户端")
-                )
-                await asyncio.gather(forward_task, backward_task)
-                break 
-                
-            except TimeoutError:
-                print(f"连接超时，重试 {retry + 1}/{self.retry_count}")
-                continue
-            except Exception as e:
-                logging.error(get_message('proxy_forward_error', self.language, e))
-                if retry == self.retry_count - 1:
-                    raise
-                continue
-            finally:
+    def initialize_proxies(self):
+        if self.mode == 'cycle':
+            if hasattr(self, 'proxies') and self.proxies:
+                self.proxy_cycle = cycle(self.proxies)
+            elif self.use_getip:
+                pass
+            else:
                 try:
-                    target_writer.close()
-                    await target_writer.wait_closed()
-                except:
-                    pass
+                    with open(self.proxy_file, 'r') as f:
+                        self.proxies = [line.strip() for line in f if line.strip()]
+                    if self.proxies:
+                        self.proxy_cycle = cycle(self.proxies)
+                except Exception as e:
+                    logging.error(get_message('load_proxy_file_error', self.language, str(e)))
 
-    async def forward_data(self, reader, writer, direction):
-        try:
-            while True:
-                data = await asyncio.wait_for(reader.read(8192), timeout=self.timeout)
-                if not data:
-                    break
-                writer.write(data)
-                await writer.drain()
-        except TimeoutError:
-            logging.error(get_message('data_transfer_timeout', self.language, direction))
-        except Exception as e:
-            logging.error(get_message('data_transfer_error', self.language, direction, e))
+    async def cleanup_disconnected_ips(self):
+        while True:
+            try:
+                active_ips = set()
+                for client_info in self.get_active_connections():
+                    active_ips.add(client_info[0])
+                
+                self.connected_clients = active_ips
+                
+            except Exception as e:
+                logging.error(get_message('cleanup_error', self.language, str(e)))
+            
+            await asyncio.sleep(30)
 
     def is_docker():
         return os.path.exists('/.dockerenv')
@@ -753,12 +787,3 @@ class AsyncProxyServer:
         logging.error(error_messages.get(error_type, str(details)))
         if error_type in ['timeout', 'invalid']:
             await self.handle_proxy_failure()
-
-    async def check_proxy(self, proxy):
-        cache_key = f"{proxy}_{time.time() // self.proxy_cache_ttl}"
-        if cache_key in self.proxy_cache:
-            return self.proxy_cache[cache_key]
-
-        is_valid = await self._check_proxy_impl(proxy)
-        self.proxy_cache[cache_key] = is_valid
-        return is_valid

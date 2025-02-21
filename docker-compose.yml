@@ -1,10 +1,10 @@
 version: '3'
 services:
-  app:
+  proxycat:
     build: .
-    container_name: proxycat
     ports:
       - "1080:1080"
+      - "5000:5000"
     volumes:
       - ./config:/app/config
     restart: unless-stopped
