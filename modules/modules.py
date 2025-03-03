@@ -517,7 +517,9 @@ def parse_proxy(proxy):
     except Exception:
         return None, None, None, None
 
-async def check_http_proxy(proxy, test_url='https://www.baidu.com'):
+async def check_http_proxy(proxy, test_url=None):
+    if test_url is None:
+        test_url = 'https://www.baidu.com'
     protocol, auth, host, port = parse_proxy(proxy)
     proxies = {}
     if auth:
@@ -541,10 +543,10 @@ async def check_http_proxy(proxy, test_url='https://www.baidu.com'):
     except:
         return False
 
-async def check_https_proxy(proxy, test_url='https://www.baidu.com'):
+async def check_https_proxy(proxy, test_url=None):
     return await check_http_proxy(proxy, test_url)
 
-async def check_socks_proxy(proxy, test_url='www.baidu.com'):
+async def check_socks_proxy(proxy, test_url=None):
     protocol, auth, host, port = parse_proxy(proxy)
     if not all([host, port]):
         return False

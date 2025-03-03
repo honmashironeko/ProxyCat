@@ -1826,23 +1826,38 @@
             // 合并所有代理列表
             const allProxies = [...httpProxies, ...httpsProxies, ...socks5Proxies, ...fullProxies];
             
-            // 发送到服务器
+            // 获取测试URL
+            const testUrl = document.getElementById('test-target-url').value.trim();
+            
+            // 首先更新配置
             $.ajax({
-                url: appendToken('/api/proxies'),
+                url: appendToken('/api/config'),
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ proxies: allProxies }),
-                success: function(response) {
-                    if (response.status === 'success') {
-                        showNotification(translations[currentLanguage].proxy_save_success, 'success');
-                        // 重新加载代理列表以确保显示正确
-                        loadProxies();
-                    } else {
-                        showNotification(translations[currentLanguage].proxy_save_failed.format(response.message), 'error');
-                    }
+                data: JSON.stringify({ test_url: testUrl }),
+                success: function(configResponse) {
+                    // 然后保存代理列表
+                    $.ajax({
+                        url: appendToken('/api/proxies'),
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ proxies: allProxies }),
+                        success: function(response) {
+                            if (response.status === 'success' && configResponse.status === 'success') {
+                                showNotification(translations[currentLanguage].proxy_save_success, 'success');
+                                // 重新加载代理列表以确保显示正确
+                                loadProxies();
+                            } else {
+                                showNotification(translations[currentLanguage].proxy_save_failed.format(response.message), 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            showNotification(translations[currentLanguage].proxy_save_failed.format(xhr.responseText), 'error');
+                        }
+                    });
                 },
                 error: function(xhr) {
-                    showNotification(translations[currentLanguage].proxy_save_failed.format(xhr.responseText), 'error');
+                    showNotification(translations[currentLanguage].config_save_failed.format(xhr.responseText), 'error');
                 }
             });
         }
@@ -2693,7 +2708,11 @@
         function showMessage(key, ...args) {
             const message = translations[currentLanguage][key];
             if (args.length > 0) {
-                showNotification(message.format(...args), key.includes('success') ? 'success' : 'error');
+                try {
+                    showNotification(message.replace('{}', args.join(', ')), key.includes('success') ? 'success' : 'error');
+                } catch (e) {
+                    showNotification(message, key.includes('success') ? 'success' : 'error');
+                }
             } else {
                 showNotification(message, key.includes('success') ? 'success' : 'error');
             }
@@ -3138,4 +3157,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

@@ -49,6 +49,7 @@ class AsyncProxyServer:
         self.blacklist_file = os.path.join('config', os.path.basename(config.get('blacklist_file', 'blacklist.txt')))
         self.ip_auth_priority = config.get('ip_auth_priority', 'whitelist')
         
+        self.test_url = config.get('test_url', 'https://www.baidu.com')
         self.whitelist = load_ip_list(self.whitelist_file)
         self.blacklist = load_ip_list(self.blacklist_file)
         
@@ -121,7 +122,7 @@ class AsyncProxyServer:
 
     async def _check_proxies(self):
         from modules.modules import check_proxies
-        valid_proxies = await check_proxies(self.proxies)
+        valid_proxies = await check_proxies(self.proxies, test_url=self.test_url)
         if valid_proxies:
             self.proxies = valid_proxies
             self.proxy_cycle = cycle(valid_proxies)

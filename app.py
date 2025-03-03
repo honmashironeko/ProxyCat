@@ -173,7 +173,7 @@ def save_config():
             config_parser.write(f)
             
         server.config = load_config('config/config.ini')
-        server._update_config_values(server.config)
+        server._init_config_values(server.config)
         
         return jsonify({
             'status': 'success',
@@ -638,4 +638,4 @@ if __name__ == '__main__':
     proxy_thread = threading.Thread(target=run_proxy_server, daemon=True)
     proxy_thread.start()
     
-    app.run(host='0.0.0.0', port=web_port) 
+    app.run(host='0.0.0.0', port=web_port)
