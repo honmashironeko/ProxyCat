@@ -618,6 +618,7 @@ def send_static(path):
     return send_from_directory('web/static', path)
 
 def run_proxy_server():
+    try:
         asyncio.run(run_server(server))
     except KeyboardInterrupt:
         logging.info(get_message('user_interrupt', server.language))
