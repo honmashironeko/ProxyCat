@@ -1,0 +1,44 @@
+.log-search {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.log-search input {
+    padding: 12px 45px;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 500;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.log-search input:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.log-search .clear-search {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.2s ease;
+}
+
+.log-search .clear-search:hover {
+    color: #dc3545;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.log-search i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+} 

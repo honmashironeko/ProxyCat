@@ -25,12 +25,10 @@ MESSAGES = {
         'valid_proxies': '有效代理地址: {}',
         'no_valid_proxies': '没有有效的代理地址',
         'proxy_check_failed': '{}代理 {} 检测失败: {}',
-        'proxy_switch': '切换到新的代理: {}',
-        'proxy_switch_detail': '已切换代理: {} -> {}',
+        'proxy_switch': '切换代理: {} -> {}',
         'proxy_consecutive_fails': '代理 {} 连续失败 {} 次，正在切换新代理',
-        'proxy_invalid': '代理 {} 已失效，立即切换新代理',
+        'proxy_invalid': '代理 {} 无效，立即切换代理',
         'connection_timeout': '连接超时',
-        'proxy_invalid_switching': '代理地址失效，切换代理地址',
         'data_transfer_timeout': '数据传输超时，正在重试...',
         'connection_reset': '连接被重置',
         'transfer_cancelled': '传输被取消',
@@ -81,7 +79,6 @@ MESSAGES = {
         'response_write_error': '写入响应时出错: {}',
         'consecutive_failures': '检测到连续代理失败: {}',
         'invalid_proxy': '当前代理无效: {}',
-        'proxy_switched': '已从代理 {} 切换到 {}',
         'whitelist_error': '添加白名单失败: {}',
         'api_mode_notice': '当前为API模式，收到请求将自动获取代理地址',
         'server_running': '代理服务器运行在 {}:{}',
@@ -100,14 +97,11 @@ MESSAGES = {
 2: 显示所有详细信息''',
         'new_client_connect': '新客户端连接 - IP: {}, 用户: {}',
         'no_auth': '无认证',
-        'proxy_changed': '代理变更: {} -> {}',
         'connection_error': '连接处理错误: {}',
         'cleanup_error': '清理IP错误: {}',
         'port_changed': '端口已更改: {} -> {}，需要重启服务器生效',
         'config_updated': '服务器配置已更新',
         'load_proxy_file_error': '加载代理文件失败: {}',
-        'manual_switch': '手动切换代理: {} -> {}',
-        'auto_switch': '自动切换代理: {} -> {}',
         'proxy_check_result': '代理检查完成，有效代理：{}个',
         'no_proxy': '无代理',
         'cycle_mode': '循环模式',
@@ -196,12 +190,10 @@ MESSAGES = {
         'valid_proxies': 'Valid proxies: {}',
         'no_valid_proxies': 'No valid proxies found',
         'proxy_check_failed': '{} proxy {} check failed: {}',
-        'proxy_switch': 'Switching to new proxy: {}',
-        'proxy_switch_detail': 'Switched proxy: {} -> {}',
+        'proxy_switch': 'Switch proxy: {} -> {}',
         'proxy_consecutive_fails': 'Proxy {} failed {} times consecutively, switching to new proxy',
-        'proxy_invalid': 'Proxy {} is invalid, switching immediately',
+        'proxy_invalid': 'Proxy {} is invalid, switching proxy immediately',
         'connection_timeout': 'Connection timeout',
-        'proxy_invalid_switching': 'Proxy invalid, switching to new proxy',
         'data_transfer_timeout': 'Data transfer timeout, retrying...',
         'connection_reset': 'Connection reset',
         'transfer_cancelled': 'Transfer cancelled',
@@ -254,7 +246,6 @@ MESSAGES = {
         'response_write_error': 'Error writing response: {}',
         'consecutive_failures': 'Consecutive proxy failures detected for {}',
         'invalid_proxy': 'Current proxy is invalid: {}',
-        'proxy_switched': 'Switched from proxy {} to {}',
         'whitelist_error': 'Failed to add whitelist: {}',
         'api_mode_notice': 'Currently in API mode, proxy address will be automatically obtained upon request',
         'server_running': 'Proxy server running at {}:{}',
@@ -273,14 +264,11 @@ MESSAGES = {
 2: Show all detailed information''',
         'new_client_connect': 'New client connection - IP: {}, User: {}',
         'no_auth': 'No authentication',
-        'proxy_changed': 'Proxy changed: {} -> {}',
         'connection_error': 'Connection handling error: {}',
         'cleanup_error': 'IP cleanup error: {}',
         'port_changed': 'Port changed: {} -> {}, server restart required',
         'config_updated': 'Server configuration updated',
         'load_proxy_file_error': 'Failed to load proxy file: {}',
-        'manual_switch': 'Manual proxy switch: {} -> {}',
-        'auto_switch': 'Auto switch proxy: {} -> {}',
         'proxy_check_result': 'Proxy check completed, valid proxies: {}',
         'no_proxy': 'No proxy',
         'cycle_mode': 'Cycle Mode',
@@ -479,29 +467,37 @@ DEFAULT_CONFIG = {
 }
 
 def load_config(config_file='config/config.ini'):
-    config = ConfigParser()
-    config.read(config_file, encoding='utf-8')
-    
-    settings = {}
-    if config.has_section('Server'):
-        settings.update(dict(config.items('Server')))
+    try:
+        config = ConfigParser()
+        config.read(config_file, encoding='utf-8')
         
-        config_dir = os.path.dirname(config_file)
-        for key in ['proxy_file', 'whitelist_file', 'blacklist_file']:
-            if key in settings and settings[key]:
-                settings[key] = os.path.join(config_dir, settings[key])
-    
-    if config.has_section('DEFAULT'):
-        settings.update(dict(config.items('DEFAULT')))
-    
-    return {**DEFAULT_CONFIG, **settings}
+        if not config.has_section('Server'):
+            config.add_section('Server')
+            for key, value in DEFAULT_CONFIG.items():
+                config.set('Server', key, str(value))
+            with open(config_file, 'w', encoding='utf-8') as f:
+                config.write(f)
+        
+        result = dict(config.items('Server'))
+        
+        # 添加用户配置
+        if config.has_section('Users'):
+            result['Users'] = dict(config.items('Users'))
+        
+        return result
+    except Exception as e:
+        logging.error(f"Error loading config: {e}")
+        return DEFAULT_CONFIG.copy()
 
 def load_ip_list(file_path):
-    if not file_path or not os.path.exists(file_path):
-        return set()
-    
-    with open(file_path, 'r') as f:
-        return {line.strip() for line in f if line.strip()}
+    try:
+        config_path = os.path.join('config', os.path.basename(file_path))
+        if os.path.exists(config_path):
+            with open(config_path, 'r', encoding='utf-8') as f:
+                return set(line.strip() for line in f if line.strip())
+    except Exception as e:
+        logging.error(f"Error loading IP list: {e}")
+    return set()
 
 _proxy_check_cache = {}
 _proxy_check_ttl = 10
@@ -640,7 +636,7 @@ async def check_for_updates(language='cn'):
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                CURRENT_VERSION = "ProxyCat-V2.0.0"
+                CURRENT_VERSION = "ProxyCat-V2.0.1"
                 if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
                     print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}{Style.RESET_ALL}")
                     print(f"{Fore.YELLOW}{get_message('visit_quark', language)}{Style.RESET_ALL}")

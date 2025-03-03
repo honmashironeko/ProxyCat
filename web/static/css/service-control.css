@@ -1,0 +1,80 @@
+.service-control {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.service-control .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.service-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.service-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.service-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: auto;
+}
+
+.service-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.service-btn .btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.service-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.service-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 768px) {
+    .service-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-btn {
+        padding: 10px;
+    }
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .service-title {
+        color: #e0e0e0;
+    }
+    
+    .service-description {
+        color: #888;
+    }
+} 

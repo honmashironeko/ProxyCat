@@ -6,60 +6,19 @@
     <title data-i18n="page_title">ProxyCat 控制面板</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/base.css" rel="stylesheet">
+    <link href="/static/css/status-card.css" rel="stylesheet">
+    <link href="/static/css/progress.css" rel="stylesheet">
+    <link href="/static/css/logs.css" rel="stylesheet">
+    <link href="/static/css/dark-mode.css" rel="stylesheet">
+    <link href="/static/css/buttons.css" rel="stylesheet">
+    <link href="/static/css/forms.css" rel="stylesheet">
+    <link href="/static/css/nav-tabs.css" rel="stylesheet">
+    <link href="/static/css/search.css" rel="stylesheet">
+    <link href="/static/css/animations.css" rel="stylesheet">
+    <link href="/static/css/responsive.css" rel="stylesheet">
+    <link href="/static/css/service-control.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #50c878;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --background-color: #f8f9fa;
-            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        body {
-            background-color: var(--background-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .status-card {
-            height: 100%;
-            min-height: 140px;
-        }
-
-        .status-card .card-title {
-            color: var(--primary-color);
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .status-card .card-text {
-            font-size: 1.1rem;
-            margin-top: 10px;
-        }
-
-        .progress {
-            height: 8px;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-
-        .progress-bar {
-            background-color: var(--secondary-color);
-            transition: width 0.3s ease;
-        }
-
         .btn {
             border-radius: 6px;
             padding: 8px 16px;
@@ -126,91 +85,28 @@
         }
 
         .log-container {
-            height: 400px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid #e9ecef;
+            height: 500px;
+            position: relative;
+            margin: 1rem 0;
         }
 
-        .log-entry {
-            padding: 6px 10px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-        }
-
-        .log-INFO { background-color: #e8f5e9; color: #2e7d32; }
-        .log-WARNING { background-color: #fff3e0; color: #f57c00; }
-        .log-ERROR { background-color: #ffebee; color: #c62828; }
-        .log-CRITICAL { background-color: #ffebee; color: #b71c1c; font-weight: bold; }
-
-        .language-switch {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .form-control, .form-select {
-            border-radius: 6px;
-            border: 1px solid #ced4da;
-            padding: 8px 12px;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-        }
-
-        .table {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .table thead th {
-            background-color: #f8f9fa;
-            border-bottom: none;
-            padding: 12px;
-        }
-
-        .table tbody td {
-            padding: 12px;
-            vertical-align: middle;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .status-card {
-                margin-bottom: 15px;
-            }
-            
-            .language-switch {
-                top: 10px;
-                right: 10px;
-            }
-        }
-
-        /* 添加搜索框样式 */
         .log-search {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .log-search input {
-            padding-right: 40px;
+            padding: 12px 45px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .log-search input:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
         }
 
         .log-search .clear-search {
@@ -230,13 +126,6 @@
             color: var(--danger-color);
         }
 
-        .log-highlight {
-            background-color: #fff3cd;
-            padding: 2px;
-            border-radius: 2px;
-        }
-
-        /* 动画效果 */
         @keyframes slideIn {
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -248,7 +137,6 @@
             100% { transform: scale(1); }
         }
 
-        /* 卡片悬浮效果 */
         .card {
             transition: all 0.3s ease;
             border: none;
@@ -262,7 +150,6 @@
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* 状态卡片样式优化 */
         .status-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             min-height: 160px;
@@ -284,38 +171,6 @@
             margin-bottom: 15px;
         }
 
-        /* 按钮样式优化 */
-        .btn {
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #50c878 0%, #3cb371 100%);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        /* 表格样式优化 */
         .table {
             background: white;
             border-radius: 10px;
@@ -337,21 +192,6 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* 进度条样式优化 */
-        .progress {
-            height: 10px;
-            border-radius: 5px;
-            background: #e9ecef;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .progress-bar {
-            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-            transition: width 0.3s ease;
-        }
-
-        /* 表单控件样式优化 */
         .form-control, .form-select {
             border-radius: 8px;
             border: 2px solid #e9ecef;
@@ -364,7 +204,6 @@
             box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
         }
 
-        /* 日志容器样式优化 */
         .log-container {
             height: 500px;
             background: #fff;
@@ -382,37 +221,6 @@
             transition: all 0.2s ease;
         }
 
-        .log-entry:hover {
-            transform: translateX(5px);
-        }
-
-        /* 日志级别样式 */
-        .log-INFO { 
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
-        }
-
-        .log-WARNING {
-            background-color: #fff3e0;
-            color: #f57c00;
-            border-left: 4px solid #f57c00;
-        }
-
-        .log-ERROR {
-            background-color: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
-        }
-
-        .log-CRITICAL {
-            background-color: #ffebee;
-            color: #b71c1c;
-            border-left: 4px solid #b71c1c;
-            font-weight: bold;
-        }
-
-        /* 搜索框样式优化 */
         .log-search {
             position: relative;
             margin-bottom: 20px;
@@ -450,7 +258,6 @@
             transform: translateY(-50%) scale(1.1);
         }
 
-        /* 响应式优化 */
         @media (max-width: 768px) {
             .status-card {
                 margin-bottom: 20px;
@@ -470,7 +277,6 @@
             }
         }
 
-        /* 暗色模式支持 */
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1a1a1a;
@@ -498,6 +304,832 @@
                 border-color: #3d3d3d;
             }
         }
+
+        /* 添加新的动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* 改进卡片样式 */
+        .status-card {
+            animation: fadeInUp 0.5s ease;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* 改进按钮样式 */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* 改进日志容器样式 */
+        .log-container {
+            background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .log-entry {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        /* 暗色模式优化 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a1a;
+                color: #e0e0e0;
+            }
+
+            .status-card {
+                background: linear-gradient(145deg, #2d2d2d, #252525);
+            }
+
+            .card {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+            }
+
+            .log-container {
+                background: linear-gradient(to bottom right, #2d2d2d, #252525);
+                border-color: #3d3d3d;
+            }
+
+            .form-control, .form-select {
+                background-color: #2d2d2d;
+                border-color: #3d3d3d;
+                color: #e0e0e0;
+            }
+
+            .table {
+                color: #e0e0e0;
+            }
+
+            .table thead th {
+                background-color: #252525;
+                border-bottom-color: #3d3d3d;
+            }
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 768px) {
+            .status-card {
+                margin-bottom: 20px;
+            }
+
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+                margin: 0;
+            }
+
+            .log-container {
+                height: 350px;
+            }
+        }
+
+        /* 添加卡片阴影过渡效果 */
+        .card {
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .card:hover {
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        /* 美化进度条 */
+        .progress {
+            height: 10px;
+            background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+            transition: width 0.5s ease;
+        }
+
+        /* 添加波纹效果 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+
+        .ripple:active:after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+
+        /* 美化表单元素 */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+        }
+
+        /* 添加标签悬停效果 */
+        .nav-tabs .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #4a90e2;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover:before {
+            transform: scaleX(0.5);
+        }
+
+        .nav-tabs .nav-link.active:before {
+            transform: scaleX(1);
+        }
+
+        /* 添加加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4a90e2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 美化滚动条 */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+            border: 2px solid #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 暗色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            .loading-overlay {
+                background: rgba(0, 0, 0, 0.8);
+            }
+
+            .loading-spinner {
+                border-color: #333;
+                border-top-color: #4a90e2;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #2d2d2d;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #666;
+                border-color: #2d2d2d;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #888;
+            }
+
+            .progress {
+                background: linear-gradient(to right, #2d2d2d, #252525);
+            }
+        }
+
+        /* 添加切换动画 */
+        .tab-pane {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 美化表格 */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background: linear-gradient(to bottom, #f8f9fa, #f0f0f0);
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 12px 15px;
+            border-top: 1px solid #dee2e6;
+            transition: all 0.2s ease;
+        }
+
+        .table tr:hover td {
+            background-color: rgba(74, 144, 226, 0.05);
+        }
+
+        /* 添加新的渐变背景效果 */
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
+        /* 优化卡片容器，防止跳动 */
+        .container {
+            padding: 2rem 1rem;
+            min-height: calc(100vh - 4rem);
+        }
+
+        /* 改进标题样式 */
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* 优化状态卡片，固定高度防止跳动 */
+        .status-card {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        }
+
+        /* 改进按钮组样式 */
+        .btn-group {
+            display: inline-flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* 添加图标悬停效果 */
+        .btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover i {
+            transform: scale(1.2);
+        }
+
+        /* 优化表单布局 */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* 添加输入框图标 */
+        .form-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
+
+        .form-icon + .form-control {
+            padding-left: 2.5rem;
+        }
+
+        /* 优化日志容器，防止跳动 */
+        .log-container {
+            height: 500px;
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .log-entry {
+            margin: 0.5rem 0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 暗色模式优化 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            }
+
+            .page-title {
+                background: linear-gradient(45deg, #4a90e2, #64b5f6);
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .status-card {
+                background: linear-gradient(145deg, #2d2d2d, #252525);
+            }
+
+            /* 改进暗色模式下的阴影效果 */
+            .card {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .card:hover {
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* 添加平滑过渡效果 */
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 优化表格响应式布局 */
+        .table-responsive {
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 添加卡片内容过渡效果 */
+        .card-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .card-content.loading {
+            opacity: 0.6;
+            transform: translateY(10px);
+        }
+
+        /* 优化加载动画容器 */
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .log-message {
+            font-weight: 600; /* 为日志消息内容添加加粗效果 */
+            line-height: 1.5; /* 增加行高提高可读性 */
+        }
+
+        /* 进度条容器样式 */
+        .progress-container {
+            margin-top: auto; /* 将进度条推到底部 */
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+        }
+
+        /* 暗色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            .status-card {
+                background: linear-gradient(145deg, #2d2d2d, #252525);
+            }
+
+            .status-card .card-title {
+                color: #e0e0e0;
+            }
+
+            .status-card .card-text {
+                color: #ffffff;
+            }
+
+            .progress {
+                background: linear-gradient(to right, #2d2d2d, #252525);
+            }
+        }
+
+        /* 只保留加载相关的样式 */
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .card-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .card-content.loading {
+            opacity: 0.6;
+            transform: translateY(10px);
+        }
+
+        /* 暗色模式下的加载遮罩层 */
+        @media (prefers-color-scheme: dark) {
+            .loading-overlay {
+                background: rgba(0, 0, 0, 0.7);
+            }
+        }
+
+        /* 服务控制卡片样式 */
+        .service-control {
+            padding: 1.5rem;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .service-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .service-description {
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .service-btn {
+            position: relative;
+            flex: 1;
+            min-width: 140px;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 1rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: white;
+        }
+
+        .btn-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .start-btn {
+            background: #28a745;
+        }
+
+        .start-btn .btn-bg {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        .stop-btn {
+            background: #dc3545;
+        }
+
+        .stop-btn .btn-bg {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .restart-btn {
+            background: #ffc107;
+        }
+
+        .restart-btn .btn-bg {
+            background: linear-gradient(45deg, #f1c40f, #f39c12);
+        }
+
+        .service-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .service-btn:hover .btn-bg {
+            transform: scale(1.1);
+        }
+
+        .service-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 添加按钮图标动画 */
+        .service-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .service-btn:hover i {
+            transform: scale(1.2);
+        }
+
+        /* 暗色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            .service-control {
+                background: linear-gradient(145deg, #2d2d2d, #252525);
+            }
+
+            .service-title {
+                color: #e0e0e0;
+            }
+
+            .service-description {
+                color: #a0a0a0;
+            }
+
+            .start-btn {
+                background: #1a472a;
+            }
+
+            .start-btn .btn-bg {
+                background: linear-gradient(45deg, #2ecc71, #27ae60);
+                opacity: 0.9;
+            }
+
+            .stop-btn {
+                background: #5c1e1e;
+            }
+
+            .stop-btn .btn-bg {
+                background: linear-gradient(45deg, #e74c3c, #c0392b);
+                opacity: 0.9;
+            }
+
+            .restart-btn {
+                background: #5c4d1a;
+            }
+
+            .restart-btn .btn-bg {
+                background: linear-gradient(45deg, #f1c40f, #f39c12);
+                opacity: 0.9;
+            }
+        }
+
+        /* 响应式布局优化 */
+        @media (max-width: 768px) {
+            .service-control {
+                padding: 1rem;
+            }
+
+            .service-actions {
+                margin-top: 1rem;
+                flex-direction: column;
+            }
+
+            .service-btn {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+        }
+
+        /* 添加加载状态样式 */
+        .service-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .service-btn.loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 添加通知样式 */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .notification {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px 25px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease-out;
+            max-width: 350px;
+            border-left: 4px solid;
+        }
+
+        .notification.success {
+            border-left-color: #2ecc71;
+        }
+
+        .notification.error {
+            border-left-color: #e74c3c;
+        }
+
+        .notification i {
+            font-size: 20px;
+        }
+
+        .notification.success i {
+            color: #2ecc71;
+        }
+
+        .notification.error i {
+            color: #e74c3c;
+        }
+
+        .notification-message {
+            color: #2c3e50;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* 暗色模式下的通知样式 */
+        @media (prefers-color-scheme: dark) {
+            .notification {
+                background: #2d2d2d;
+            }
+            
+            .notification-message {
+                color: #e0e0e0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -508,91 +1140,154 @@
             </div>
         </div>
 
-        <!-- 状态卡片 -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <!-- 当前代理卡片 -->
+            <div class="col-md-4">
                 <div class="card status-card">
+                    <i class="fa fa-exchange card-icon"></i>
                     <div class="card-body">
-                        <h5 class="card-title" data-i18n="current_proxy_title">当前代理</h5>
+                        <h5 class="card-title">
+                            <i class="fa fa-random"></i>
+                            <span data-i18n="current_proxy_title">当前代理</span>
+                        </h5>
                         <p class="card-text" id="current-proxy" data-i18n="loading">加载中...</p>
-                        <button class="btn btn-sm btn-primary" onclick="switchProxy()" data-i18n="manual_switch_btn">手动切换</button>
+                        <div class="button-container">
+                            <button class="btn-sm btn-primary" onclick="switchProxy()" data-i18n="manual_switch_btn">
+                                <i class="fa fa-refresh"></i>
+                                <span>手动切换</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            
+            <!-- 服务控制卡片 -->
+            <div class="col-md-4">
                 <div class="card status-card">
+                    <i class="fa fa-server card-icon"></i>
                     <div class="card-body">
-                        <h5 class="card-title" data-i18n="run_mode_title">运行模式</h5>
-                        <p class="card-text" id="proxy-mode" data-i18n="loading">加载中...</p>
+                        <h5 class="card-title">
+                            <i class="fa fa-power-off"></i>
+                            <span data-i18n="service_control_title">服务控制</span>
+                        </h5>
+                        <div class="service-status">
+                            <div class="status-indicator">
+                                <span class="status-dot"></span>
+                                <span class="status-text" data-i18n="service_running">运行中</span>
+                            </div>
+                        </div>
+                        <div class="service-actions">
+                            <button class="service-btn start-btn" onclick="controlService('start')">
+                                <i class="fa fa-play"></i>
+                                <span data-i18n="start_service">启动</span>
+                            </button>
+                            <button class="service-btn stop-btn" onclick="controlService('stop')">
+                                <i class="fa fa-stop"></i>
+                                <span data-i18n="stop_service">停止</span>
+                            </button>
+                            <button class="service-btn restart-btn" onclick="controlService('restart')">
+                                <i class="fa fa-refresh"></i>
+                                <span data-i18n="restart_service">重启</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            
+            <!-- 下次切换卡片 -->
+            <div class="col-md-4">
                 <div class="card status-card">
+                    <i class="fa fa-clock-o card-icon"></i>
                     <div class="card-body">
-                        <h5 class="card-title" data-i18n="proxy_total_title">代理总数</h5>
-                        <p class="card-text" id="total-proxies" data-i18n="loading">加载中...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card status-card">
-                    <div class="card-body">
-                        <h5 class="card-title" data-i18n="next_switch_title">下次切换</h5>
+                        <h5 class="card-title">
+                            <i class="fa fa-refresh"></i>
+                            <span data-i18n="next_switch_title">下次切换</span>
+                        </h5>
                         <p class="card-text" id="next-switch" data-i18n="loading">加载中...</p>
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: 0%" aria-label="切换进度" data-i18n="progress_bar_label"></div>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%" aria-label="切换进度"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 服务控制卡片 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title mb-3" data-i18n="service_control_title">服务控制</h5>
-                <div class="btn-group">
-                    <button class="btn btn-success me-2" onclick="controlService('start')" data-i18n="start_service">
-                        <i class="fa fa-play me-1"></i>启动服务
-                    </button>
-                    <button class="btn btn-danger me-2" onclick="controlService('stop')" data-i18n="stop_service">
-                        <i class="fa fa-stop me-1"></i>停止服务
-                    </button>
-                    <button class="btn btn-warning" onclick="controlService('restart')" data-i18n="restart_service">
-                        <i class="fa fa-refresh me-1"></i>重启服务
-                    </button>
+        <div class="row mt-4">
+            <!-- 本地监听地址卡片 -->
+            <div class="col-md-6">
+                <div class="card info-card">
+                    <i class="fa fa-globe card-icon"></i>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-plug"></i>
+                            <span data-i18n="local_addresses_title">本地监听地址</span>
+                        </h5>
+                        <div class="address-container">
+                            <div class="address-item">
+                                <div class="address-label">
+                                    <i class="fa fa-desktop"></i>
+                                    <span data-i18n="local_http_text">HTTP 代理</span>
+                                </div>
+                                <div class="address-value" id="http-address">http://127.0.0.1:1080</div>
+                                <button class="copy-btn" onclick="copyToClipboard('http-address')">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="address-item">
+                                <div class="address-label">
+                                    <i class="fa fa-lock"></i>
+                                    <span data-i18n="local_socks5_text">SOCKS5 代理</span>
+                                </div>
+                                <div class="address-value" id="socks5-address">socks5://127.0.0.1:1080</div>
+                                <button class="copy-btn" onclick="copyToClipboard('socks5-address')">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 在状态卡片区域后添加新的信息卡片 -->
-        <div class="col-md-12 mt-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="card-title" data-i18n="local_addresses_title">本地监听地址</h5>
-                            <p class="card-text">
-                                <span data-i18n="local_http_text">本地监听地址 (HTTP): </span><span id="http-address"></span><br>
-                                <span data-i18n="local_socks5_text">本地监听地址 (SOCKS5): </span><span id="socks5-address"></span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5 class="card-title" data-i18n="about_info_title">关于信息</h5>
-                            <p class="card-text">
-                                <span data-i18n="star_project_text">开源项目求 Star: </span>
-                                <a href="https://github.com/honmashironeko/ProxyCat" target="_blank" data-i18n="github_link">https://github.com/honmashironeko/ProxyCat</a><br>
-                                <span data-i18n="public_account_text">公众号: </span>
-                                <span data-i18n="public_account_name">樱花庄的本间白猫</span>
-                            </p>
+            <!-- 关于信息卡片 -->
+            <div class="col-md-6">
+                <div class="card info-card">
+                    <i class="fa fa-info-circle card-icon"></i>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-info"></i>
+                            <span data-i18n="about_info_title">关于信息</span>
+                        </h5>
+                        <div class="about-container">
+                            <div class="about-item">
+                                <i class="fa fa-code-fork"></i>
+                                <div class="about-content">
+                                    <span data-i18n="version_text">当前版本:</span>
+                                    <span id="current-version">-</span>
+                                    <span id="version-status" class="ms-2"></span>
+                                </div>
+                            </div>
+                            <div class="about-item">
+                                <i class="fa fa-github"></i>
+                                <div class="about-content d-flex align-items-center">
+                                    <span data-i18n="star_project_text">开源项目求 Star:</span>
+                                    <a href="https://github.com/honmashironeko/ProxyCat" target="_blank" class="github-link ms-1">ProxyCat</a>
+                                </div>
+                            </div>
+                            <div class="about-item">
+                                <i class="fa fa-wechat"></i>
+                                <div class="about-content">
+                                    <span data-i18n="public_account_text">公众号:</span>
+                                    <span class="wechat-name" data-i18n="public_account_name">樱花庄的本间白猫</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 选项卡 -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" data-bs-toggle="tab" href="#config" data-i18n="config_tab">配置设置</a>
@@ -608,81 +1303,90 @@
             </li>
         </ul>
 
-        <!-- 选项卡内容 -->
         <div class="tab-content mt-3">
-            <!-- 配置设置 -->
+            <!-- 配置设置标签页 -->
             <div class="tab-pane fade show active" id="config">
                 <div class="row">
-                    <!-- 左侧：基本配置和API代理设置 -->
-                    <div class="col-md-8">
+                    <!-- 基本配置卡片 -->
+                    <div class="col-md-4">
                         <div class="card">
+                            <i class="fa fa-cog card-icon"></i>
                             <div class="card-body">
-                                <form id="config-form">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <!-- 基本配置 -->
-                                            <h5 class="mb-3" data-i18n="basic_config_title">基本配置</h5>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="port_label">端口</label>
-                                                <input type="number" class="form-control" name="port">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="switch_interval_label">切换间隔(秒)</label>
-                                                <input type="number" class="form-control" name="interval">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="run_mode_label">运行模式</label>
-                                                <select class="form-select" name="mode">
-                                                    <option value="cycle" data-i18n="cycle_mode">循环模式</option>
-                                                    <option value="load_balance" data-i18n="load_balance_mode">负载均衡</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="language_label">语言</label>
-                                                <select class="form-select" name="language">
-                                                    <option value="cn" data-i18n="chinese">中文</option>
-                                                    <option value="en" data-i18n="english">English</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <!-- API代理设置 -->
-                                            <h5 class="mb-3" data-i18n="api_proxy_settings_title">API代理设置</h5>
-                                            <div class="mb-3">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="use_getip" id="use-getip">
-                                                    <label class="form-check-label" for="use-getip" data-i18n="use_api_label">使用API获取代理</label>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="api_url_label">API地址</label>
-                                                <input type="text" class="form-control" name="getip_url">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="proxy_auth_username_label">代理认证用户名</label>
-                                                <input type="text" class="form-control" name="proxy_username">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label" data-i18n="proxy_auth_password_label">代理认证密码</label>
-                                                <input type="text" class="form-control" name="proxy_password">
-                                            </div>
-                                            <div class="mb-3">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="check_proxies" id="check-proxies">
-                                                    <label class="form-check-label" for="check-proxies" data-i18n="enable_proxy_check_label">启用代理检测</label>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <h5 class="card-title">
+                                    <i class="fa fa-wrench"></i>
+                                    <span data-i18n="basic_config_title">基本配置</span>
+                                </h5>
+                                <form id="basic-config-form">
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="port_label">端口</label>
+                                        <input type="number" class="form-control" name="port">
                                     </div>
-                                    <button type="submit" class="btn btn-primary mt-3" data-i18n="save_config">保存配置</button>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="switch_interval_label">切换间隔(秒)</label>
+                                        <input type="number" class="form-control" name="interval">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="run_mode_label">运行模式</label>
+                                        <select class="form-select" name="mode">
+                                            <option value="cycle" data-i18n="cycle_mode">循环模式</option>
+                                            <option value="load_balance" data-i18n="load_balance_mode">负载均衡</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="language_label">语言</label>
+                                        <select class="form-select" name="language">
+                                            <option value="cn" data-i18n="chinese">中文</option>
+                                            <option value="en" data-i18n="english">English</option>
+                                        </select>
+                                    </div>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 右侧：用户管理 -->
+                    <!-- API代理设置卡片 -->
                     <div class="col-md-4">
                         <div class="card">
+                            <i class="fa fa-cloud card-icon"></i>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fa fa-plug"></i>
+                                    <span data-i18n="api_proxy_settings_title">API代理设置</span>
+                                </h5>
+                                <form id="api-config-form">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="use_getip" id="use-getip">
+                                            <label class="form-check-label" for="use-getip" data-i18n="use_api_label">使用API获取代理</label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="api_url_label">API地址</label>
+                                        <input type="text" class="form-control" name="getip_url">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="proxy_auth_username_label">代理认证用户名</label>
+                                        <input type="text" class="form-control" name="proxy_username">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" data-i18n="proxy_auth_password_label">代理认证密码</label>
+                                        <input type="text" class="form-control" name="proxy_password">
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="check_proxies" id="check-proxies">
+                                            <label class="form-check-label" for="check-proxies" data-i18n="enable_proxy_check_label">启用代理检测</label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 用户管理卡片 -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <i class="fa fa-users card-icon"></i>
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="card-title mb-0" data-i18n="user_management_title">用户管理</h5>
@@ -707,60 +1411,139 @@
                         </div>
                     </div>
                 </div>
+                <!-- 保留新的浮动保存按钮 -->
+                <div class="floating-save-container">
+                    <button class="btn btn-primary floating-save-btn" onclick="saveAllConfig()">
+                        <i class="fa fa-save"></i>
+                        <span data-i18n="save_config">保存配置</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- 代理管理 -->
+            <!-- 代理管理标签页 -->
             <div class="tab-pane fade" id="proxies">
                 <div class="card">
+                    <i class="fa fa-random card-icon"></i>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label" data-i18n="proxy_list">代理列表</label>
-                            <textarea class="form-control" id="proxy-list" rows="10"></textarea>
+                        <h5 class="card-title">
+                            <i class="fa fa-list"></i>
+                            <span data-i18n="proxy_management">代理管理</span>
+                        </h5>
+                        <div class="proxy-management">
+                            <div class="proxy-lists">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="proxy-list-section">
+                                            <div class="proxy-list-header">
+                                                <i class="fa fa-globe"></i>
+                                                <span>HTTP代理</span>
+                                            </div>
+                                            <textarea class="form-control" id="http-proxy-list" rows="8" 
+                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:8080"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="proxy-list-section">
+                                            <div class="proxy-list-header">
+                                                <i class="fa fa-lock"></i>
+                                                <span>HTTPS代理</span>
+                                            </div>
+                                            <textarea class="form-control" id="https-proxy-list" rows="8"
+                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:8443"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="proxy-list-section">
+                                            <div class="proxy-list-header">
+                                                <i class="fa fa-shield"></i>
+                                                <span>SOCKS5代理</span>
+                                            </div>
+                                            <textarea class="form-control" id="socks5-proxy-list" rows="8"
+                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:1080"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="proxy-list-section">
+                                        <div class="proxy-list-header">
+                                            <i class="fa fa-code"></i>
+                                            <span data-i18n="full_proxy">完整代理地址</span>
+                                            <div class="proxy-list-help" data-i18n="proxy_help">支持完整格式的代理地址，包含协议和认证信息</div>
+                                        </div>
+                                        <textarea class="form-control" id="full-proxy-list" rows="4"
+                                            placeholder="每行一个地址，格式：protocol://[username:password@]ip:port&#10;例如：http://user:pass@127.0.0.1:8080"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 mt-4">
+                                <label class="form-label" data-i18n="test_target_label">测试目标地址</label>
+                                <input type="text" class="form-control" id="test-target-url" placeholder="https://www.baidu.com">
+                                <div class="form-text" data-i18n="test_url_help">用于检测代理有效性的目标地址</div>
+                            </div>
+                            <div class="proxy-actions">
+                                <button class="btn btn-primary" onclick="saveProxies()">
+                                    <i class="fa fa-save"></i>
+                                    <span data-i18n="save_proxy_btn">保存代理</span>
+                                </button>
+                                <button class="btn btn-warning" onclick="checkProxies()">
+                                    <i class="fa fa-check-circle"></i>
+                                    <span data-i18n="check_proxy_btn">检测代理</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" data-i18n="test_target_label">测试目标地址</label>
-                            <input type="text" class="form-control" id="test-target-url">
-                        </div>
-                        <button class="btn btn-primary me-2" onclick="saveProxies()" data-i18n="save_proxy_btn">保存代理</button>
-                        <button class="btn btn-warning" onclick="checkProxies()" data-i18n="check_proxy_btn">检测代理</button>
                     </div>
                 </div>
             </div>
 
-            <!-- IP名单 -->
+            <!-- IP名单标签页 -->
             <div class="tab-pane fade" id="ip-lists">
                 <div class="card">
+                    <i class="fa fa-shield card-icon"></i>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label" data-i18n="whitelist_title">白名单</label>
+                        <h5 class="card-title">
+                            <i class="fa fa-users"></i>
+                            <span data-i18n="ip_lists">IP名单</span>
+                        </h5>
+                        <div class="ip-lists-container">
+                            <div class="ip-lists-row">
+                                <div class="ip-list-section">
+                                    <div class="ip-list-title" data-i18n="whitelist_title">白名单</div>
                                     <textarea class="form-control" id="whitelist" rows="10"></textarea>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label" data-i18n="blacklist_title">黑名单</label>
+                                <div class="ip-list-section">
+                                    <div class="ip-list-title" data-i18n="blacklist_title">黑名单</div>
                                     <textarea class="form-control" id="blacklist" rows="10"></textarea>
                                 </div>
                             </div>
+                            <div class="ip-auth-settings">
+                                <div class="mb-3">
+                                    <label class="form-label" data-i18n="ip_auth_priority_label">IP认证优先级</label>
+                                    <select class="form-select" name="ip_auth_priority">
+                                        <option value="whitelist" data-i18n="whitelist_first">白名单优先</option>
+                                        <option value="blacklist" data-i18n="blacklist_first">黑名单优先</option>
+                                    </select>
+                                </div>
+                                <div class="ip-lists-actions">
+                                    <button class="btn btn-primary" onclick="saveIpLists()">
+                                        <i class="fa fa-save"></i>
+                                        <span data-i18n="save_list_btn">保存名单</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" data-i18n="ip_auth_priority_label">IP认证优先级</label>
-                            <select class="form-select" name="ip_auth_priority">
-                                <option value="whitelist" data-i18n="whitelist_first">白名单优先</option>
-                                <option value="blacklist" data-i18n="blacklist_first">黑名单优先</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="saveIpLists()" data-i18n="save_list_btn">保存名单</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 运行日志 -->
+            <!-- 运行日志标签页 -->
             <div class="tab-pane fade" id="logs">
                 <div class="card">
+                    <i class="fa fa-file-text card-icon"></i>
                     <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-history"></i>
+                            <span data-i18n="run_logs">运行日志</span>
+                        </h5>
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center">
@@ -777,11 +1560,10 @@
                                     <button class="btn btn-danger" onclick="clearLogs()" data-i18n="clear_logs_btn">清除日志</button>
                                 </div>
                             </div>
-                            <!-- 添加搜索框 -->
                             <div class="log-search">
                                 <i class="fa fa-search"></i>
-                                <input type="text" class="form-control" placeholder="搜索日志..." id="log-search-input">
-                                <button class="clear-search" id="clear-search">
+                                <input type="text" id="log-search-input" class="form-control" data-i18n-placeholder="search_logs" placeholder="搜索日志...">
+                                <button type="button" id="clear-search" class="clear-search" style="display: none;">
                                     <i class="fa fa-times"></i>
                                 </button>
                             </div>
@@ -793,7 +1575,6 @@
         </div>
     </div>
 
-    <!-- 在导航栏或其他合适位置添加语言切换按钮 -->
     <div class="language-switch">
         <button id="languageToggle" class="btn btn-outline-secondary">
             <span class="cn-text">English</span>
@@ -801,12 +1582,13 @@
         </button>
     </div>
 
-    <!-- 添加加载动画 -->
     <div class="loading-overlay" style="display: none;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">加载中...</span>
         </div>
     </div>
+
+    <div class="notification-container" id="notification-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
@@ -846,18 +1628,46 @@
 
         function updateStatus() {
             $.get(appendToken('/api/status'), function(data) {
-                $('#current-proxy').text(data.current_proxy || translations[currentLanguage].no_proxy);
-                $('#proxy-mode').text(translations[currentLanguage][data.mode + '_mode'] || data.mode);
-                $('#total-proxies').text(data.total_proxies || translations[currentLanguage].no_data);
+                // 只在值发生变化时更新显示
+                const currentProxy = $('#current-proxy').text();
+                const newProxy = data.current_proxy || translations[currentLanguage].no_proxy;
+                if (currentProxy !== newProxy) {
+                    $('#current-proxy').text(newProxy);
+                }
+
+                // 更新运行状态文本和样式
+                const statusText = document.querySelector('.status-text');
+                const statusDot = document.querySelector('.status-dot');
+                const status = data.service_status || 'stopped';
                 
-                if (data.time_left !== undefined) {
-                    const timeLeft = Math.max(0, Math.ceil(data.time_left));
-                    $('#next-switch').text(`${timeLeft} ${translations[currentLanguage].seconds}`);
-                } else {
-                    $('#next-switch').text(translations[currentLanguage].no_data);
+                if (statusText) {
+                    statusText.textContent = translations[currentLanguage].service_status[status];
                 }
                 
-                updateAddresses(data.config);
+                if (statusDot) {
+                    statusDot.classList.remove('running', 'stopped');
+                    void statusDot.offsetWidth; // 触发重排以重置动画
+                    statusDot.classList.add(status);
+                }
+
+                // 更新进度条和其他状态...
+                if (data.interval && data.time_left !== undefined) {
+                    const timeLeft = Math.max(0, Math.ceil(data.time_left));
+                    $('#next-switch').text(`${timeLeft} ${translations[currentLanguage].seconds}`);
+                    
+                    // 更新进度条
+                    const progress = ((data.interval - data.time_left) / data.interval) * 100;
+                    $('.progress-bar').css('width', `${Math.min(100, progress)}%`);
+                }
+
+                // 更新运行模式
+                const modeText = translations[currentLanguage].proxy_mode[data.mode];
+                if ($('#proxy-mode').text() !== modeText) {
+                    $('#proxy-mode').text(modeText);
+                }
+
+                // 更新按钮状态
+                updateServiceButtons(status);
             });
         }
 
@@ -875,23 +1685,69 @@
 
         function loadConfig() {
             $.get(appendToken('/api/status'), function(data) {
-                const config = data.config;
-                Object.keys(config).forEach(key => {
-                    const input = $(`[name="${key}"]`);
-                    if (input.length) {
-                        if (input.attr('type') === 'checkbox') {
-                            input.prop('checked', config[key].toLowerCase() === 'true');
-                        } else {
-                            input.val(config[key]);
-                        }
-                    }
-                });
+                if (data.config) {
+                    const config = data.config;
+                    
+                    // 更新表单值
+                    $('input[name="port"]').val(config.port);
+                    $('select[name="mode"]').val(config.mode);
+                    $('input[name="interval"]').val(config.interval);
+                    $('input[name="username"]').val(config.username);
+                    $('input[name="password"]').val(config.password);
+                    // 修正checkbox的状态设置
+                    $('input[name="use_getip"]').prop('checked', config.use_getip.toLowerCase() === 'true');
+                    $('input[name="getip_url"]').val(config.getip_url);
+                    $('input[name="proxy_username"]').val(config.proxy_username);
+                    $('input[name="proxy_password"]').val(config.proxy_password);
+                    $('input[name="proxy_file"]').val(config.proxy_file);
+                    $('input[name="check_proxies"]').prop('checked', config.check_proxies.toLowerCase() === 'true');
+                    $('select[name="language"]').val(config.language);
+                    $('input[name="whitelist_file"]').val(config.whitelist_file);
+                    $('input[name="blacklist_file"]').val(config.blacklist_file);
+                    $('select[name="ip_auth_priority"]').val(config.ip_auth_priority);
+                    $('select[name="display_level"]').val(config.display_level);
+                    
+                    // 根据 use_getip 的状态更新 getip_url 输入框的禁用状态
+                    const useGetip = config.use_getip.toLowerCase() === 'true';
+                    $('input[name="getip_url"]').prop('disabled', !useGetip);
+                    
+                    // 更新其他相关UI元素
+                    updateUIState();
+                }
             });
         }
 
         function loadProxies() {
             $.get(appendToken('/api/proxies'), function(data) {
-                $('#proxy-list').val(data.proxies.join('\n'));
+                const httpProxies = [];
+                const httpsProxies = [];
+                const socks5Proxies = [];
+                const fullProxies = [];
+                
+                data.proxies.forEach(proxy => {
+                    if (proxy.includes('@') || (proxy.includes('://') && !proxy.match(/^(http|https|socks5):\/\/[^@]+:\d+$/))) {
+                        // 带认证信息或其他完整格式的代理放入完整代理列表
+                        fullProxies.push(proxy);
+                    } else if (proxy.startsWith('http://')) {
+                        // HTTP代理
+                        httpProxies.push(proxy.replace('http://', ''));
+                    } else if (proxy.startsWith('https://')) {
+                        // HTTPS代理
+                        httpsProxies.push(proxy.replace('https://', ''));
+                    } else if (proxy.startsWith('socks5://')) {
+                        // SOCKS5代理
+                        socks5Proxies.push(proxy.replace('socks5://', ''));
+                    } else {
+                        // 没有协议前缀的默认作为HTTP代理
+                        httpProxies.push(proxy);
+                    }
+                });
+                
+                // 更新各个文本框的内容
+                document.getElementById('http-proxy-list').value = httpProxies.join('\n');
+                document.getElementById('https-proxy-list').value = httpsProxies.join('\n');
+                document.getElementById('socks5-proxy-list').value = socks5Proxies.join('\n');
+                document.getElementById('full-proxy-list').value = fullProxies.join('\n');
             });
         }
 
@@ -913,7 +1769,6 @@
                 data.logs.forEach(log => {
                     let message = log.message;
                     
-                    // 如果有搜索文本，高亮显示匹配内容
                     if (searchText) {
                         const regex = new RegExp(`(${searchText})`, 'gi');
                         message = message.replace(regex, '<span class="log-highlight">$1</span>');
@@ -928,7 +1783,6 @@
                     container.append(logEntry);
                 });
                 
-                // 如果是搜索结果，自动滚动到第一个匹配项
                 if (searchText && data.logs.length > 0) {
                     const firstHighlight = container.find('.log-highlight').first();
                     if (firstHighlight.length) {
@@ -949,34 +1803,72 @@
         }
 
         function saveProxies() {
-            const proxies = $('#proxy-list').val().split('\n').filter(line => line.trim());
+            // 获取各个代理列表的内容
+            const httpProxies = document.getElementById('http-proxy-list').value
+                .split('\n')
+                .filter(line => line.trim())
+                .map(line => `http://${line.trim()}`);
+            
+            const httpsProxies = document.getElementById('https-proxy-list').value
+                .split('\n')
+                .filter(line => line.trim())
+                .map(line => `https://${line.trim()}`);
+            
+            const socks5Proxies = document.getElementById('socks5-proxy-list').value
+                .split('\n')
+                .filter(line => line.trim())
+                .map(line => `socks5://${line.trim()}`);
+            
+            const fullProxies = document.getElementById('full-proxy-list').value
+                .split('\n')
+                .filter(line => line.trim());
+            
+            // 合并所有代理列表
+            const allProxies = [...httpProxies, ...httpsProxies, ...socks5Proxies, ...fullProxies];
+            
+            // 发送到服务器
             $.ajax({
                 url: appendToken('/api/proxies'),
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ proxies: proxies }),
+                data: JSON.stringify({ proxies: allProxies }),
                 success: function(response) {
                     if (response.status === 'success') {
-                        showMessage('proxy_save_success');
+                        showNotification(translations[currentLanguage].proxy_save_success, 'success');
+                        // 重新加载代理列表以确保显示正确
+                        loadProxies();
                     } else {
-                        showMessage('proxy_save_failed', response.message);
+                        showNotification(translations[currentLanguage].proxy_save_failed.format(response.message), 'error');
                     }
                 },
-                error: function(xhr, status, error) {
-                    showMessage('proxy_save_failed', error);
+                error: function(xhr) {
+                    showNotification(translations[currentLanguage].proxy_save_failed.format(xhr.responseText), 'error');
                 }
             });
         }
 
         function checkProxies() {
             const testUrl = $('#test-target-url').val().trim() || 'https://www.baidu.com';
+            
+            // 显示加载状态
+            const saveBtn = document.querySelector('.proxy-actions .btn-primary');
+            const checkBtn = document.querySelector('.proxy-actions .btn-warning');
+            saveBtn.disabled = true;
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ${translations[currentLanguage].checking_proxy}`;
+            
             $.get(appendToken('/api/check_proxies'), { test_url: testUrl }, function(data) {
                 if (data.status === 'success') {
-                    $('#proxy-list').val(data.valid_proxies.join('\n'));
-                    showMessage('proxy_check_success', data.total);
+                    loadProxies();
+                    showNotification(translations[currentLanguage].proxy_check_result.replace('{}', data.total), 'success');
                 } else {
-                    showMessage('proxy_check_failed', data.message);
+                    showNotification(translations[currentLanguage].proxy_check_failed.format(data.message), 'error');
                 }
+            }).always(function() {
+                // 恢复按钮状态
+                saveBtn.disabled = false;
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = `<i class="fa fa-check-circle"></i> <span>${translations[currentLanguage].check_proxy_btn}</span>`;
             });
         }
 
@@ -985,30 +1877,64 @@
             const blacklist = $('#blacklist').val().split('\n').filter(line => line.trim());
             const ipAuthPriority = $('select[name="ip_auth_priority"]').val();
             
+            // 显示加载状态
+            const saveBtn = document.querySelector('#save-ip-list-btn');
+            if (saveBtn) {
+                const originalContent = saveBtn.innerHTML;
+                saveBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ${translations[currentLanguage].loading}`;
+                saveBtn.disabled = true;
+            }
+
+            // 先保存白名单
             $.ajax({
                 url: appendToken('/api/ip_lists'),
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ type: 'whitelist', list: whitelist }),
-                success: function() {
-                    $.ajax({
-                        url: appendToken('/api/ip_lists'),
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ type: 'blacklist', list: blacklist }),
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                showMessage('ip_list_save_success');
-                            } else {
-                                showMessage('ip_list_save_failed', response.message);
-                            }
-                        }
-                    });
+                data: JSON.stringify({ 
+                    type: 'whitelist', 
+                    list: whitelist 
+                })
+            })
+            .then(function(whitelistResponse) {
+                // 再保存黑名单
+                return $.ajax({
+                    url: appendToken('/api/ip_lists'),
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ 
+                        type: 'blacklist', 
+                        list: blacklist 
+                    })
+                });
+            })
+            .then(function(response) {
+                if (response.status === 'success') {
+                    showNotification(translations[currentLanguage].ip_list_save_success, 'success');
+                    // 重新加载IP名单以确保显示正确
+                    loadIpLists();
+                } else {
+                    showNotification(translations[currentLanguage].ip_list_save_failed.format(response.message), 'error');
+                }
+            })
+            .catch(function(xhr) {
+                showNotification(translations[currentLanguage].ip_list_save_failed.format(xhr.responseText), 'error');
+            })
+            .always(function() {
+                // 恢复按钮状态
+                const saveBtn = document.querySelector('#save-ip-list-btn');
+                if (saveBtn) {
+                    saveBtn.innerHTML = `<i class="fa fa-save"></i> <span data-i18n="save_list_btn">${translations[currentLanguage].save_list_btn}</span>`;
+                    saveBtn.disabled = false;
                 }
             });
         }
 
         function controlService(action) {
+            const btn = document.querySelector(`.${action}-btn`);
+            if (btn) {
+                btn.classList.add('loading');
+            }
+
             $.ajax({
                 url: appendToken('/api/service'),
                 method: 'POST',
@@ -1016,13 +1942,38 @@
                 data: JSON.stringify({ action: action }),
                 success: function(response) {
                     if (response.status === 'success') {
-                        showMessage(`service_${action}_success`);
-                    } else {
-                        showMessage('operation_failed', response.message);
+                        // 立即更新状态显示
+                        const statusText = document.querySelector('.status-text');
+                        const statusDot = document.querySelector('.status-dot');
+                        
+                        if (statusText) {
+                            statusText.textContent = translations[currentLanguage].service_status[response.service_status];
+                        }
+                        
+                        if (statusDot) {
+                            statusDot.classList.remove('running');
+                            statusDot.classList.remove('stopped');
+                            void statusDot.offsetWidth; // 触发重排以重置动画
+                            statusDot.classList.add(response.service_status === 'running' ? 'running' : 'stopped');
+                        }
+                        
+                        // 更新按钮状态
+                        updateServiceButtons(response.service_status);
+                        
+                        // 更新状态后立即触发一次状态更新
+                        updateStatus();
                     }
+                    showToast(response.message);
                 },
-                error: function(xhr, status, error) {
-                    showMessage('operation_failed', error);
+                error: function(xhr) {
+                    showToast(translations[currentLanguage].operation_failed.replace('{}', xhr.responseText));
+                },
+                complete: function() {
+                    if (btn) {
+                        btn.classList.remove('loading');
+                        // 移除所有可能的过渡状态类
+                        btn.classList.remove('stopping', 'starting', 'restarting');
+                    }
                 }
             });
         }
@@ -1034,69 +1985,117 @@
                     method: 'POST',
                     success: function(response) {
                         if (response.status === 'success') {
-                            showMessage('logs_cleared');
-                            updateLogs(true);
+                            showNotification(translations[currentLanguage].logs_cleared, 'success');
+                            $('#log-container').empty();
                         } else {
-                            showMessage('clear_logs_failed', response.message);
-                        }
-                    }
-                });
-            }
-        }
-
-        function saveConfig() {
-            const formData = new FormData(document.getElementById('config-form'));
-            const config = {};
-            for (let [key, value] of formData.entries()) {
-                config[key] = value;
-            }
-            
-            $('input[type="checkbox"]').each(function() {
-                config[$(this).attr('name')] = $(this).is(':checked') ? 'True' : 'False';
-            });
-            
-            $.get(appendToken('/api/status'), function(data) {
-                const currentPort = data.config.port;
-                
-                const portChanged = currentPort !== config.port;
-                
-                $.ajax({
-                    url: appendToken('/api/config'),
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(config),
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            showMessage('config_save_success');
-                            
-                            if (portChanged) {
-                                if (confirm(translations[currentLanguage].confirm_restart)) {
-                                    controlService('restart');
-                                }
-                            }
-                            
-                            loadConfig();
-                        } else {
-                            showMessage('config_save_failed', response.message);
+                            showNotification(translations[currentLanguage].clear_logs_failed.format(response.message), 'error');
                         }
                     },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 401) {
-                            showMessage('invalid_token');
-                        } else {
-                            showMessage('config_save_failed', error);
-                        }
+                    error: function(xhr) {
+                        showNotification(translations[currentLanguage].clear_logs_failed.format(xhr.responseText), 'error');
                     }
                 });
-            });
-            
-            return false;
+            }
         }
 
-        $('#config-form').on('submit', function(e) {
-            e.preventDefault();
-            saveConfig();
-        });
+        // 添加保存所有配置的函数
+        function saveAllConfig() {
+            // 显示加载状态
+            const saveBtn = document.querySelector('.floating-save-btn');
+            const originalContent = saveBtn.innerHTML;
+            saveBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> <span data-i18n="saving">保存中...</span>`;
+            saveBtn.disabled = true;
+
+            // 收集所有配置
+            const config = {
+                port: $('input[name="port"]').val(),
+                mode: $('select[name="mode"]').val(),
+                interval: $('input[name="interval"]').val(),
+                username: $('input[name="username"]').val(),
+                password: $('input[name="password"]').val(),
+                // 修改这里，确保正确获取 checkbox 的值并转换为字符串
+                use_getip: $('input[name="use_getip"]').prop('checked').toString(),
+                getip_url: $('input[name="getip_url"]').val(),
+                proxy_username: $('input[name="proxy_username"]').val(),
+                proxy_password: $('input[name="proxy_password"]').val(),
+                proxy_file: $('input[name="proxy_file"]').val(),
+                check_proxies: $('input[name="check_proxies"]').prop('checked').toString(),
+                language: $('select[name="language"]').val(),
+                whitelist_file: $('input[name="whitelist_file"]').val(),
+                blacklist_file: $('input[name="blacklist_file"]').val(),
+                ip_auth_priority: $('select[name="ip_auth_priority"]').val(),
+                display_level: $('select[name="display_level"]').val(),
+                test_url: $('input[name="test_url"]').val()
+            };
+
+            // 保存配置
+            $.ajax({
+                url: appendToken('/api/config'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(config),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showNotification(translations[currentLanguage].config_save_success, 'success');
+                        
+                        if (response.port_changed) {
+                            showNotification(translations[currentLanguage].restarting_service, 'success');
+                            // 调用服务重启API
+                            $.ajax({
+                                url: appendToken('/api/service'),
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ action: 'restart' }),
+                                success: function(restartResponse) {
+                                    if (restartResponse.status === 'success') {
+                                        showNotification(translations[currentLanguage].service_restart_success, 'success');
+                                    } else {
+                                        showNotification(translations[currentLanguage].service_restart_failed, 'error');
+                                    }
+                                    updateStatus();
+                                },
+                                error: function(xhr) {
+                                    showNotification(translations[currentLanguage].service_restart_failed.format(xhr.responseText), 'error');
+                                }
+                            });
+                        }
+                        
+                        // 重新加载配置以更新UI状态
+                        loadConfig();
+                    } else {
+                        showNotification(translations[currentLanguage].config_save_failed.format(response.message), 'error');
+                    }
+                },
+                error: function(xhr) {
+                    showNotification(translations[currentLanguage].config_save_failed.format(xhr.responseText), 'error');
+                },
+                complete: function() {
+                    // 恢复按钮状态
+                    saveBtn.innerHTML = originalContent;
+                    saveBtn.disabled = false;
+                }
+            });
+        }
+
+        // 添加一个简单的 Toast 提示函数
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fa fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            // 添加显示类触发动画
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // 3秒后移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
         const translations = {
             cn: {
@@ -1196,6 +2195,29 @@
                 'whitelist_first': '白名单优先',
                 'blacklist_first': '黑名单优先',
                 'save_list_btn': '保存名单',
+                'proxy_check_success': '代理检测完成，有效代理数：{}',
+                'proxy_check_failed': '代理检测失败：{}',
+                'proxy_save_success': '代理保存成功',
+                'proxy_save_failed': '代理保存失败：{}',
+                'ip_list_save_success': 'IP名单保存成功',
+                'ip_list_save_failed': 'IP名单保存失败：{}',
+                'manual_switch_btn': '手动切换',
+                'switch_success': '切换成功',
+                'switch_failed': '切换失败：{}',
+                'no_proxy': '没有代理',
+                'seconds': '秒',
+                'username_label': '用户名',
+                'password_label': '密码',
+                'proxy_username_label': '代理用户名',
+                'proxy_password_label': '代理密码',
+                'progress_bar_label': '切换进度',
+                'auth_username_label': '认证用户名',
+                'auth_password_label': '认证密码',
+                'proxy_auth_username_label': '代理认证用户名',
+                'proxy_auth_password_label': '代理认证密码',
+                'language_switch_success': '语言切换成功',
+                'language_switch_failed': '语言切换失败：{}',
+                'refresh_failed': '刷新数据失败：{}',
                 'log_level_label': '日志级别',
                 'log_level_all': '全部',
                 'log_level_info': '信息',
@@ -1203,16 +2225,10 @@
                 'log_level_error': '错误',
                 'log_level_critical': '严重错误',
                 'clear_logs_btn': '清除日志',
-                'no_data': '暂无数据',
-                'local_http': '本地监听地址 (HTTP)',
-                'local_socks5': '本地监听地址 (SOCKS5)',
-                'about_info': '关于信息',
-                'star_project': '开源项目求 Star',
-                'public_account': '公众号',
-                'public_account_name': '樱花庄的本间白猫',
-                'version_latest': '当前版本已是最新 ({})',
-                'version_update_available': '发现新版本！\n当前版本: {}\n最新版本: {}\n\n请访问以下地址获取最新版本：\n1. https://github.com/honmashironeko/ProxyCat\n2. https://pan.quark.cn/s/39b4b5674570\n3. https://pan.baidu.com/s/1C9LVC9aiaQeYFSj_2mWH1w?pwd=13r5',
-                'seconds': '秒',
+                'confirm_clear_logs': '确定要清除所有日志吗？此操作不可恢复。',
+                'logs_cleared': '日志已清除',
+                'clear_logs_failed': '清除日志失败：{}',
+                'logs_tab': '运行日志',
                 'config_save_success': '配置保存成功',
                 'config_save_failed': '配置保存失败：{}',
                 'proxy_save_success': '代理保存成功',
@@ -1232,11 +2248,9 @@
                 'proxy_check_result': '代理检查完成，有效代理：{}个',
                 'proxy_check_failed': '代理检查失败：{}',
                 'language_label': '语言',
-                'progress_bar_label': '切换进度',
-                'proxy_check_success': '检查完成，有效代理：{}个',
-                'test_target_label': '测试目标地址',
-                'test_target_placeholder': '输入测试目标地址 (例如: https://www.baidu.com)',
-                'invalid_test_target': '无效的测试目标地址',
+                'test_url_label': '代理检测地址',
+                'test_url_help': '用于检测代理有效性的目标地址',
+                'invalid_test_url': '无效的检测地址',
                 'user_management_title': '用户管理',
                 'username_column': '用户名',
                 'password_column': '密码',
@@ -1250,7 +2264,66 @@
                 'enter_new_password': '请输入新密码',
                 'password_changed': '密码修改成功',
                 'password_change_failed': '密码修改失败：{}',
-                'api_proxy_settings_title': 'API代理设置'
+                'api_proxy_settings_title': 'API代理设置',
+                'test_target_label': '测试目标地址',
+                'test_url_help': '用于检测代理有效性的目标地址',
+                'test_target_placeholder': 'https://www.baidu.com',
+                'service_control_description': '管理代理服务器的运行状态',
+                'service_running': '运行中',
+                'service_stopped': '已停止',
+                'service_running_desc': '系统正常运行，代理切换功能已启用',
+                'service_stopped_desc': '系统已停止，代理切换功能未启用',
+                'service_status': {
+                    'running': '运行中',
+                    'stopped': '已停止'
+                },
+                'no_proxy': '无代理',
+                'seconds': '秒',
+                'service_control_title': '服务控制',
+                'start_service': '启动',
+                'stop_service': '停止',
+                'restart_service': '重启',
+                'loading': '加载中...',
+                'manual_switch_btn': '手动切换',
+                'cycle_mode': '循环模式',
+                'load_balance_mode': '负载均衡',
+                'next_switch': '下次切换',
+                'proxy_mode': {
+                    'cycle': '循环模式',
+                    'load_balance': '负载均衡'
+                },
+                'service_action': {
+                    'start_success': '服务启动成功',
+                    'stop_success': '服务停止成功',
+                    'restart_success': '服务重启成功'
+                },
+                'operation_failed': '操作失败: {}',
+                'no_proxy': '无代理',
+                'proxy_management': '代理管理',
+                'http_proxy': 'HTTP代理',
+                'https_proxy': 'HTTPS代理',
+                'socks5_proxy': 'SOCKS5代理',
+                'full_proxy': '完整代理地址',
+                'proxy_help': '支持完整格式的代理地址，包含协议和认证信息',
+                'proxy_placeholder': {
+                    'http': '每行一个地址，格式：ip:port\n例如：127.0.0.1:8080',
+                    'https': '每行一个地址，格式：ip:port\n例如：127.0.0.1:8443',
+                    'socks5': '每行一个地址，格式：ip:port\n例如：127.0.0.1:1080',
+                    'full': '每行一个地址，格式：protocol://[username:password@]ip:port\n例如：http://user:pass@127.0.0.1:8080'
+                },
+                'save_proxy_btn': '保存代理',
+                'check_proxy_btn': '检测代理',
+                'checking_proxy': '检测中...',
+                'proxy_check_success': '代理检测完成，有效代理数：{}',
+                'proxy_check_failed': '代理检测失败：{}',
+                'version_text': '当前版本:',
+                'latest_version': '已是最新版本',
+                'new_version_available': '发现新版本',
+                'version_check_failed': '版本检查失败',
+                'restarting_service': '正在重启服务...',
+                'service_restart_success': '服务重启成功',
+                'service_restart_failed': '服务重启失败',
+                'search_logs': '搜索日志...'
             },
             en: {
                 'title': 'ProxyCat Control Panel',
@@ -1350,8 +2423,8 @@
                 'whitelist_first': 'Whitelist First',
                 'blacklist_first': 'Blacklist First',
                 'save_list_btn': 'Save Lists',
-                'proxy_check_success': 'Check completed, valid proxies: {}',
-                'proxy_check_failed': 'Check failed: {}',
+                'proxy_check_success': 'Proxy check completed, valid proxies: {}',
+                'proxy_check_failed': 'Proxy check failed: {}',
                 'proxy_save_success': 'Proxies saved successfully',
                 'proxy_save_failed': 'Save failed: {}',
                 'ip_list_save_success': 'IP lists saved successfully',
@@ -1403,9 +2476,9 @@
                 'proxy_check_result': 'Proxy check completed, valid proxies: {}',
                 'proxy_check_failed': 'Proxy check failed: {}',
                 'language_label': 'Language',
-                'test_target_label': 'Test Target URL',
-                'test_target_placeholder': 'Enter test target URL (e.g. https://www.baidu.com)',
-                'invalid_test_target': 'Invalid test target URL',
+                'test_url_label': 'Proxy Test URL',
+                'test_url_help': 'Target URL for proxy validity check',
+                'invalid_test_url': 'Invalid test URL',
                 'user_management_title': 'User Management',
                 'username_column': 'Username',
                 'password_column': 'Password',
@@ -1419,7 +2492,46 @@
                 'enter_new_password': 'Enter new password',
                 'password_changed': 'Password changed successfully',
                 'password_change_failed': 'Failed to change password: {}',
-                'api_proxy_settings_title': 'API Proxy Settings'
+                'api_proxy_settings_title': 'API Proxy Settings',
+                'test_target_label': 'Test Target URL',
+                'test_url_help': 'Target URL for proxy validity check',
+                'test_target_placeholder': 'https://www.baidu.com',
+                'service_control_description': 'Manage proxy server running status',
+                'service_status': {
+                    'running': 'Running',
+                    'stopped': 'Stopped'
+                },
+                'no_proxy': 'No Proxy',
+                'seconds': 's',
+                'service_control_title': 'Service Control',
+                'start_service': 'Start',
+                'stop_service': 'Stop',
+                'restart_service': 'Restart',
+                'proxy_management': 'Proxy Management',
+                'http_proxy': 'HTTP Proxy',
+                'https_proxy': 'HTTPS Proxy',
+                'socks5_proxy': 'SOCKS5 Proxy',
+                'full_proxy': 'Full Proxy Address',
+                'proxy_help': 'Support full format proxy addresses, including protocol and authentication',
+                'proxy_placeholder': {
+                    'http': 'One address per line, format: ip:port\nExample: 127.0.0.1:8080',
+                    'https': 'One address per line, format: ip:port\nExample: 127.0.0.1:8443',
+                    'socks5': 'One address per line, format: ip:port\nExample: 127.0.0.1:1080',
+                    'full': 'One address per line, format: protocol://[username:password@]ip:port\nExample: http://user:pass@127.0.0.1:8080'
+                },
+                'save_proxy_btn': 'Save Proxies',
+                'check_proxy_btn': 'Check Proxies',
+                'checking_proxy': 'Checking...',
+                'proxy_check_success': 'Proxy check completed, valid proxies: {}',
+                'proxy_check_failed': 'Proxy check failed: {}',
+                'version_text': 'Current Version:',
+                'latest_version': 'Up to date',
+                'new_version_available': 'New version available',
+                'version_check_failed': 'Version check failed',
+                'restarting_service': 'Restarting service...',
+                'service_restart_success': 'Service restarted successfully',
+                'service_restart_failed': 'Failed to restart service',
+                'search_logs': 'Search logs...'
             }
         };
 
@@ -1427,17 +2539,110 @@
 
         function updatePageLanguage(language) {
             const texts = translations[language];
+            
+            // 更新所有带有 data-i18n 属性的元素
             for (const [key, value] of Object.entries(texts)) {
                 const elements = document.querySelectorAll(`[data-i18n="${key}"]`);
                 elements.forEach(el => el.textContent = value);
+                
+                // 更新带有 data-i18n-placeholder 属性的元素
+                const placeholderElements = document.querySelectorAll(`[data-i18n-placeholder="${key}"]`);
+                placeholderElements.forEach(el => el.setAttribute('placeholder', value));
             }
             
+            // 更新语言切换按钮显示
             document.querySelector('.cn-text').style.display = language === 'cn' ? 'inline' : 'none';
             document.querySelector('.en-text').style.display = language === 'en' ? 'inline' : 'none';
             
+            // 更新日志级别选项
             updateLogLevelOptions();
+
+            // 更新代理列表标题
+            const proxyHeaders = document.querySelectorAll('.proxy-list-header span');
+            proxyHeaders.forEach(header => {
+                const headerText = header.textContent.toLowerCase();
+                if (headerText.includes('http') && !headerText.includes('https')) {
+                    header.textContent = translations[language].http_proxy;
+                } else if (headerText.includes('https')) {
+                    header.textContent = translations[language].https_proxy;
+                } else if (headerText.includes('socks5')) {
+                    header.textContent = translations[language].socks5_proxy;
+                }
+            });
+
+            // 更新代理列表占位符
+            document.getElementById('http-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.http);
+            document.getElementById('https-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.https);
+            document.getElementById('socks5-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.socks5);
+            
+            // 更新帮助文本
+            const helpText = document.querySelector('.proxy-list-help');
+            if (helpText) {
+                helpText.textContent = translations[language].proxy_help;
+            }
+
+            // 更新占位符文本
+            const placeholders = {
+                'http-proxy-list': translations[language].proxy_placeholder.http,
+                'https-proxy-list': translations[language].proxy_placeholder.https,
+                'socks5-proxy-list': translations[language].proxy_placeholder.socks5,
+                'full-proxy-list': translations[language].proxy_placeholder.full
+            };
+
+            Object.entries(placeholders).forEach(([id, text]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.setAttribute('placeholder', text);
+                }
+            });
+
+            // 更新按钮文本
+            const saveBtn = document.querySelector('.proxy-actions .btn-primary span');
+            const checkBtn = document.querySelector('.proxy-actions .btn-warning span');
+            if (saveBtn) {
+                saveBtn.textContent = translations[language].save_proxy_btn;
+            }
+            if (checkBtn) {
+                checkBtn.textContent = translations[language].check_proxy_btn;
+            }
         }
 
+        // 修改初始化语言函数
+        async function initializeLanguage() {
+            try {
+                const response = await fetch(appendToken('/api/status'));
+                const data = await response.json();
+                currentLanguage = data.config.language || 'cn';
+                
+                // 更新所有翻译文本
+                updatePageLanguage(currentLanguage);
+                
+                // 特别更新服务状态文本
+                const status = data.service_status || 'running';
+                const statusText = document.querySelector('.status-text');
+                if (statusText) {
+                    statusText.textContent = translations[currentLanguage].service_status[status];
+                }
+                
+                // 更新按钮状态
+                updateServiceButtons(status);
+                
+                // 确保在DOM加载完成后更新
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        updatePageLanguage(currentLanguage);
+                        const statusText = document.querySelector('.status-text');
+                        if (statusText) {
+                            statusText.textContent = translations[currentLanguage].service_status[status];
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to initialize language:', error);
+            }
+        }
+
+        // 修改语言切换处理函数
         document.getElementById('languageToggle').addEventListener('click', async function() {
             const newLanguage = currentLanguage === 'cn' ? 'en' : 'cn';
             
@@ -1452,8 +2657,19 @@
                 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    // 刷新页面以应用新的语言设置
-                    window.location.reload();
+                    currentLanguage = newLanguage;
+                    
+                    // 更新所有翻译文本
+                    updatePageLanguage(newLanguage);
+                    
+                    // 特别更新服务状态文本
+                    const statusResponse = await fetch(appendToken('/api/status'));
+                    const statusData = await statusResponse.json();
+                    const status = statusData.service_status || 'running';
+                    const statusText = document.querySelector('.status-text');
+                    if (statusText) {
+                        statusText.textContent = translations[newLanguage].service_status[status];
+                    }
                 } else {
                     console.error('Failed to switch language:', data.message);
                 }
@@ -1461,17 +2677,6 @@
                 console.error('Failed to switch language:', error);
             }
         });
-
-        async function initializeLanguage() {
-            try {
-                const response = await fetch(appendToken('/api/status'));
-                const data = await response.json();
-                currentLanguage = data.config.language || 'cn';
-                updatePageLanguage(currentLanguage);
-            } catch (error) {
-                console.error('Failed to initialize language:', error);
-            }
-        }
 
         document.addEventListener('DOMContentLoaded', initializeLanguage);
 
@@ -1486,15 +2691,12 @@
         updateCountdown();
         updateLogs();
         function showMessage(key, ...args) {
-            let message = translations[currentLanguage][key] || key;
-            if (typeof args[0] === 'number') {
-                message = message.replace('{}', args[0]);
+            const message = translations[currentLanguage][key];
+            if (args.length > 0) {
+                showNotification(message.format(...args), key.includes('success') ? 'success' : 'error');
             } else {
-                args.forEach((arg, index) => {
-                    message = message.replace(`{${index}}`, arg);
-                });
+                showNotification(message, key.includes('success') ? 'success' : 'error');
             }
-            alert(message);
         }
 
         function updateLogLevelOptions() {
@@ -1572,16 +2774,19 @@
                             <td>${username}</td>
                             <td>${password}</td>
                             <td>
-                                <button class="btn btn-sm btn-info me-1" onclick="editUserPassword('${username}')" title="修改密码">
-                                    <i class="fa fa-key"></i>
+                                <button class="btn btn-sm btn-warning" onclick="editUserPassword('${username}')">
+                                    <i class="fa fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${username}')" title="删除用户">
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${username}')">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
                     `);
                 });
+                
+                // 更新本地监听地址
+                updateLocalAddresses();
             });
         }
 
@@ -1652,7 +2857,6 @@
             saveUsers(users);
         }
 
-        // 在页面加载时加载用户列表
         $(document).ready(function() {
             loadUsers();
         });
@@ -1674,6 +2878,264 @@
             this.style.display = 'none';
             updateLogs(true);
         });
+
+        // 添加平滑滚动效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 添加加载动画
+        function showLoading() {
+            document.querySelector('.loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.querySelector('.loading-overlay').style.display = 'none';
+        }
+
+        // 优化AJAX请求
+        function makeRequest(url, method = 'GET', data = null) {
+            showLoading();
+            return $.ajax({
+                url: appendToken(url),
+                method: method,
+                contentType: 'application/json',
+                data: data ? JSON.stringify(data) : null
+            }).always(hideLoading);
+        }
+
+        // 添加到现有的 JavaScript 代码中
+        function getRandomUser() {
+            const users = $('#user-table tbody tr').map(function() {
+                const username = $(this).find('td:first').text();
+                const password = $(this).find('td:eq(1)').text();
+                return `${username}:${password}`;
+            }).get();
+            
+            return users.length ? users[Math.floor(Math.random() * users.length)] : '';
+        }
+
+        function updateLocalAddresses() {
+            const port = $('input[name="port"]').val() || '1080';
+            const randomAuth = getRandomUser();
+            const authString = randomAuth ? `${randomAuth}@` : '';
+            
+            const httpAddress = `http://${authString}127.0.0.1:${port}`;
+            const socks5Address = `socks5://${authString}127.0.0.1:${port}`;
+            
+            // 只在地址发生变化时更新显示
+            const currentHttp = $('#http-address').text();
+            const currentSocks5 = $('#socks5-address').text();
+            
+            if (currentHttp !== httpAddress) {
+                $('#http-address').text(httpAddress);
+            }
+            if (currentSocks5 !== socks5Address) {
+                $('#socks5-address').text(socks5Address);
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const text = $(`#${elementId}`).text();
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = $(`#${elementId}`).next('.copy-btn');
+                const originalHtml = btn.html();
+                
+                btn.html('<i class="fa fa-check"></i>');
+                btn.addClass('copy-success');
+                
+                setTimeout(() => {
+                    btn.html(originalHtml);
+                    btn.removeClass('copy-success');
+                }, 1500);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        // 修改定时更新逻辑
+        let statusUpdateInterval;
+
+        function startStatusUpdate() {
+            // 清除现有的定时器
+            if (statusUpdateInterval) {
+                clearInterval(statusUpdateInterval);
+            }
+            
+            // 启动新的定时更新，降低更新频率
+            statusUpdateInterval = setInterval(updateStatus, 2000); // 改为2秒更新一次
+        }
+
+        // 添加输入框焦点事件处理
+        $(document).ready(function() {
+            // 输入框获得焦点时暂停状态更新
+            $('input, textarea').on('focus', function() {
+                if (statusUpdateInterval) {
+                    clearInterval(statusUpdateInterval);
+                }
+            });
+
+            // 输入框失去焦点时恢复状态更新
+            $('input, textarea').on('blur', function() {
+                startStatusUpdate();
+            });
+
+            // 其他初始化代码...
+        });
+
+        // 添加到现有的 JavaScript 代码中
+        function updateServiceStatus(status) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            if (status === 'running') {
+                statusDot.classList.remove('stopped');
+                statusText.textContent = translations[currentLanguage].service_status.running;
+                
+                document.querySelector('.start-btn').disabled = true;
+                document.querySelector('.stop-btn').disabled = false;
+                document.querySelector('.restart-btn').disabled = false;
+            } else {
+                statusDot.classList.add('stopped');
+                statusText.textContent = translations[currentLanguage].service_status.stopped;
+                
+                document.querySelector('.start-btn').disabled = false;
+                document.querySelector('.stop-btn').disabled = true;
+                document.querySelector('.restart-btn').disabled = true;
+            }
+        }
+
+        // 分离按钮状态更新逻辑
+        function updateServiceButtons(status) {
+            const startBtn = document.querySelector('.start-btn');
+            const stopBtn = document.querySelector('.stop-btn');
+            const restartBtn = document.querySelector('.restart-btn');
+            
+            if (status === 'running') {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                restartBtn.disabled = false;
+            } else {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                restartBtn.disabled = true;
+            }
+        }
+
+        function checkVersion() {
+            $.get(appendToken('/api/version'), function(data) {
+                if (data.status === 'success') {
+                    $('#current-version').text(data.current_version);
+                    const versionStatus = $('#version-status');
+                    if (data.is_latest) {
+                        versionStatus.html(`<span class="text-success"><i class="fa fa-check-circle"></i> ${translations[currentLanguage].latest_version}</span>`);
+                    } else {
+                        versionStatus.html(`<span class="text-warning"><i class="fa fa-exclamation-circle"></i> ${translations[currentLanguage].new_version_available} (${data.latest_version})</span>`);
+                    }
+                } else {
+                    $('#version-status').html(`<span class="text-danger"><i class="fa fa-times-circle"></i> ${translations[currentLanguage].version_check_failed}</span>`);
+                }
+            }).fail(function() {
+                $('#version-status').html(`<span class="text-danger"><i class="fa fa-times-circle"></i> ${translations[currentLanguage].version_check_failed}</span>`);
+            });
+        }
+
+        // 在页面加载完成后调用版本检查
+        $(document).ready(function() {
+            checkVersion();
+            // 每30分钟检查一次版本更新
+            setInterval(checkVersion, 30 * 60 * 1000);
+        });
+
+        // 添加一个函数来更新UI状态
+        function updateUIState() {
+            const useGetip = $('input[name="use_getip"]').prop('checked');
+            $('input[name="getip_url"]').prop('disabled', !useGetip);
+        }
+
+        // 为 use_getip checkbox 添加变更事件监听器
+        $('input[name="use_getip"]').on('change', function() {
+            updateUIState();
+        });
+
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icon = document.createElement('i');
+            icon.className = `fa fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}`;
+            
+            const messageElement = document.createElement('p');
+            messageElement.className = 'notification-message';
+            messageElement.textContent = message;
+            
+            notification.appendChild(icon);
+            notification.appendChild(messageElement);
+            container.appendChild(notification);
+            
+            // 3秒后自动移除通知
+            setTimeout(() => {
+                notification.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        async function controlService(action) {
+            try {
+                const button = event.target.closest('.service-btn');
+                if (button) {
+                    // 添加加载状态
+                    button.classList.add('loading');
+                    
+                    const response = await fetch('/api/service', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ action })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        showNotification(data.message, 'success');
+                        // 更新服务状态显示
+                        updateServiceStatus(data.service_status);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                }
+            } catch (error) {
+                showNotification('操作失败，请稍后重试', 'error');
+            } finally {
+                // 移除加载状态
+                const button = event.target.closest('.service-btn');
+                if (button) {
+                    button.classList.remove('loading');
+                }
+            }
+        }
+
+        function updateServiceStatus(status) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            if (status === 'running') {
+                statusDot.style.backgroundColor = '#2ecc71';
+                statusText.textContent = '运行中';
+            } else {
+                statusDot.style.backgroundColor = '#e74c3c';
+                statusText.textContent = '已停止';
+            }
+        }
     </script>
 </body>
 </html> 

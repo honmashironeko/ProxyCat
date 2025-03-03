@@ -1,0 +1,827 @@
+.status-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+/* 统一卡片基础样式 */
+.card.status-card, .card.service-control {
+    height: 150px;
+    background: linear-gradient(165deg, #ffffff, #f8f9fa);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    padding: 0;
+}
+
+.card.status-card:hover, .card.service-control:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 统一卡片标题样式 */
+.card-title, .service-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-title i, .service-title i {
+    font-size: 1.1em;
+    color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.1);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+/* 统一卡片内容样式 */
+.card-text {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.7rem;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* 统一按钮容器样式 */
+.button-container, .service-actions, .progress-container {
+    margin-top: auto;
+}
+
+/* 统一按钮样式 */
+.btn-sm, .service-btn {
+    padding: 6px 10px;
+    height: 32px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: white;
+    white-space: nowrap;
+}
+
+.btn-sm i, .service-btn i {
+    font-size: 1rem;
+}
+
+/* 按钮颜色统一为蓝色 */
+.btn-primary, 
+.service-btn.start-btn,
+.service-btn.stop-btn,
+.service-btn.restart-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+/* 按钮悬停效果 */
+.btn-primary:hover, 
+.service-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.18);
+    filter: brightness(1.1);
+}
+
+/* 按钮点击效果 */
+.btn-primary:active, 
+.service-btn:active {
+    transform: translateY(1px);
+}
+
+/* 服务控制按钮组样式 */
+.service-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+/* 进度条样式 */
+.progress {
+    height: 5px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color), #5dade2);
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
+
+/* 卡片图标样式 */
+.card-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    opacity: 0.15;
+    transform: scale(2);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .card.status-card, .card.service-control {
+        background: linear-gradient(165deg, #2d2d2d, #252525);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .card-title, .service-title {
+        color: #e0e0e0;
+    }
+    
+    .card-title i, .service-title i {
+        background: rgba(52, 152, 219, 0.15);
+    }
+    
+    .card-text {
+        color: #ffffff;
+    }
+    
+    .card-icon {
+        color: var(--primary-color);
+        opacity: 0.1;
+    }
+    
+    .progress {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-sm, .service-btn {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-sm:hover, .service-btn:hover {
+        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .status-cards {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .card.status-card, .card.service-control {
+        height: auto;
+        min-height: 140px;
+    }
+
+    .service-actions {
+        margin-top: 0.5rem;
+    }
+    
+    .btn-sm, .service-btn {
+        padding: 6px;
+    }
+}
+
+/* 服务控制卡片特殊样式 */
+.service-control .card-body {
+    padding: 0;
+    justify-content: space-between;
+}
+
+.service-control .service-title {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.service-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: auto;
+}
+
+/* 服务控制按钮样式优化 */
+.service-btn {
+    padding: 6px 10px;
+    min-height: 32px;
+    font-size: 0.8rem;
+}
+
+.service-btn .btn-content {
+    white-space: nowrap;
+}
+
+.service-btn i {
+    font-size: 1rem;
+}
+
+/* 添加信息卡片样式 */
+.info-card {
+    background: linear-gradient(165deg, #ffffff, #f8f9fa);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    height: 100%;
+    min-height: 120px;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 地址容器样式 */
+.address-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 0.4rem;
+}
+
+.address-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 28px;
+}
+
+.address-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    color: var(--text-color);
+    min-width: 80px;
+    font-size: 0.8rem;
+}
+
+.address-label i {
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.address-value {
+    flex-grow: 1;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--text-color);
+    padding: 2px 4px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    padding: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background: rgba(52, 152, 219, 0.1);
+    transform: scale(1.1);
+}
+
+.copy-btn.copy-success {
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.1);
+}
+
+/* 关于信息样式 */
+.about-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 0.4rem;
+}
+
+.about-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 28px;
+}
+
+.about-item i {
+    font-size: 1.1rem;
+    width: 20px;
+}
+
+.about-content {
+    font-size: 0.85rem;
+}
+
+.github-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.github-link:hover {
+    text-decoration: underline;
+}
+
+.wechat-name {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .info-card {
+        background: linear-gradient(165deg, #2d2d2d, #252525);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .address-item, .about-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .address-value {
+        background: rgba(0, 0, 0, 0.2);
+        color: #ffffff;
+    }
+
+    .copy-btn:hover {
+        background: rgba(52, 152, 219, 0.2);
+    }
+
+    .wechat-name {
+        color: #e0e0e0;
+    }
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .info-card {
+        margin-bottom: 12px;
+        min-height: auto;
+        padding: 10px;
+    }
+
+    .address-item, .about-item {
+        padding: 6px 8px;
+    }
+}
+
+/* 卡片标题样式优化 */
+.info-card .card-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    gap: 6px;
+}
+
+.info-card .card-title i {
+    font-size: 1rem;
+    padding: 4px;
+}
+
+/* 背景图标优化 */
+.info-card .card-icon {
+    font-size: 1.1rem;
+    transform: scale(1.8);
+    top: 12px;
+    right: 12px;
+}
+
+/* 标签页卡片统一样式 */
+.tab-pane .card {
+    background: linear-gradient(165deg, #ffffff, #f8f9fa);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 20px;
+}
+
+.tab-pane .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 标签页标题样式 */
+.tab-pane .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-pane .card-title i {
+    font-size: 1.2em;
+    color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.1);
+    padding: 6px;
+    border-radius: 8px;
+}
+
+/* 标签页背景图标 */
+.tab-pane .card-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    opacity: 0.15;
+    transform: scale(2.5);
+}
+
+/* 按钮统一样式 */
+.tab-pane .btn {
+    padding: 8px 16px;
+    height: 36px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: white;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.tab-pane .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.18);
+    filter: brightness(1.1);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .tab-pane .card {
+        background: linear-gradient(165deg, #2d2d2d, #252525);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tab-pane .card-title {
+        color: #e0e0e0;
+    }
+    
+    .tab-pane .card-title i {
+        background: rgba(52, 152, 219, 0.15);
+    }
+}
+
+/* 代理管理标签页样式 */
+.proxy-management {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.proxy-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 1rem;
+}
+
+.proxy-actions .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.proxy-actions .btn i {
+    font-size: 1rem;
+}
+
+/* IP名单标签页样式 */
+.ip-lists-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.ip-lists-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 1rem;
+}
+
+.ip-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.ip-list-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.ip-auth-settings {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.ip-lists-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 1rem;
+}
+
+.ip-lists-actions .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* 按钮悬停效果 */
+.proxy-actions .btn:hover,
+.ip-lists-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .ip-list-title {
+        color: #e0e0e0;
+    }
+    
+    .ip-auth-settings {
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* 代理列表区域样式 */
+.proxy-lists {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.proxy-list-section {
+    margin-bottom: 1rem;
+}
+
+.proxy-list-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.proxy-list-header i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.proxy-list-help {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: normal;
+}
+
+.proxy-list-section textarea {
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.proxy-list-section textarea:focus {
+    background: white;
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .proxy-lists {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .proxy-list-header {
+        color: #e0e0e0;
+    }
+    
+    .proxy-list-help {
+        color: #888;
+    }
+    
+    .proxy-list-section textarea {
+        background: rgba(0, 0, 0, 0.2);
+        color: #e0e0e0;
+    }
+    
+    .proxy-list-section textarea:focus {
+        background: rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* 地址显示样式 */
+.address-value {
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .address-value {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+    
+    .copy-btn:hover {
+        background: rgba(52, 152, 219, 0.2);
+    }
+    
+    .copy-btn.copy-success {
+        background: rgba(46, 204, 113, 0.2);
+    }
+}
+
+/* 服务状态样式 */
+.service-status {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0.7rem;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.status-dot.running {
+    background-color: #2ecc71;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.stopped {
+    background-color: #e74c3c;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    animation: none;
+}
+
+.status-text {
+    font-weight: 600;
+    color: var(--text-color);
+    transition: color 0.3s ease;
+}
+
+/* 添加脉冲动画 */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 服务控制卡片的按钮容器 */
+.status-card .service-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: auto;
+}
+
+/* 服务控制按钮基础样式 */
+.status-card .service-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    min-width: 70px;
+    height: 32px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+/* 服务控制按钮交互效果 */
+.status-card .service-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.status-card .service-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .status-card .service-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .status-card .service-btn {
+        width: 100%;
+    }
+}
+
+/* 添加过渡效果 */
+.status-text {
+    transition: color 0.3s ease;
+}
+
+/* 优化按钮状态过渡 */
+.service-btn {
+    transition: all 0.3s ease;
+}
+
+.service-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+} 

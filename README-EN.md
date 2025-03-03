@@ -11,18 +11,11 @@
 - [Development Background](#development-background)
 - [Features](#features)
 - [Installation and Usage](#installation-and-usage)
-  - [Dependencies Installation](#dependencies-installation)
-  - [Running the Tool](#running-the-tool)
-  - [Manual Proxy Entry](#iptxt-manual-proxy-entry)
-  - [Configuration File](#configuration-file)
-  - [Demo Effect](#demo-effect)
-  - [Using API for Automatic Proxy Retrieval](#using-api-for-automatic-proxy-retrieval)
-- [Docker Deployment](#docker-deployment)
-- [Performance](#performance)
 - [Disclaimer](#disclaimer)
-- [Change Log](#change-log)
+- [Changelog](#changelog)
 - [Development Plan](#development-plan)
-- [Acknowledgments](#acknowledgments)
+- [Special Thanks](#special-thanks)
+- [Sponsor](#sponsor)
 - [Proxy Recommendations](#proxy-recommendations)
 
 ## Development Background
@@ -35,269 +28,82 @@ Therefore, **ProxyCat** was born! This tool aims to transform short-term IPs (la
 
 ## Features
 
-- **Dual Protocol Support**: Supports both SOCKS5 and HTTP protocol listening, compatible with more tools.
-- **Multiple Proxy Protocols**: Supports HTTP/HTTPS/SOCKS5 proxy servers to meet various application needs.
-- **Multiple Switching Modes**: Cycles through each proxy in the list sequentially; randomly selects available proxies to distribute traffic load and improve performance. Allows users to customize proxy selection logic for specific needs.
-- **Function-based Proxy Retrieval**: Supports dynamic proxy retrieval through GetIP function for real-time availability.
-- **Automatic Validity Detection**: Automatically detects proxy availability at startup to filter invalid proxies.
-- **Switch Only During Proxy Forwarding**: Changes to new proxy server only when timer reaches zero and new requests arrive.
-- **Proxy Failure Switching**: Automatically switches to new proxy if current proxy fails during traffic forwarding.
-- **Proxy Pool Authentication**: Supports username/password-based authentication and blacklist/whitelist mechanisms.
-- **Real-time Status Updates**: Displays current proxy status and next switch time.
-- **Configurable File**: Easily adjust port, mode, authentication info via config.ini.
-- **Version Detection**: Built-in version checking for automatic updates.
+- **Dual Protocol Listening**: Supports HTTP/SOCKS5 protocol listening, compatible with more tools.
+- **Triple Proxy Types**: Supports HTTP/HTTPS/SOCKS5 proxy servers with authentication.
+- **Flexible Switching Modes**: Supports sequential, random, and custom proxy selection for optimized traffic distribution.
+- **Dynamic Proxy Acquisition**: Get available proxies in real-time through GetIP function, supports API interface calls.
+- **Proxy Protection**: When using GetIP method, proxies are only fetched upon receiving requests, not at initial startup.
+- **Automatic Proxy Detection**: Automatically checks proxy validity at startup, removing invalid ones.
+- **Smart Proxy Switching**: Only obtains new proxies during request execution, reducing resource consumption.
+- **Invalid Proxy Handling**: Automatically validates and switches to new proxies when current ones fail.
+- **Authentication Support**: Supports username/password authentication and IP blacklist/whitelist management.
+- **Real-time Status Display**: Shows proxy status and switching times for dynamic monitoring.
+- **Dynamic Configuration**: Updates configuration without service restart.
+- **Web UI Interface**: Provides web management interface for convenient operation.
+- **Docker Deployment**: One-click Docker deployment with unified web management.
+- **Bilingual Support**: Supports Chinese and English language switching.
+- **Flexible Configuration**: Customize ports, modes, and authentication through config.ini.
+- **Version Check**: Automatic software update checking.
 
-## Installation and Usage
+## Tool Usage
 
-### Dependencies Installation
+[ProxyCat Operation Manual](../main/ProxyCat-Manual/Operation%20Manual.md)
 
-The tool is based on Python, recommended version **Python 3.8** or above. Install dependencies using:
+## Error Troubleshooting
 
-```bash
-pip install -r requirements.txt
-# Or using Chinese mirror:
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
-```
-
-### Running the Tool
-
-Run the following command in the project directory to view help information:
-
-```bash
-python3 ProxyCat.py -h
-```
-
-Success is indicated by this response:
-
-```
-      |\      _,,,---,,_  by honmashironeko
-ZZZzz /,`.-'`'    -.  ;-;;,_
-     |,4-  ) )-,_. ,\ (  `'-'
-    '---''(_/--'  `-'\_)  ProxyCat
-
-Usage: ProxyCat.py [-h] [-c]
-
-Parameters:
-  -h, --help  Show this help message and exit
-  -c C        Specify config file name (default: config.ini)
-```
-
-### ip.txt Manual Proxy Entry
-
-Add proxies to `ip.txt` in the following format (`socks5://127.0.0.1:7890` or `http://127.0.0.1:7890`), one per line:
-
-```txt
-socks5://127.0.0.1:7890
-https://127.0.0.1:7890
-http://127.0.0.1:7890
-...
-```
-
-### Configuration File
-
-Configure parameters in `config.ini` (or custom config file):
-
-```ini
-[SETTINGS]
-# Local server listening port (default: 1080)
-port = 1080
-
-# Proxy rotation mode: cycle, custom, or load_balance (default: cycle)
-mode = cycle
-
-# Proxy change interval in seconds, 0 means change every request (default: 300)
-interval = 300
-
-# Local server authentication username (default: neko) empty means no auth
-username = neko
-
-# Local server authentication password (default: 123456) empty means no auth
-password = 123456
-
-# Whether to use getip module for proxy retrieval True/False (default: False)
-use_getip = False
-
-# Proxy list file (default: ip.txt)
-proxy_file = ip.txt
-
-# Enable proxy checking True/False (default: True)
-check_proxies = True
-
-# Language setting (cn/en)
-language = en
-
-# IP whitelist file path (empty to disable)
-whitelist_file = whitelist.txt
-
-# IP blacklist file path (empty to disable)
-blacklist_file = blacklist.txt
-
-# IP authentication priority (whitelist/blacklist)
-# whitelist: Check whitelist first, allow if in whitelist
-# blacklist: Check blacklist first, deny if in blacklist
-ip_auth_priority = whitelist
-```
-
-After configuration, run:
-
-```bash
-python3 ProxyCat.py
-```
-
-### Demo Effect
-
-**Fixed proxy address (default)**:
-
-```
-http://neko:123456@127.0.0.1:1080
-http://127.0.0.1:1080 
-socks5://neko:123456@127.0.0.1:1080
-socks5://127.0.0.1:1080 
-```
-
-If you're deploying on a public network, simply replace `127.0.0.1` with your public IP.
-
-![主界面图](./assets/主界面图.png)
-
-### Using API for Automatic Proxy Retrieval
-
-The tool supports direct API calls to obtain proxy addresses. When you configure `use_getip = True`, the tool will no longer read from local `ip.txt` but instead execute **getip.py** script to obtain new proxy addresses (ensure your IP is whitelisted, and the format should be IP:port, only one proxy address can be used each time).
-
-In this case, you need to modify the content of **getip.py** to your own API, with format `IP:PORT`. Default protocol is `socks5`, manually change to `http` if needed.
-
-### Docker Deployment
-
-Please install Docker and Docker-compose in advance. You can search for installation methods online.
-
-```
-# Clone the project source code locally
-git clone https://github.com/honmashironeko/ProxyCat.git
-
-# Modify the content in the config.ini file in the config folder
-
-# Enter the ProxyCat folder, build the image and start the container
-docker-compose up -d --build
-
-# Stop and start the service (you need to restart the service after modifying the configuration each time)
-docker-compose down | docker-compose up -d
-
-# View log information
-docker logs proxycat
-```
-
-## Performance
-
-Through actual testing, when proxy server performance is sufficient, ProxyCat can handle **1000** concurrent connections without packet loss, covering most scanning and penetration testing needs.
-
-![性能测试图](./assets/性能测试图.png)
+[ProxyCat Investigation Manual](../main/ProxyCat-Manual/Investigation%20Manual.md)
 
 ## Disclaimer
 
 - By downloading, installing, using, or modifying this tool and related code, you indicate your trust in this tool.
-- We take no responsibility for any form of loss or damage caused to yourself or others while using this tool.
-- You are solely responsible for any illegal activities during your use of this tool, and we bear no legal or associated liability.
-- Please carefully read and fully understand all terms, especially liability exemption or limitation clauses, and choose to accept or not.
-- Unless you have read and accepted all terms of this agreement, you have no right to download, install, or use this tool.
-- Your download, installation, and usage actions indicate you have read and agreed to be bound by the above agreement.
+- We are not responsible for any form of loss or damage caused to yourself or others while using this tool.
+- You are solely responsible for any illegal activities conducted while using this tool.
+- Please carefully read and fully understand all terms, especially liability exemption clauses.
+- You have no right to download, install, or use this tool unless you have read and accepted all terms.
+- Your download, installation, and usage actions indicate your acceptance of this agreement.
 
-## Change Log
+## Changelog
 
-### 2025/01/07
-
-- Introduced connection pool mechanism to improve performance.
-- Optimized error handling and logging.
-- Enhanced proxy switching mechanism.
-
-### 2025/01/03
-
-- Centralized configuration parameters management into config files for better maintenance
-- Fixed known bugs and improved stability and concurrency capabilities
-
-### 2025/01/02
-
-- Restructured software architecture for better usability
-- Added blacklist/whitelist mechanism for authentication
-- GetIP method now only requests proxy after receiving first request to prevent resource waste
-- Changed language configuration logic, now controlled via config.ini parameter
-- Updated configuration panel, addresses can be copied without username/password
-- Added docker deployment support
-
-### 2024/10/23
-
-- Restructured code, split into separate files
-- Added automatic proxy switching when current proxy fails during forwarding
-
-### 2024/09/29
-
-- Removed less-used single cycle mode, replaced with custom mode for customizable proxy switching logic
-- Changed proxy validity checking to asynchronous for better speed
-- Removed problematic SOCKS4 protocol support
-- Beautified logging system
-- Improved exception handling logic
-- Added proxy format validation
-
-### 2024/09/10
-
-- Optimized concurrency efficiency, supporting next request before receiving response
-- Added load balancing mode for random proxy selection and concurrent proxy usage
-- Changed proxy validity checking to asynchronous for better efficiency
-
-### 2024/09/09
-
-- Added option to validate proxies in ip.txt at startup
-- Function downgrade to support lower Python versions
-
-### 2024/09/03
-
-- Added local SOCKS5 listening for wider software compatibility
-- Changed some functions to support lower Python versions
-- Beautified output display
-
-### 2024/08/31
-
-- Major project structure adjustment
-- Beautified display with continuous proxy switch time indication
-- Added Ctrl+C support for stopping
-- Major adjustment to async requests, improved concurrency efficiency
-- Changed from runtime parameters to local ini config file
-- Added support for local authentication-free mode
-- Added version detection
-- Added proxy server authentication
-- Added GetIP update only on request feature
-- Added proxy protocol auto-detection
-- Added HTTPS protocol support
-- Changed asyncio.timeout() to asyncio.wait_for() for lower Python version support
+[Changelog Records](../main/ProxyCat-Manual/logs.md)
 
 ## Development Plan
 
-- [x] Added local server authentication
-- [x] Added IP change per request feature
-- [x] Added static proxy auto-update module
-- [x] Added load balancing mode
-- [x] Added version detection
-- [x] Added proxy authentication support
-- [x] Added request-triggered getip updates
-- [x] Added initial proxy validity check
-- [x] Added SOCKS protocol support
-- [ ] Add detailed logging with multi-user support
-- [ ] Add Web UI interface
-- [x] Add docker deployment
-- [ ] Develop babycat module
+- [x] Add detailed logging to record all IP identities connecting to ProxyCat, supporting multiple users.
+- [x] Add Web UI for a more powerful and user-friendly interface.
+- [ ] Develop babycat module that can run on any server or host to turn it into a proxy server.
+- [ ] Add request blacklist/whitelist to specify URLs, IPs, or domains to be forcibly dropped or bypassed.
+- [ ] Package to PyPi for easier installation and use.
 
-For feedback or suggestions, please contact via WeChat Official Account: **樱花庄的本间白猫**
+If you have good ideas or encounter bugs during use, please contact the author through:
 
-## Acknowledgments
+WeChat Official Account: **樱花庄的本间白猫**
 
-In no particular order, thanks to:
+## Special Thanks
 
-- [AabyssZG](https://github.com/AabyssZG)
-- [ProbiusOfficial](https://github.com/ProbiusOfficial)
-- [gh0stkey](https://github.com/gh0stkey)
+In no particular order, thanks to all contributors who helped with this project:
+
+- [AabyssZG (曾哥)](https://github.com/AabyssZG)
+- [ProbiusOfficial (探姬)](https://github.com/ProbiusOfficial)
+- [gh0stkey (EvilChen)](https://github.com/gh0stkey)
+- [huangzheng2016(HydrogenE7)](https://github.com/huangzheng2016)
 - chars6
-- qianzai
+- qianzai（千载）
 - ziwindlu
 
-![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)
+## Sponsor
+
+Open source development isn't easy. If you find this tool helpful, consider sponsoring the author's development!
+
+---
+| Rank |         ID          | Amount (CNY) |
+| :--: | :-----------------: | :----------: |
+|  1   |      **陆沉**       |   1266.62    |
+|  2   | **柯林斯.民间新秀** |     696      |
+|  3   |      **taffy**      |     150      |
+|  [Sponsor List](https://github.com/honmashironeko/Thanks-for-sponsorship)   |     Every sponsorship is a motivation for the author!      |      (´∀｀)♡      |
+
+---
+![Sponsor](./assets/赞助.png)
 
 ## Proxy Recommendations
 

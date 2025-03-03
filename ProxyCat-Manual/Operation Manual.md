@@ -165,15 +165,11 @@ neko=123456
 
 ![Clip_2025-02-21_16-23-35](./Operation%20Manual.assets/Clip_2025-02-21_16-23-35.png)
 
-![Clip_2025-02-21_16-32-14](./Operation%20Manual.assets/Clip_2025-02-21_16-32-14.png)
+![Clip_2025-03-03_10-54-38](./Operation%20Manual.assets/Clip_2025-03-03_10-54-38.png)
 
-![Clip_2025-02-21_16-28-30](./Operation%20Manual.assets/Clip_2025-02-21_16-28-30-1740126513899-10.png)
+![Clip_2025-03-03_10-55-05](./Operation%20Manual.assets/Clip_2025-03-03_10-55-05.png)
 
-![Clip_2025-02-21_16-29-21](./Operation%20Manual.assets/Clip_2025-02-21_16-29-21.png)
-
-![Clip_2025-02-21_16-29-45](./Operation%20Manual.assets/Clip_2025-02-21_16-29-45.png)
-
-![Clip_2025-02-21_16-30-51](./Operation%20Manual.assets/Clip_2025-02-21_16-30-51.png)
+![Clip_2025-03-03_10-55-37](./Operation%20Manual.assets/Clip_2025-03-03_10-55-37.png)
 
 ## 问题Q&A
 

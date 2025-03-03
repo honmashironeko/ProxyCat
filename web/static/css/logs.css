@@ -1,0 +1,107 @@
+.log-container {
+    height: 500px;
+    position: relative;
+    margin: 1rem 0;
+}
+
+.log-INFO { 
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    border-left: 6px solid #2e7d32;
+    font-size: 17px;
+    font-weight: 600; 
+}
+
+.log-WARNING {
+    background-color: #fff3e0;
+    color: #e65100;
+    border-left: 6px solid #f57c00;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.log-ERROR {
+    background-color: #ffebee;
+    color: #b71c1c;
+    border-left: 6px solid #c62828;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.log-CRITICAL {
+    background-color: #ffebee;
+    color: #7f0000;
+    border-left: 6px solid #b71c1c;
+    font-size: 18px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.log-message {
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+/* 搜索高亮样式 */
+.log-highlight {
+    background-color: #fff176;
+    color: #000000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    margin: 0 2px;
+}
+
+/* 暗色模式下的高亮样式 */
+@media (prefers-color-scheme: dark) {
+    .log-highlight {
+        background-color: #ffd600;
+        color: #000000;
+    }
+    
+    .log-INFO {
+        background-color: rgba(232, 245, 233, 0.1);
+        color: #81c784;
+        border-left-color: #2e7d32;
+    }
+    
+    .log-WARNING {
+        background-color: rgba(255, 243, 224, 0.1);
+        color: #ffb74d;
+        border-left-color: #f57c00;
+    }
+    
+    .log-ERROR {
+        background-color: rgba(255, 235, 238, 0.1);
+        color: #e57373;
+        border-left-color: #c62828;
+    }
+    
+    .log-CRITICAL {
+        background-color: rgba(255, 235, 238, 0.1);
+        color: #ef5350;
+        border-left-color: #b71c1c;
+    }
+}
+
+/* 日志条目样式 */
+.log-entry {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.log-entry:hover {
+    filter: brightness(0.95);
+}
+
+.log-time {
+    font-family: monospace;
+    opacity: 0.8;
+}
+
+.log-level {
+    font-weight: bold;
+    margin: 0 4px;
+} 

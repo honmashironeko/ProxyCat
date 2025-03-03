@@ -11,13 +11,12 @@ from configparser import ConfigParser
 
 init(autoreset=True)
 
-log_format = '%(asctime)s - %(levelname)s - %(message)s'
-formatter = ColoredFormatter(log_format)
-
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-
-logging.basicConfig(level=logging.INFO, handlers=[console_handler])
+def setup_logging():
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+    formatter = ColoredFormatter(log_format)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logging.basicConfig(level=logging.INFO, handlers=[console_handler])
 
 def update_status(server):
     def print_proxy_info():
@@ -30,69 +29,20 @@ def update_status(server):
         old_port = int(server.config.get('port', '1080'))
         
         server.config.update(new_config)
-        
-        server.port = int(new_config.get('port', '1080'))
-        server.mode = new_config.get('mode', 'cycle')
-        server.interval = int(new_config.get('interval', '300'))
-        server.language = new_config.get('language', 'cn')
-        server.use_getip = new_config.get('use_getip', 'False').lower() == 'true'
-        server.check_proxies = new_config.get('check_proxies', 'True').lower() == 'true'
-        
-        server.username = new_config.get('username', '')
-        server.password = new_config.get('password', '')
-        server.proxy_username = new_config.get('proxy_username', '')
-        server.proxy_password = new_config.get('proxy_password', '')
-        server.auth_required = bool(server.username and server.password)
-        
-        server.proxy_file = new_config.get('proxy_file', 'ip.txt')
-        server.whitelist_file = new_config.get('whitelist_file', '')
-        server.blacklist_file = new_config.get('blacklist_file', '')
-        server.ip_auth_priority = new_config.get('ip_auth_priority', 'whitelist')
-        
-        server.whitelist = load_ip_list(new_config.get('whitelist_file', ''))
-        server.blacklist = load_ip_list(new_config.get('blacklist_file', ''))
+        server._update_config_values(new_config)
         
         if old_use_getip != server.use_getip or old_mode != server.mode:
-            if server.use_getip:
-                server.proxies = []
-                server.proxy_cycle = None
-                server.current_proxy = None
-                logging.info(get_message('api_mode_notice', server.language))
-            else:
-                server.proxies = server._load_file_proxies()
-                if server.proxies:
-                    server.proxy_cycle = cycle(server.proxies)
-                    server.current_proxy = next(server.proxy_cycle)
-                    if server.check_proxies:
-                        asyncio.run(run_proxy_check(server))
-        
-        if server.use_getip:
-            server.getip_url = new_config.get('getip_url', '')
-        
-        server.last_switch_time = time.time()
-        
-        nonlocal display_level
-        display_level = int(new_config.get('display_level', '1'))
-        
-        if hasattr(server, 'progress_bar'):
-            if not is_docker:
-                server.progress_bar.close()
-            delattr(server, 'progress_bar')
-        if hasattr(server, 'last_update_time'):
-            delattr(server, 'last_update_time')
+            server._handle_mode_change()
         
         if old_port != server.port:
             logging.info(get_message('port_changed', server.language, old_port, server.port))
-        
-        logging.info(get_message('config_updated', server.language))
 
-    display_level = int(server.config.get('display_level', '1'))
-    is_docker = os.path.exists('/.dockerenv')
-    
     config_file = 'config/config.ini'
     ip_file = server.proxy_file
     last_config_modified_time = os.path.getmtime(config_file) if os.path.exists(config_file) else 0
     last_ip_modified_time = os.path.getmtime(ip_file) if os.path.exists(ip_file) else 0
+    display_level = int(server.config.get('display_level', '1'))
+    is_docker = os.path.exists('/.dockerenv')
     
     while True:
         try:
@@ -109,12 +59,7 @@ def update_status(server):
                 current_ip_modified_time = os.path.getmtime(ip_file)
                 if current_ip_modified_time > last_ip_modified_time:
                     logging.info(get_message('proxy_file_changed', server.language))
-                    server.proxies = server._load_file_proxies()
-                    if server.proxies:
-                        server.proxy_cycle = cycle(server.proxies)
-                        server.current_proxy = next(server.proxy_cycle)
-                        if server.check_proxies:
-                            asyncio.run(run_proxy_check(server))
+                    server._reload_proxies()
                     last_ip_modified_time = current_ip_modified_time
                     continue
 
@@ -141,10 +86,6 @@ def update_status(server):
             if not hasattr(server, 'last_proxy') or server.last_proxy != server.current_proxy:
                 print_proxy_info()
                 server.last_proxy = server.current_proxy
-                if display_level >= 2:
-                    logging.info(get_message('proxy_switch_detail', server.language, 
-                                          getattr(server, 'previous_proxy', 'None'), 
-                                          server.current_proxy))
                 server.previous_proxy = server.current_proxy
 
             total_time = int(server.interval)
@@ -227,24 +168,44 @@ async def run_proxy_check(server):
 
 class ProxyCat:
     def __init__(self):
+        cpu_count = os.cpu_count() or 1
         self.executor = ThreadPoolExecutor(
-            max_workers=min(32, (os.cpu_count() or 1) * 4),
-            thread_name_prefix="proxy_worker"
+            max_workers=min(32, cpu_count + 4),
+            thread_name_prefix="proxy_worker",
+            thread_name_format="proxy_worker_%d"
         )
 
         loop = asyncio.get_event_loop()
         loop.set_default_executor(self.executor)
         
-        if hasattr(asyncio, 'WindowsSelectorEventLoopPolicy'):
-            if os.name == 'nt':
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
+        if hasattr(loop, 'set_task_factory'):
+            loop.set_task_factory(None)
+        
         socket.setdefaulttimeout(30)
         if hasattr(socket, 'TCP_NODELAY'):
             socket.TCP_NODELAY = True
+        if hasattr(socket, 'SO_KEEPALIVE'):
+            socket.SO_KEEPALIVE = True
         
-        self.running = True
+        if os.name != 'nt':
+            import resource
+            soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+            try:
+                resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
+            except ValueError:
+                resource.setrlimit(resource.RLIMIT_NOFILE, (soft, soft))
+            
+            soft, hard = resource.getrlimit(resource.RLIMIT_NPROC)
+            try:
+                resource.setrlimit(resource.RLIMIT_NPROC, (hard, hard))
+            except ValueError:
+                pass
 
+        self.running = True
+        self.tasks = set()
+        self.max_tasks = 20000
+        self.task_semaphore = asyncio.Semaphore(self.max_tasks)
+        
         signal.signal(signal.SIGINT, self.handle_shutdown)
         signal.signal(signal.SIGTERM, self.handle_shutdown)
         self.config = load_config('config/config.ini')
@@ -256,6 +217,11 @@ class ProxyCat:
         if config.has_section('Users'):
             self.users = dict(config.items('Users'))
         self.auth_required = bool(self.users)
+        
+        self.proxy_pool = {}
+        self.max_connections = 1000
+        self.connection_timeout = 30
+        self.read_timeout = 60
 
     async def start_server(self):
         try:
@@ -292,9 +258,9 @@ class ProxyCat:
                     return
             
             await asyncio.get_event_loop().run_in_executor(
-                self.executor, 
-                self.process_client_request,
-                reader, 
+                self.executor,
+                self._handle_proxy_request,
+                reader,
                 writer
             )
         except Exception as e:
@@ -305,6 +271,7 @@ class ProxyCat:
                 await writer.wait_closed()
             except:
                 pass
+            self.tasks.remove(task)
 
     def _authenticate(self, auth_header):
         if not self.users:
@@ -322,7 +289,115 @@ class ProxyCat:
         except:
             return False
 
+    async def _handle_proxy_request(self, reader, writer):
+        try:
+            request_line = await reader.readline()
+            if not request_line:
+                return
+                
+            method, target, version = request_line.decode().strip().split(' ')
+            
+            if method == 'CONNECT':
+                await self._handle_connect(target, reader, writer)
+            else:
+                await self._handle_http(method, target, version, reader, writer)
+                
+        except Exception as e:
+            logging.error(get_message('request_handling_error', self.language, e))
+            try:
+                writer.close()
+            except:
+                pass
+
+    async def _handle_connect(self, target, reader, writer):
+        host, port = target.split(':')
+        port = int(port)
+        
+        try:
+            remote_reader, remote_writer = await asyncio.wait_for(
+                asyncio.open_connection(host, port),
+                timeout=self.connection_timeout
+            )
+            
+            writer.write(b'HTTP/1.1 200 Connection Established\r\n\r\n')
+            await writer.drain()
+            
+            await self._create_pipe(reader, writer, remote_reader, remote_writer)
+            
+        except Exception as e:
+            logging.error(get_message('proxy_forward_error', self.language, e))
+            writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
+            await writer.drain()
+
+    async def _handle_http(self, method, target, version, reader, writer):
+        try:
+            from urllib.parse import urlparse
+            url = urlparse(target)
+            host = url.hostname
+            port = url.port or 80
+            
+            remote_reader, remote_writer = await asyncio.wait_for(
+                asyncio.open_connection(host, port),
+                timeout=self.connection_timeout
+            )
+            
+            path = url.path + ('?' + url.query if url.query else '')
+            request = f'{method} {path} {version}\r\n'
+            remote_writer.write(request.encode())
+            
+            while True:
+                line = await reader.readline()
+                if line == b'\r\n':
+                    break
+                remote_writer.write(line)
+            remote_writer.write(b'\r\n')
+            
+            await self._create_pipe(reader, writer, remote_reader, remote_writer)
+            
+        except Exception as e:
+            logging.error(get_message('proxy_forward_error', self.language, e))
+            writer.write(b'HTTP/1.1 502 Bad Gateway\r\n\r\n')
+            await writer.drain()
+
+    async def _create_pipe(self, client_reader, client_writer, remote_reader, remote_writer):
+        try:
+            pipe1 = asyncio.create_task(self._pipe(client_reader, remote_writer))
+            pipe2 = asyncio.create_task(self._pipe(remote_reader, client_writer))
+            
+            done, pending = await asyncio.wait(
+                [pipe1, pipe2],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            for task in pending:
+                task.cancel()
+                
+        except Exception as e:
+            logging.error(get_message('data_transfer_error', self.language, e))
+        finally:
+            try:
+                remote_writer.close()
+                await remote_writer.wait_closed()
+            except:
+                pass
+
+    async def _pipe(self, reader, writer):
+        try:
+            while True:
+                data = await reader.read(8192)
+                if not data:
+                    break
+                    
+                writer.write(data)
+                await writer.drain()
+                
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logging.error(get_message('data_transfer_error', self.language, e))
+
 if __name__ == '__main__':
+    setup_logging()
     parser = argparse.ArgumentParser(description=logos())
     parser.add_argument('-c', '--config', default='config/config.ini', help='配置文件路径')
     args = parser.parse_args()

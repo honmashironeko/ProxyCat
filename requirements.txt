@@ -1,6 +1,8 @@
 colorama==0.4.6
 httpx==0.27.2
+httpx[http2,socks]==0.27.2
 packaging==24.1
 Requests==2.32.3
 tqdm>=4.65.0
 flask>=2.0.1
+werkzeug>=2.0.0
