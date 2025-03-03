@@ -3107,40 +3107,24 @@
             }, 3000);
         }
 
-        async function controlService(action) {
-            try {
-                const button = event.target.closest('.service-btn');
-                if (button) {
-                    // 添加加载状态
-                    button.classList.add('loading');
-                    
-                    const response = await fetch('/api/service', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ action })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.status === 'success') {
-                        showNotification(data.message, 'success');
-                        // 更新服务状态显示
-                        updateServiceStatus(data.service_status);
+        function controlService(action) {
+            $.ajax({
+                url: appendToken('/api/service'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: action }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showNotification(translations[currentLanguage][`service_${action}_success`], 'success');
+                        updateStatus();
                     } else {
-                        showNotification(data.message, 'error');
+                        showNotification(translations[currentLanguage].operation_failed.format(response.message), 'error');
                     }
+                },
+                error: function(xhr) {
+                    showNotification(translations[currentLanguage].operation_failed.format(xhr.responseText), 'error');
                 }
-            } catch (error) {
-                showNotification('操作失败，请稍后重试', 'error');
-            } finally {
-                // 移除加载状态
-                const button = event.target.closest('.service-btn');
-                if (button) {
-                    button.classList.remove('loading');
-                }
-            }
+            });
         }
 
         function updateServiceStatus(status) {
