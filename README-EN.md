@@ -99,7 +99,7 @@ Open source development isn't easy. If you find this tool helpful, consider spon
 | :--: | :-----------------: | :----------: |
 |  1   |      **陆沉**       |   1266.62    |
 |  2   | **柯林斯.民间新秀** |     696      |
-|  3   |      **taffy**      |     150      |
+|  3   |      **北**      |     170     |
 |  [Sponsor List](https://github.com/honmashironeko/Thanks-for-sponsorship)   |     Every sponsorship is a motivation for the author!      |      (´∀｀)♡      |
 
 ---
