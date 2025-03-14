@@ -155,7 +155,7 @@ async def run_server(server):
 async def run_proxy_check(server):
     if server.config.get('check_proxies', 'False').lower() == 'true':
         logging.info(get_message('proxy_check_start', server.language))
-        valid_proxies = await check_proxies(server.proxies)
+        valid_proxies = await check_proxies(server.proxies, server.test_url)
         if valid_proxies:
             server.proxies = valid_proxies
             server.proxy_cycle = cycle(valid_proxies)
