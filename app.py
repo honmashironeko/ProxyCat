@@ -523,7 +523,7 @@ def check_version():
         original_level = httpx_logger.level
         httpx_logger.setLevel(logging.WARNING)
         
-        CURRENT_VERSION = "ProxyCat-V2.0.1"
+        CURRENT_VERSION = "ProxyCat-V2.0.2"
         
         try:
             client = httpx.Client(transport=httpx.HTTPTransport(retries=3))

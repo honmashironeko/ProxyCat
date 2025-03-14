@@ -185,11 +185,12 @@ class AsyncProxyServer:
         try:
             current_time = time.time()
             
-            if self.switching_proxy or (current_time - self.last_switch_attempt < self.switch_cooldown):
+            if self.interval != 0 and (self.switching_proxy or (current_time - self.last_switch_attempt < self.switch_cooldown)):
                 return self.current_proxy
                 
             if (self.use_getip and (not self.current_proxy or 
-                current_time - self.last_switch_time >= self.interval)):
+                current_time - self.last_switch_time >= self.interval)) or \
+               (not self.use_getip and self.interval == 0):
                 try:
                     self.switching_proxy = True
                     self.last_switch_attempt = current_time
@@ -337,7 +338,7 @@ class AsyncProxyServer:
         else:
             proxy_url = f"{proxy_type}://{proxy_addr}"
             
-        return httpx.AsyncClient(
+        client = httpx.AsyncClient(
             proxies={"all://": proxy_url},
             limits=httpx.Limits(
                 max_keepalive_connections=100,
@@ -348,6 +349,8 @@ class AsyncProxyServer:
             http2=True,
             verify=False 
         )
+        client._last_used = time.time()
+        return client
 
     async def _cleanup_connections(self):
         current_time = time.time()
@@ -903,6 +906,7 @@ class AsyncProxyServer:
         if proxy in self.proxy_pool:
             conn = self.proxy_pool[proxy]
             if not conn.is_closed:
+                conn._last_used = time.time()
                 return conn
                 
         proxy_type, proxy_addr = proxy.split('://')
@@ -928,6 +932,7 @@ class AsyncProxyServer:
             )
             
         if len(self.proxy_pool) < self.max_pool_size:
+            conn._last_used = time.time()
             self.proxy_pool[proxy] = conn
             
         return conn
