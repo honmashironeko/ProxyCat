@@ -34,8 +34,8 @@ def newip():
             proxy = get_proxy()
         
         if username and password:
-            return f"socks5://{username}:{password}@{proxy}"
-        return f"socks5://{proxy}"
+            return f"http://{username}:{password}@{proxy}"
+        return f"http://{proxy}"
         
     except requests.RequestException as e:
         handle_error('request', e)
