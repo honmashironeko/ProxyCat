@@ -28,6 +28,9 @@ MESSAGES = {
         'proxy_switch': '切换代理: {} -> {}',
         'proxy_consecutive_fails': '代理 {} 连续失败 {} 次，正在切换新代理',
         'proxy_invalid': '代理 {} 无效，立即切换代理',
+        'proxy_failure': '代理检测失败: {}',
+        'proxy_failure_threshold': '代理无效，开始切换',
+        'proxy_check_error': '代理检查时发生错误: {}',
         'connection_timeout': '连接超时',
         'data_transfer_timeout': '数据传输超时，正在重试...',
         'connection_reset': '连接被重置',
@@ -49,7 +52,7 @@ MESSAGES = {
         'blog': '博客',
         'proxy_mode': '代理轮换模式',
         'cycle': '循环',
-        'load_balance': '负载均衡',
+        'loadbalance': '负载均衡',
         'single_round': '单轮',
         'proxy_interval': '代理更换时间',
         'default_auth': '默认账号密码',
@@ -105,7 +108,7 @@ MESSAGES = {
         'proxy_check_result': '代理检查完成，有效代理：{}个',
         'no_proxy': '无代理',
         'cycle_mode': '循环模式',
-        'load_balance_mode': '负载均衡模式',
+        'loadbalance_mode': '负载均衡模式',
         'proxy_check_start': '开始检查代理...',
         'proxy_check_complete': '代理检查完成',
         'proxy_save_success': '代理保存成功',
@@ -181,6 +184,11 @@ MESSAGES = {
         'web_panel_url': '网页控制面板地址: {}',
         'web_panel_notice': '请使用浏览器访问上述地址来管理代理服务器',
         'api_proxy_settings_title': 'API代理设置',
+        'all_retries_failed': '所有重试均已失败，最后错误: {}',
+        'proxy_get_failed': '获取代理失败',
+        'proxy_get_error': '获取代理错误: {}',
+        'request_error': '请求错误: {}',
+        'proxy_switch_error': '代理切换错误: {}',
     },
     'en': {
         'getting_new_proxy': 'Getting new proxy IP',
@@ -193,6 +201,9 @@ MESSAGES = {
         'proxy_switch': 'Switch proxy: {} -> {}',
         'proxy_consecutive_fails': 'Proxy {} failed {} times consecutively, switching to new proxy',
         'proxy_invalid': 'Proxy {} is invalid, switching proxy immediately',
+        'proxy_failure': 'Proxy check failed: {}',
+        'proxy_failure_threshold': 'Proxy invalid, switching now',
+        'proxy_check_error': 'Error occurred during proxy check: {}',
         'connection_timeout': 'Connection timeout',
         'data_transfer_timeout': 'Data transfer timeout, retrying...',
         'connection_reset': 'Connection reset',
@@ -214,7 +225,7 @@ MESSAGES = {
         'blog': 'Blog',
         'proxy_mode': 'Proxy Rotation Mode',
         'cycle': 'Cycle',
-        'load_balance': 'Load Balance',
+        'loadbalance': 'Load Balance',
         'single_round': 'Single Round',
         'proxy_interval': 'Proxy Change Interval',
         'default_auth': 'Default Username and Password',
@@ -248,37 +259,40 @@ MESSAGES = {
         'invalid_proxy': 'Current proxy is invalid: {}',
         'whitelist_error': 'Failed to add whitelist: {}',
         'api_mode_notice': 'Currently in API mode, proxy address will be automatically obtained upon request',
+        'all_retries_failed': 'All retries failed, last error: {}',
+        'proxy_get_failed': 'Failed to get proxy',
+        'proxy_get_error': 'Error getting proxy: {}',
+        'proxy_switch_error': 'Error switching proxy: {}',
         'server_running': 'Proxy server running at {}:{}',
         'server_start_error': 'Server startup error: {}',
-        'server_shutting_down': 'Shutting down server...',
-        'client_process_error': 'Error processing client request: {}',
+        'server_shutting_down': 'Server shutting down...',
+        'client_process_error': 'Client processing error: {}',
         'request_handling_error': 'Request handling error: {}',
         'proxy_forward_error': 'Proxy forwarding error: {}',
-        'data_transfer_timeout': '{} data transfer timeout',
-        'data_transfer_error': '{} data transfer error: {}',
+        'data_transfer_timeout': '{}data transfer timeout',
         'status_update_error': 'Status update error',
         'display_level_notice': 'Current display level: {}',
         'display_level_desc': '''Display level description:
-0: Show only proxy switches and errors
-1: Show proxy switches, countdown and errors
+0: Only show proxy switch and error messages
+1: Show proxy switch, countdown and error messages
 2: Show all detailed information''',
         'new_client_connect': 'New client connection - IP: {}, User: {}',
         'no_auth': 'No authentication',
         'connection_error': 'Connection handling error: {}',
-        'cleanup_error': 'IP cleanup error: {}',
-        'port_changed': 'Port changed: {} -> {}, server restart required',
+        'cleanup_error': 'Cleanup IP error: {}',
+        'port_changed': 'Port changed: {} -> {}, server restart required to take effect',
         'config_updated': 'Server configuration updated',
         'load_proxy_file_error': 'Failed to load proxy file: {}',
         'proxy_check_result': 'Proxy check completed, valid proxies: {}',
         'no_proxy': 'No proxy',
-        'cycle_mode': 'Cycle Mode',
-        'load_balance_mode': 'Load Balance Mode',
+        'cycle_mode': 'Cycle mode',
+        'loadbalance_mode': 'Load balance mode',
         'proxy_check_start': 'Starting proxy check...',
         'proxy_check_complete': 'Proxy check completed',
-        'proxy_save_success': 'Proxies saved successfully',
-        'proxy_save_failed': 'Failed to save proxies: {}',
-        'ip_list_save_success': 'IP lists saved successfully',
-        'ip_list_save_failed': 'Failed to save IP lists: {}',
+        'proxy_save_success': 'Proxy saved successfully',
+        'proxy_save_failed': 'Failed to save proxy: {}',
+        'ip_list_save_success': 'IP list saved successfully',
+        'ip_list_save_failed': 'Failed to save IP list: {}',
         'switch_success': 'Proxy switched successfully',
         'switch_failed': 'Failed to switch proxy: {}',
         'service_start_success': 'Service started successfully',
@@ -305,20 +319,20 @@ MESSAGES = {
         'language_label': 'Language',
         'chinese': 'Chinese',
         'english': 'English',
-        'manual_switch_btn': 'Manual Switch',
+        'manual_switch_btn': 'Switch Manually',
         'service_control_title': 'Service Control',
-        'language_switch_success': '',
-        'language_switch_failed': '',
+        'language_switch_success': 'Language switched successfully',
+        'language_switch_failed': 'Failed to switch language',
         'refresh_failed': 'Failed to refresh data: {}',
-        'auth_username_label': 'Auth Username',
-        'auth_password_label': 'Auth Password',
-        'proxy_auth_username_label': 'Proxy Auth Username',
-        'proxy_auth_password_label': 'Proxy Auth Password',
+        'auth_username_label': 'Authentication Username',
+        'auth_password_label': 'Authentication Password',
+        'proxy_auth_username_label': 'Proxy Authentication Username',
+        'proxy_auth_password_label': 'Proxy Authentication Password',
         'progress_bar_label': 'Switch Progress',
         'proxy_settings_title': 'Proxy Settings',
         'config_save_success': 'Configuration saved successfully',
         'config_save_failed': 'Failed to save configuration: {}',
-        'config_restart_required': 'Configuration changed, server restart required',
+        'config_restart_required': 'Configuration changed, server restart required to take effect',
         'confirm_restart_service': 'Restart server now?',
         'service_status': 'Service Status',
         'running': 'Running',
@@ -329,10 +343,10 @@ MESSAGES = {
         'service_stop_failed': 'Failed to stop service: {}',
         'service_restart_failed': 'Failed to restart service: {}',
         'invalid_token': 'Invalid access token',
-        'config_file_changed': 'Configuration file change detected, reloading...',
+        'config_file_changed': 'Config file change detected, reloading...',
         'proxy_file_changed': 'Proxy file changed, reloading...',
-        'test_target_label': 'Test Target URL',
-        'invalid_test_target': 'Invalid test target URL',
+        'test_target_label': 'Test Target Address',
+        'invalid_test_target': 'Invalid test target address',
         'users_save_success': 'Users saved successfully',
         'users_save_failed': 'Failed to save users: {}',
         'user_management_title': 'User Management',
@@ -340,13 +354,13 @@ MESSAGES = {
         'password_column': 'Password',
         'actions_column': 'Actions',
         'add_user_btn': 'Add User',
-        'enter_username': 'Enter username',
-        'enter_password': 'Enter password',
+        'enter_username': 'Please enter username',
+        'enter_password': 'Please enter password',
         'confirm_delete_user': 'Are you sure you want to delete this user?',
         'no_logs_found': 'No matching logs found',
         'clear_search': 'Clear Search',
-        'web_panel_url': 'Web control panel URL: {}',
-        'web_panel_notice': 'Please use a browser to visit the above URL to manage the proxy server',
+        'web_panel_url': 'Web panel URL: {}',
+        'web_panel_notice': 'Please use a browser to access the above URL to manage the proxy server',
         'api_proxy_settings_title': 'API Proxy Settings',
     }
 }
@@ -376,7 +390,7 @@ def print_banner(config):
     banner_info = [
         (get_message('public_account', language), '樱花庄的本间白猫'),
         (get_message('blog', language), 'https://y.shironekosan.cn'),
-        (get_message('proxy_mode', language), get_message('cycle', language) if config.get('mode') == 'cycle' else get_message('load_balance', language) if config.get('mode') == 'load_balance' else get_message('single_round', language)),
+        (get_message('proxy_mode', language), get_message('cycle', language) if config.get('mode') == 'cycle' else get_message('loadbalance', language) if config.get('mode') == 'loadbalance' else get_message('single_round', language)),
         (get_message('proxy_interval', language), f"{config.get('interval')}{get_message('seconds', language)}"),
         (get_message('default_auth', language), auth_info),
         (get_message('local_http', language), http_addr),
@@ -542,10 +556,9 @@ async def check_http_proxy(proxy, test_url=None):
     except:
         return False
 
-async def check_https_proxy(proxy, test_url=None):
-    return await check_http_proxy(proxy, test_url)
-
 async def check_socks_proxy(proxy, test_url=None):
+    if test_url is None:
+        test_url = 'https://www.baidu.com'
     protocol, auth, host, port = parse_proxy(proxy)
     if not all([host, port]):
         return False
@@ -605,7 +618,7 @@ async def check_proxy(proxy, test_url=None):
     proxy_type = proxy.split('://')[0]
     check_funcs = {
         'http': check_http_proxy,
-        'https': check_https_proxy,
+        'https': check_http_proxy,
         'socks5': check_socks_proxy
     }
     
@@ -637,7 +650,7 @@ async def check_for_updates(language='cn'):
             match = re.search(r'<p>(ProxyCat-V\d+\.\d+\.\d+)</p>', content)
             if match:
                 latest_version = match.group(1)
-                CURRENT_VERSION = "ProxyCat-V2.0.2"
+                CURRENT_VERSION = "ProxyCat-V2.0.4"
                 if version.parse(latest_version.split('-V')[1]) > version.parse(CURRENT_VERSION.split('-V')[1]):
                     print(f"{Fore.YELLOW}{get_message('new_version_found', language)} 当前版本: {CURRENT_VERSION}, 最新版本: {latest_version}{Style.RESET_ALL}")
                     print(f"{Fore.YELLOW}{get_message('visit_quark', language)}{Style.RESET_ALL}")

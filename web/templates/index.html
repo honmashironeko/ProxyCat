@@ -1329,7 +1329,7 @@
                                         <label class="form-label" data-i18n="run_mode_label">运行模式</label>
                                         <select class="form-select" name="mode">
                                             <option value="cycle" data-i18n="cycle_mode">循环模式</option>
-                                            <option value="load_balance" data-i18n="load_balance_mode">负载均衡</option>
+                                            <option value="loadbalance" data-i18n="loadbalance_mode">负载均衡</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
@@ -1375,7 +1375,7 @@
                                     <div class="mb-3">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="check_proxies" id="check-proxies">
-                                            <label class="form-check-label" for="check-proxies" data-i18n="enable_proxy_check_label">启用代理检测</label>
+                                            <label class="form-check-label" for="check-proxies" data-i18n="enable_proxy_check_label">代理有效性检测</label>
                                         </div>
                                     </div>
                                 </form>
@@ -1590,8 +1590,8 @@
 
     <div class="notification-container" id="notification-container"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/jquery.min.js"></script>
     <script>
         let lastLogId = 0;
         let searchTimeout = null;
@@ -1630,7 +1630,13 @@
             $.get(appendToken('/api/status'), function(data) {
                 // 只在值发生变化时更新显示
                 const currentProxy = $('#current-proxy').text();
-                const newProxy = data.current_proxy || translations[currentLanguage].no_proxy;
+                let newProxy = data.current_proxy || translations[currentLanguage].no_proxy;
+                
+                // 负载均衡模式特殊处理
+                if (data.mode === 'loadbalance') {
+                    newProxy = translations[currentLanguage].loadbalance_mode || '负载均衡模式';
+                }
+                
                 if (currentProxy !== newProxy) {
                     $('#current-proxy').text(newProxy);
                 }
@@ -1651,7 +1657,11 @@
                 }
 
                 // 更新进度条和其他状态...
-                if (data.interval && data.time_left !== undefined) {
+                if (data.mode === 'loadbalance') {
+                    // 负载均衡模式不显示倒计时
+                    $('#next-switch').text(translations[currentLanguage].loadbalance_mode || '负载均衡模式');
+                    $('.progress-bar').css('width', '100%');
+                } else if (data.interval && data.time_left !== undefined) {
                     const timeLeft = Math.max(0, Math.ceil(data.time_left));
                     $('#next-switch').text(`${timeLeft} ${translations[currentLanguage].seconds}`);
                     
@@ -1673,12 +1683,19 @@
 
         function updateCountdown() {
             $.get(appendToken('/api/status'), function(data) {
-                if (data.time_left !== undefined && data.interval) {
-                    const timeLeft = Math.max(0, Math.ceil(data.time_left));
-                    const progress = Math.min(100, ((data.interval - data.time_left) / data.interval) * 100);
-                    
-                    $('.progress-bar').css('width', progress + '%');
-                    $('#next-switch').text(timeLeft + ' ' + translations[currentLanguage]['seconds']);
+                if (data.time_left !== undefined) {
+                    // 负载均衡模式特殊处理
+                    if (data.time_left === -1 || data.mode === 'loadbalance') {
+                        // 负载均衡模式不显示倒计时
+                        $('.progress-bar').css('width', '100%');
+                        $('#next-switch').text(translations[currentLanguage]['loadbalance_mode'] || '负载均衡模式');
+                    } else if (data.interval) {
+                        const timeLeft = Math.max(0, Math.ceil(data.time_left));
+                        const progress = Math.min(100, ((data.interval - data.time_left) / data.interval) * 100);
+                        
+                        $('.progress-bar').css('width', progress + '%');
+                        $('#next-switch').text(timeLeft + ' ' + translations[currentLanguage]['seconds']);
+                    }
                 }
             });
         }
@@ -1688,31 +1705,34 @@
                 if (data.config) {
                     const config = data.config;
                     
-                    // 更新表单值
-                    $('input[name="port"]').val(config.port);
-                    $('select[name="mode"]').val(config.mode);
-                    $('input[name="interval"]').val(config.interval);
-                    $('input[name="username"]').val(config.username);
-                    $('input[name="password"]').val(config.password);
+                    // 更新表单值 - 始终使用配置文件中的值，避免空值
+                    $('input[name="port"]').val(config.port || '1080');
+                    $('select[name="mode"]').val(config.mode || 'cycle');
+                    $('input[name="interval"]').val(config.interval || '300');
+                    $('input[name="username"]').val(config.username || '');
+                    $('input[name="password"]').val(config.password || '');
                     // 修正checkbox的状态设置
-                    $('input[name="use_getip"]').prop('checked', config.use_getip.toLowerCase() === 'true');
-                    $('input[name="getip_url"]').val(config.getip_url);
-                    $('input[name="proxy_username"]').val(config.proxy_username);
-                    $('input[name="proxy_password"]').val(config.proxy_password);
-                    $('input[name="proxy_file"]').val(config.proxy_file);
-                    $('input[name="check_proxies"]').prop('checked', config.check_proxies.toLowerCase() === 'true');
-                    $('select[name="language"]').val(config.language);
-                    $('input[name="whitelist_file"]').val(config.whitelist_file);
-                    $('input[name="blacklist_file"]').val(config.blacklist_file);
-                    $('select[name="ip_auth_priority"]').val(config.ip_auth_priority);
-                    $('select[name="display_level"]').val(config.display_level);
+                    $('input[name="use_getip"]').prop('checked', (config.use_getip || '').toLowerCase() === 'true');
+                    $('input[name="getip_url"]').val(config.getip_url || '');
+                    $('input[name="proxy_username"]').val(config.proxy_username || '');
+                    $('input[name="proxy_password"]').val(config.proxy_password || '');
+                    $('input[name="proxy_file"]').val(config.proxy_file || 'ip.txt');
+                    $('input[name="check_proxies"]').prop('checked', (config.check_proxies || '').toLowerCase() === 'true');
+                    $('select[name="language"]').val(config.language || 'cn');
+                    $('input[name="whitelist_file"]').val(config.whitelist_file || '');
+                    $('input[name="blacklist_file"]').val(config.blacklist_file || '');
+                    $('select[name="ip_auth_priority"]').val(config.ip_auth_priority || 'whitelist');
+                    $('select[name="display_level"]').val(config.display_level || '1');
                     
                     // 根据 use_getip 的状态更新 getip_url 输入框的禁用状态
-                    const useGetip = config.use_getip.toLowerCase() === 'true';
+                    const useGetip = (config.use_getip || '').toLowerCase() === 'true';
                     $('input[name="getip_url"]').prop('disabled', !useGetip);
                     
                     // 更新其他相关UI元素
                     updateUIState();
+                    
+                    // 更新地址显示
+                    updateAddresses(config);
                 }
             });
         }
@@ -2146,7 +2166,7 @@
                 'switch_interval': '切换间隔(秒)',
                 'run_mode_text': '运行模式',
                 'cycle_mode': '循环模式',
-                'load_balance_mode': '负载均衡',
+                'loadbalance_mode': '负载均衡',
                 'language_text': '语言',
                 'auth_config': '认证配置',
                 'username': '用户名',
@@ -2196,11 +2216,11 @@
                 'switch_interval_label': '切换间隔(秒)',
                 'run_mode_label': '运行模式',
                 'cycle_mode': '循环模式',
-                'load_balance_mode': '负载均衡',
+                'loadbalance_mode': '负载均衡',
                 'auth_config_title': '认证配置',
                 'use_api_label': '使用API获取代理',
                 'api_url_label': 'API地址',
-                'enable_proxy_check_label': '启用代理检测',
+                'enable_proxy_check_label': '代理有效性检测',
                 'proxy_list_label': '代理列表',
                 'save_proxy_btn': '保存代理',
                 'check_proxy_btn': '检测代理',
@@ -2301,11 +2321,11 @@
                 'loading': '加载中...',
                 'manual_switch_btn': '手动切换',
                 'cycle_mode': '循环模式',
-                'load_balance_mode': '负载均衡',
+                'loadbalance_mode': '负载均衡',
                 'next_switch': '下次切换',
                 'proxy_mode': {
                     'cycle': '循环模式',
-                    'load_balance': '负载均衡'
+                    'loadbalance': '负载均衡'
                 },
                 'service_action': {
                     'start_success': '服务启动成功',
@@ -2373,7 +2393,7 @@
                 'switch_interval': 'Switch Interval(s)',
                 'run_mode_text': 'Run Mode',
                 'cycle_mode': 'Cycle Mode',
-                'load_balance_mode': 'Load Balance',
+                'loadbalance_mode': 'Load Balance',
                 'language_text': 'Language',
                 'auth_config': 'Auth Config',
                 'username': 'Username',
@@ -2424,11 +2444,11 @@
                 'switch_interval_label': 'Switch Interval(s)',
                 'run_mode_label': 'Run Mode',
                 'cycle_mode': 'Cycle Mode',
-                'load_balance_mode': 'Load Balance',
+                'loadbalance_mode': 'Load Balance',
                 'auth_config_title': 'Authentication',
                 'use_api_label': 'Use API for Proxy',
                 'api_url_label': 'API URL',
-                'enable_proxy_check_label': 'Enable Proxy Check',
+                'enable_proxy_check_label': 'Proxy Validity Check',
                 'proxy_list_label': 'Proxy List',
                 'save_proxy_btn': 'Save Proxies',
                 'check_proxy_btn': 'Check Proxies',

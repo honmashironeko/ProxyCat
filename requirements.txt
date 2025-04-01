@@ -6,3 +6,5 @@ Requests==2.32.3
 tqdm>=4.65.0
 flask>=2.0.1
 werkzeug>=2.0.0
+asyncio>=3.4.3
+configparser>=5.0.0

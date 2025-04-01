@@ -1,5 +1,11 @@
 # ProxyCat 使用手册
 
+## 重要事项
+
+- Python版本最好为Python 3.11
+- Releases中为较为稳定的打包版本，不一定是最新
+- API 接口所获取的代理地址必须为 IP:PORT 格式且只提供一条地址
+
 ## 源码使用及 Docker 部署
 
 ### 源码手册
@@ -52,6 +58,7 @@ getip_url = 获取代理地址的 API 接口
 
 ```
 python ProxyCat.py
+python app.py (Web控制管理-推荐方式)
 ```
 
 ![Run](./Operation%20Manual.assets/Run.png)
@@ -90,6 +97,7 @@ docker logs proxycat
 # 0: 仅显示代理切换和错误信息
 # 1: 显示代理切换、倒计时和错误信息
 # 2: 显示所有详细信息
+# 仅终端管理时生效
 display_level = 1
 
 # 本地服务器监听端口(默认为:1080)
@@ -99,8 +107,8 @@ port = 1080
 # Web 管理页面端口(默认为:5000)
 web_port = 5000
 
-# 代理地址轮换模式：cycle 表示循环使用，custom 表示使用自定义模式，load_balance 表示负载均衡(默认为:cycle)
-# Proxy rotation mode: cycle means cyclic use, custom means custom mode, load_balance means load balancing (default:cycle)
+# 代理地址轮换模式：cycle 表示循环使用，loadbalance 表示负载均衡(默认为:cycle)
+# Proxy rotation mode: cycle means cyclic use, loadbalance means load balancing (default:cycle)
 mode = cycle
 
 # 代理地址更换时间（秒），设置为 0 时每次请求都更换 IP(默认为:300)

@@ -70,7 +70,7 @@ def update_status(server):
                 time.sleep(1)
                 continue
 
-            if server.mode == 'load_balance':
+            if server.mode == 'loadbalance':
                 if display_level >= 1:
                     print_proxy_info()
                 time.sleep(5)
@@ -155,7 +155,7 @@ async def run_server(server):
 async def run_proxy_check(server):
     if server.config.get('check_proxies', 'False').lower() == 'true':
         logging.info(get_message('proxy_check_start', server.language))
-        valid_proxies = await check_proxies(server.proxies)
+        valid_proxies = await check_proxies(server.proxies, server.test_url)
         if valid_proxies:
             server.proxies = valid_proxies
             server.proxy_cycle = cycle(valid_proxies)
@@ -186,6 +186,11 @@ class ProxyCat:
             socket.TCP_NODELAY = True
         if hasattr(socket, 'SO_KEEPALIVE'):
             socket.SO_KEEPALIVE = True
+        
+        if hasattr(socket, 'SO_REUSEADDR'):
+            socket.SO_REUSEADDR = True
+        if hasattr(socket, 'SO_REUSEPORT') and os.name != 'nt':
+            socket.SO_REUSEPORT = True
         
         if os.name != 'nt':
             import resource
@@ -225,11 +230,17 @@ class ProxyCat:
 
     async def start_server(self):
         try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if hasattr(socket, 'SO_REUSEPORT') and os.name != 'nt':
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            sock.bind((self.config.get('SERVER', 'host'), int(self.config.get('SERVER', 'port'))))
+            
             server = await asyncio.start_server(
                 self.handle_client,
-                self.config.get('SERVER', 'host'),
-                self.config.get('SERVER', 'port')
+                sock=sock
             )
+            
             logging.info(get_message('server_running', self.language,
                 self.config.get('SERVER', 'host'),
                 self.config.get('SERVER', 'port')))
@@ -396,6 +407,16 @@ class ProxyCat:
         except Exception as e:
             logging.error(get_message('data_transfer_error', self.language, e))
 
+    def monitor_resources(self):
+        import psutil
+        process = psutil.Process(os.getpid())
+        
+        while self.running:
+            mem_info = process.memory_info()
+            logging.debug(f"Memory usage: {mem_info.rss / 1024 / 1024:.2f} MB, "
+                         f"Connections: {len(self.tasks)}")
+            time.sleep(60)
+
 if __name__ == '__main__':
     setup_logging()
     parser = argparse.ArgumentParser(description=logos())
@@ -412,6 +433,9 @@ if __name__ == '__main__':
     
     status_thread = threading.Thread(target=update_status, args=(server,), daemon=True)
     status_thread.start()
+    
+    cleanup_thread = threading.Thread(target=lambda: asyncio.run(server.cleanup_clients()), daemon=True)
+    cleanup_thread.start()
     
     try:
         asyncio.run(run_server(server))

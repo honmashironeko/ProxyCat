@@ -119,37 +119,26 @@ def get_status():
         else:
             current_proxy = get_message('no_proxy', server.language)
     
+    
+    time_left = server.time_until_next_switch()
+    if server.mode == 'loadbalance':
+        
+        if time_left == float('inf'):
+            time_left = -1
+    
     return jsonify({
         'current_proxy': current_proxy,
         'mode': server.mode,
         'port': int(server_config.get('port', '1080')),
         'interval': server.interval,
-        'time_left': server.time_until_next_switch(),
+        'time_left': time_left,
         'total_proxies': len(server.proxies) if hasattr(server, 'proxies') else 0,
         'use_getip': server.use_getip,
         'getip_url': getattr(server, 'getip_url', '') if getattr(server, 'use_getip', False) else '',
         'auth_required': server.auth_required,
-        'display_level': int(config.get('DEFAULT', 'display_level', fallback='1')),
+        'display_level': int(server_config.get('display_level', '1')),
         'service_status': 'running' if server.running else 'stopped',
-        'config': {
-            'port': server_config.get('port', ''),
-            'mode': server_config.get('mode', 'cycle'),
-            'interval': server_config.get('interval', ''),
-            'username': server_config.get('username', ''),
-            'password': server_config.get('password', ''),
-            'use_getip': server_config.get('use_getip', 'False'),
-            'getip_url': server_config.get('getip_url', ''),
-            'proxy_username': server_config.get('proxy_username', ''),
-            'proxy_password': server_config.get('proxy_password', ''),
-            'proxy_file': server_config.get('proxy_file', ''),
-            'check_proxies': server_config.get('check_proxies', 'False'),
-            'language': server_config.get('language', 'cn'),
-            'whitelist_file': server_config.get('whitelist_file', ''),
-            'blacklist_file': server_config.get('blacklist_file', ''),
-            'ip_auth_priority': server_config.get('ip_auth_priority', 'whitelist'),
-            'display_level': config.get('DEFAULT', 'display_level', fallback='1'),
-            'raw_content': config_content 
-        }
+        'config': server_config
     })
 
 @app.route('/api/config', methods=['POST'])
@@ -158,6 +147,8 @@ def save_config():
         new_config = request.get_json()
         current_config = load_config('config/config.ini')
         port_changed = str(new_config.get('port', '')) != str(current_config.get('port', ''))
+        mode_changed = new_config.get('mode', '') != current_config.get('mode', '')
+        use_getip_changed = (new_config.get('use_getip', 'False').lower() == 'true') != (current_config.get('use_getip', 'False').lower() == 'true')
         
         config_parser = ConfigParser()
         config_parser.read('config/config.ini', encoding='utf-8')
@@ -172,12 +163,27 @@ def save_config():
         with open('config/config.ini', 'w', encoding='utf-8') as f:
             config_parser.write(f)
             
+        
+        old_mode = server.mode
+        old_use_getip = server.use_getip
+        
+        
         server.config = load_config('config/config.ini')
         server._init_config_values(server.config)
         
+        
+        if mode_changed or use_getip_changed:
+            server._handle_mode_change()
+            
+            
+            if new_config.get('mode') == 'loadbalance':
+                server.last_switch_time = time.time()
+                server.last_switch_attempt = 0
+        
         return jsonify({
             'status': 'success',
-            'port_changed': port_changed
+            'port_changed': port_changed,
+            'service_status': 'running' if server.running else 'stopped'
         })
         
     except Exception as e:
@@ -324,45 +330,18 @@ def clear_logs():
 @require_token
 def switch_proxy():
     try:
-        if server.use_getip:
-            from config.getip import newip
-            try:
-                old_proxy = server.current_proxy
-                new_proxy = newip()
-                server.current_proxy = new_proxy
-                server.last_switch_time = time.time()
-                server._log_proxy_switch(old_proxy, new_proxy)
-                return jsonify({
-                    'status': 'success',
-                    'current_proxy': server.current_proxy,
-                    'message': get_message('switch_success', server.language)
-                })
-            except Exception as e:
-                return jsonify({
-                    'status': 'error',
-                    'message': get_message('get_proxy_failed', server.language, str(e))
-                })
+        result = asyncio.run(server.switch_proxy())
+        if result:
+            return jsonify({
+                'status': 'success',
+                'current_proxy': server.current_proxy,
+                'message': get_message('switch_success', server.language)
+            })
         else:
-            if not server.proxies:
-                server.proxies = server._load_file_proxies()
-                if server.proxies:
-                    server.proxy_cycle = cycle(server.proxies)
-                    
-            if server.proxy_cycle:
-                old_proxy = server.current_proxy
-                server.current_proxy = next(server.proxy_cycle)
-                server.last_switch_time = time.time()
-                server._log_proxy_switch(old_proxy, server.current_proxy)
-                return jsonify({
-                    'status': 'success',
-                    'current_proxy': server.current_proxy,
-                    'message': get_message('switch_success', server.language)
-                })
-            else:
-                return jsonify({
-                    'status': 'error',
-                    'message': get_message('no_proxies_available', server.language)
-                })
+            return jsonify({
+                'status': 'error',
+                'message': get_message('switch_failed', server.language, 'Proxy switch not needed or in cooldown')
+            })
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -523,7 +502,7 @@ def check_version():
         original_level = httpx_logger.level
         httpx_logger.setLevel(logging.WARNING)
         
-        CURRENT_VERSION = "ProxyCat-V2.0.2"
+        CURRENT_VERSION = "ProxyCat-V2.0.4"
         
         try:
             client = httpx.Client(transport=httpx.HTTPTransport(retries=3))
@@ -630,7 +609,7 @@ if __name__ == '__main__':
     web_port = int(config.get('web_port', '5000'))
     web_url = f"http://127.0.0.1:{web_port}"
     if config.get('token'):
-        web_url += f"?token={config.get('token')}"
+        web_url += f"/web?token={config.get('token')}"
     
     logging.info(get_message('web_panel_url', server.language, web_url))
     logging.info(get_message('web_panel_notice', server.language))
