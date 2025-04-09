@@ -91,6 +91,7 @@
 - qianzai（千载）
 - ziwindlu
 - yuzhegan
+- 摘星怪
 
 ## 赞助开源
 
