@@ -49,6 +49,46 @@ Therefore, **ProxyCat** was born! This tool aims to transform short-term IPs (la
 
 [ProxyCat Operation Manual](../main/ProxyCat-Manual/Operation%20Manual.md)
 
+## Updating Code (Important for Docker Users)
+
+When deploying with Docker, the `config/` directory holds your personal settings (mounted as a volume).
+
+### Recommended: put local changes in an override file
+
+Keep the repo's `docker-compose.yml` as the base template. **Do not edit it directly.** Put port mappings, extra mounts, image names, etc. into:
+
+```bash
+cp docker-compose.override.yml.example docker-compose.override.yml
+# edit docker-compose.override.yml
+```
+
+Compose automatically merges `docker-compose.yml` + `docker-compose.override.yml`.  
+`docker-compose.override.yml` is gitignored, so `git pull` will **not** overwrite your local changes.
+
+### Legacy backup flow (if you still edit docker-compose.yml)
+
+```bash
+# 1. Backup
+rm -rf backup.bak && mkdir backup.bak
+cp -r config docker-compose.yml backup.bak/
+
+# 2. Pull latest code
+git pull
+
+# 3. Restore (prefer migrating to override)
+cp -r backup.bak/config ./
+cp backup.bak/docker-compose.yml docker-compose.override.yml
+# or keep overwriting:
+# cp backup.bak/docker-compose.yml ./
+```
+
+After restoring, rebuild and restart:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
 ## Error Troubleshooting
 
 [ProxyCat Investigation Manual](../main/ProxyCat-Manual/Investigation%20Manual.md)

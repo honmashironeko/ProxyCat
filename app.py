@@ -12,7 +12,22 @@ from functools import wraps
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ProxyCat import run_server
-from modules.modules import load_config, check_proxies, get_message, load_ip_list
+from modules.modules import (
+    load_config,
+    check_proxies,
+    check_proxy,
+    check_proxy_detailed,
+    get_message,
+    load_ip_list,
+    normalize_proxy_address,
+    validate_proxy_format,
+    normalized_check_timeout_ms,
+    record_ui_check_result,
+    get_ui_check_results,
+    append_ui_check_log,
+    clear_ui_check_logs,
+    get_ui_check_state,
+)
 from modules.proxyserver import AsyncProxyServer
 import asyncio
 import threading
@@ -30,6 +45,31 @@ server = AsyncProxyServer(config)
 
 def get_config_path(filename):
     return os.path.join('config', filename)
+
+
+def parse_config_bool(value, field_name):
+    if isinstance(value, bool):
+        return value
+    if str(value).lower() in ('true', 'false'):
+        return str(value).lower() == 'true'
+    raise ValueError(f'{field_name} must be true or false')
+
+
+def validate_health_check_config(new_config):
+    """Validate health-check values before writing config.ini."""
+    if 'proxy_check_timeout_ms' in new_config:
+        value = int(new_config['proxy_check_timeout_ms'])
+        if not 200 <= value <= 60000:
+            raise ValueError('proxy_check_timeout_ms must be between 200 and 60000')
+        new_config['proxy_check_timeout_ms'] = value
+    if 'auto_check_interval_minutes' in new_config:
+        value = int(new_config['auto_check_interval_minutes'])
+        if not 1 <= value <= 10080:
+            raise ValueError('auto_check_interval_minutes must be between 1 and 10080')
+        new_config['auto_check_interval_minutes'] = value
+    for field in ('auto_check_enabled', 'auto_disable_failed_proxies'):
+        if field in new_config:
+            new_config[field] = parse_config_bool(new_config[field], field)
 
 log_file = 'logs/proxycat.log'
 os.makedirs('logs', exist_ok=True)
@@ -138,17 +178,24 @@ def get_status():
         'auth_required': server.auth_required,
         'display_level': int(server_config.get('display_level', '1')),
         'service_status': 'running' if server.running else 'stopped',
+        'auto_check': server.auto_check_status() if hasattr(server, 'auto_check_status') else {},
         'config': server_config
     })
 
 @app.route('/api/config', methods=['POST'])
+@require_token
 def save_config():
     try:
-        new_config = request.get_json()
+        new_config = request.get_json() or {}
+        validate_health_check_config(new_config)
         current_config = load_config('config/config.ini')
-        port_changed = str(new_config.get('port', '')) != str(current_config.get('port', ''))
-        mode_changed = new_config.get('mode', '') != current_config.get('mode', '')
-        use_getip_changed = (new_config.get('use_getip', 'False').lower() == 'true') != (current_config.get('use_getip', 'False').lower() == 'true')
+        port_changed = 'port' in new_config and str(new_config['port']) != str(current_config.get('port', ''))
+        mode_changed = 'mode' in new_config and new_config['mode'] != current_config.get('mode', '')
+        use_getip_changed = (
+            'use_getip' in new_config
+            and (str(new_config['use_getip']).lower() == 'true')
+            != (current_config.get('use_getip', 'False').lower() == 'true')
+        )
         
         config_parser = ConfigParser()
         config_parser.read('config/config.ini', encoding='utf-8')
@@ -170,8 +217,8 @@ def save_config():
         
         server.config = load_config('config/config.ini')
         server._init_config_values(server.config)
-        
-        
+        server.refresh_auto_check_task()
+
         if mode_changed or use_getip_changed:
             server._handle_mode_change()
             
@@ -194,10 +241,26 @@ def save_config():
         })
 
 @app.route('/api/proxies', methods=['GET', 'POST'])
+@require_token
 def handle_proxies():
     if request.method == 'POST':
         try:
-            proxies = request.json.get('proxies', [])
+            raw_proxies = request.json.get('proxies', [])
+            proxies = []
+            for line in raw_proxies:
+                line = (line or '').strip()
+                if not line:
+                    continue
+                # 保留禁用标记，但对内容做协议别名规范化
+                disabled = line.startswith('#')
+                body = line[1:].lstrip() if disabled else line
+                normalized = normalize_proxy_address(body)
+                if not normalized or not validate_proxy_format(normalized):
+                    # 无效行跳过，避免写坏配置
+                    logging.warning(f'skip invalid proxy on save: {line}')
+                    continue
+                proxies.append(('#' + normalized) if disabled else normalized)
+
             proxy_file = get_config_path(os.path.basename(server.proxy_file))
             with open(proxy_file, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(proxies))
@@ -207,7 +270,9 @@ def handle_proxies():
                 server.current_proxy = next(server.proxy_cycle)
             return jsonify({
                 'status': 'success',
-                'message': get_message('proxy_save_success', server.language)
+                'message': get_message('proxy_save_success', server.language),
+                'proxies': proxies,
+                'check_results': get_ui_check_results(),
             })
         except Exception as e:
             return jsonify({
@@ -219,27 +284,169 @@ def handle_proxies():
             proxy_file = get_config_path(os.path.basename(server.proxy_file))
             with open(proxy_file, 'r', encoding='utf-8') as f:
                 proxies = f.read().splitlines()
-            return jsonify({'proxies': proxies})
+            # 读出时也做一次展示向规范化（禁用行保留 #）
+            normalized_list = []
+            for line in proxies:
+                line = (line or '').strip()
+                if not line:
+                    continue
+                disabled = line.startswith('#')
+                body = line[1:].lstrip() if disabled else line
+                norm = normalize_proxy_address(body) or body
+                normalized_list.append(('#' + norm) if disabled else norm)
+            return jsonify({
+                'proxies': normalized_list,
+                'check_results': get_ui_check_results(),
+            })
         except Exception:
-            return jsonify({'proxies': []})
+            return jsonify({'proxies': [], 'check_results': {}})
 
-@app.route('/api/check_proxies')
+@app.route('/api/disable_proxies', methods=['POST'])
+@require_token
+def disable_proxies_api():
+    """Persistently disable failed proxy entries when the policy is enabled."""
+    try:
+        if not getattr(server, 'auto_disable_failed_proxies', False):
+            return jsonify({
+                'status': 'error',
+                'message': 'automatic proxy disabling is disabled'
+            }), 409
+        data = request.get_json(silent=True) or {}
+        proxies = data.get('proxies') or []
+        disabled = server.disable_proxy_addresses(proxies)
+        return jsonify({'status': 'success', 'disabled': disabled})
+    except Exception as e:
+        logging.exception('disable_proxies api failed')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/check_proxy', methods=['POST'])
+@require_token
+def check_single_proxy_api():
+    """检测单个代理连通性，供前端逐条测试使用。"""
+    try:
+        data = request.get_json(silent=True) or {}
+        proxy = (data.get('proxy') or request.args.get('proxy') or '').strip()
+        test_url = (data.get('test_url') or request.args.get('test_url') or 'https://www.baidu.com').strip()
+        force = bool(data.get('force', True))
+
+        if not proxy:
+            return jsonify({
+                'status': 'error',
+                'valid': False,
+                'message': get_message('proxy_check_failed', server.language, 'empty proxy')
+            }), 400
+
+        timeout_ms = getattr(server, 'proxy_check_timeout_ms', 2000)
+        detail = asyncio.run(check_proxy_detailed(proxy, test_url, force=force, timeout_ms=timeout_ms))
+        record_ui_check_result(proxy, detail, source='manual')
+        return jsonify({
+            'status': 'success',
+            'proxy': proxy,
+            'valid': bool(detail.get('valid')),
+            'error': detail.get('error'),
+            'timed_out': bool(detail.get('timed_out')),
+            'error_code': detail.get('error_code'),
+            'timeout_ms': detail.get('timeout_ms', timeout_ms),
+            'elapsed_ms': detail.get('elapsed_ms', 0),
+            'test_url': test_url,
+            'cached': bool(detail.get('cached')),
+        })
+    except Exception as e:
+        logging.exception('check_proxy api failed')
+        return jsonify({
+            'status': 'error',
+            'valid': False,
+            'error': str(e),
+            'message': get_message('proxy_check_failed', server.language, str(e))
+        })
+
+@app.route('/api/check_proxies', methods=['GET', 'POST'])
+@require_token
 def check_proxies_api():
     try:
-        test_url = request.args.get('test_url', 'https://www.baidu.com')
-        valid_proxies = asyncio.run(check_proxies(server.proxies, test_url))
+        if request.method == 'POST':
+            data = request.get_json(silent=True) or {}
+            test_url = (data.get('test_url') or 'https://www.baidu.com').strip()
+            proxies = data.get('proxies')
+            if proxies is None:
+                proxies = list(server.proxies or [])
+            force = bool(data.get('force', True))
+        else:
+            test_url = request.args.get('test_url', 'https://www.baidu.com')
+            proxies = list(server.proxies or [])
+            force = True
+
+        timeout_ms = getattr(server, 'proxy_check_timeout_ms', 2000)
+        results = []
+        valid_proxies = []
+        for proxy in proxies:
+            proxy = (proxy or '').strip()
+            if not proxy or proxy.startswith('#'):
+                continue
+            detail = asyncio.run(check_proxy_detailed(proxy, test_url, force=force, timeout_ms=timeout_ms))
+            record_ui_check_result(proxy, detail, source='manual')
+            item = {
+                'proxy': proxy,
+                'valid': bool(detail.get('valid')),
+                'timed_out': bool(detail.get('timed_out')),
+                'error_code': detail.get('error_code'),
+                'error': detail.get('error'),
+                'elapsed_ms': detail.get('elapsed_ms', 0),
+            }
+            results.append(item)
+            if item['valid']:
+                valid_proxies.append(proxy)
+
         total_valid = len(valid_proxies)
         return jsonify({
             'status': 'success',
             'valid_proxies': valid_proxies,
+            'results': results,
             'total': total_valid,
+            'checked': len(results),
             'message': get_message('proxy_check_result', server.language, total_valid)
         })
     except Exception as e:
+        logging.exception('check_proxies api failed')
         return jsonify({
             'status': 'error',
             'message': get_message('proxy_check_failed', server.language, str(e))
         })
+
+
+@app.route('/api/proxy_check_state', methods=['GET'])
+@require_token
+def proxy_check_state_api():
+    """多浏览器同步：返回最近检测结果与增量检测日志。"""
+    try:
+        since_log_id = request.args.get('since_log_id', 0)
+        state = get_ui_check_state(since_log_id)
+        return jsonify({'status': 'success', **state})
+    except Exception as e:
+        logging.exception('proxy_check_state api failed')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/proxy_check_logs', methods=['POST', 'DELETE'])
+@require_token
+def proxy_check_logs_api():
+    """写入或清空共享检测日志。"""
+    try:
+        if request.method == 'DELETE':
+            clear_id = clear_ui_check_logs()
+            return jsonify({'status': 'success', 'log_clear_id': clear_id})
+
+        data = request.get_json(silent=True) or {}
+        message = data.get('message') or request.args.get('message') or ''
+        level = data.get('level') or request.args.get('level') or 'info'
+        entry = append_ui_check_log(message, level=level, source='client')
+        if not entry:
+            return jsonify({'status': 'error', 'message': 'empty log message'}), 400
+        return jsonify({'status': 'success', **entry})
+    except Exception as e:
+        logging.exception('proxy_check_logs api failed')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 @app.route('/api/ip_lists', methods=['GET', 'POST'])
 def handle_ip_lists():

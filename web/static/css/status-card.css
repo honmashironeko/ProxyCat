@@ -526,17 +526,19 @@
 
 .proxy-actions {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
     margin-top: 1rem;
 }
 
 .proxy-actions .btn {
-    padding: 10px 20px;
+    padding: 10px 18px;
     font-size: 0.9rem;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-width: 120px;
+    min-width: 110px;
     justify-content: center;
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -544,6 +546,66 @@
 
 .proxy-actions .btn i {
     font-size: 1rem;
+}
+
+.proxy-health-settings {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) auto minmax(180px, 240px) auto;
+    align-items: end;
+    gap: 12px 20px;
+    padding: 14px;
+    border: 1px solid rgba(74, 144, 226, 0.18);
+    border-radius: 10px;
+    background: rgba(74, 144, 226, 0.04);
+}
+
+.proxy-health-field .form-label {
+    margin-bottom: 5px;
+    font-size: 0.86rem;
+}
+
+.proxy-health-toggle {
+    padding-bottom: 8px;
+}
+
+.proxy-health-help {
+    margin-top: -8px;
+}
+
+.proxy-auto-check-status {
+    margin-top: 8px;
+    color: #4a90e2;
+    font-size: 0.84rem;
+}
+
+@media (max-width: 900px) {
+    .proxy-health-settings {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .proxy-health-settings {
+        grid-template-columns: 1fr;
+    }
+
+    .proxy-health-toggle {
+        padding-bottom: 0;
+    }
+}
+
+.proxy-actions .btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.proxy-check-progress {
+    font-size: 0.88rem;
+    color: var(--text-color);
+    opacity: 0.85;
+    margin-left: 4px;
+    white-space: nowrap;
 }
 
 /* IP名单标签页样式 */
@@ -671,16 +733,22 @@
     }
     
     .proxy-list-help {
-        color: #888;
+        color: #9aa3b0;
     }
-    
+
     .proxy-list-section textarea {
-        background: rgba(0, 0, 0, 0.2);
-        color: #e0e0e0;
+        background: #23262b;
+        color: #f0f0f0;
+        caret-color: #4a90e2;
     }
-    
+
+    .proxy-list-section textarea::placeholder {
+        color: #8a929f;
+        opacity: 1;
+    }
+
     .proxy-list-section textarea:focus {
-        background: rgba(0, 0, 0, 0.3);
+        background: #2b2f36;
     }
 }
 
@@ -824,4 +892,528 @@
 .service-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* ===== 代理管理：启用/禁用列表 ===== */
+.proxy-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.proxy-count {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.proxy-count #proxy-total,
+.proxy-count #proxy-enabled-count,
+.proxy-count #proxy-selected-count {
+    font-weight: 700;
+    color: #4a90e2;
+}
+
+.proxy-count-sep {
+    opacity: 0.4;
+}
+
+.proxy-select-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.proxy-select-all input[type="checkbox"],
+.proxy-select input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #4a90e2;
+    flex: 0 0 auto;
+}
+
+.proxy-select {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.proxy-toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-toolbar {
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: #fff;
+    color: #4a5568;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+
+.btn-toolbar:hover {
+    border-color: #4a90e2;
+    color: #4a90e2;
+}
+
+.btn-toolbar-danger {
+    color: #c53030;
+    border-color: rgba(197, 48, 48, 0.28);
+}
+
+.btn-toolbar-danger:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.08);
+}
+
+.proxy-items {
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.proxy-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background 0.2s ease;
+}
+
+.proxy-item:last-child {
+    border-bottom: none;
+}
+
+.proxy-item:hover {
+    background: rgba(74, 144, 226, 0.06);
+}
+
+.proxy-item.selected {
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.proxy-item.disabled .proxy-addr,
+.proxy-item.disabled .proxy-proto {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+/* 开关 */
+.proxy-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.proxy-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.proxy-slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: #cbd2d9;
+    border-radius: 22px;
+    transition: background 0.25s ease;
+}
+
+.proxy-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s ease;
+}
+
+.proxy-switch input:checked + .proxy-slider {
+    background: #4a90e2;
+}
+
+.proxy-switch input:checked + .proxy-slider::before {
+    transform: translateX(18px);
+}
+
+.proxy-switch input:focus-visible + .proxy-slider {
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+/* 协议标签 */
+.proxy-proto {
+    flex: 0 0 auto;
+    min-width: 58px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    color: #fff;
+    background: #6c757d;
+}
+
+.proxy-proto-http { background: #3fa796; }
+.proxy-proto-https { background: #2f855a; }
+.proxy-proto-socks5 { background: #805ad5; }
+
+.proxy-addr {
+    flex: 1 1 auto;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.proxy-del {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #b0b7c0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.proxy-del:hover {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+.proxy-test {
+    flex: 0 0 auto;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 7px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #8a93a0;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 30px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.proxy-test:hover {
+    background: rgba(74, 144, 226, 0.12);
+    color: #4a90e2;
+}
+
+.proxy-test.is-testing {
+    color: #e6a23c;
+    background: rgba(230, 162, 60, 0.12);
+    cursor: wait;
+}
+
+/* 成功时显示延迟；由低到高使用绿/橙/红的颜色分级。 */
+.proxy-test.is-ok {
+    background: rgba(31, 157, 85, 0.12);
+}
+
+.proxy-test.is-latency-fast {
+    color: #1f9d55;
+    background: rgba(31, 157, 85, 0.12);
+}
+
+.proxy-test.is-latency-medium {
+    color: #d9822b;
+    background: rgba(217, 130, 43, 0.13);
+}
+
+.proxy-test.is-latency-slow {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.12);
+}
+
+.proxy-test.is-latency-unknown {
+    color: #6c757d;
+    background: rgba(108, 117, 125, 0.12);
+}
+
+.proxy-test.is-ok:hover {
+    color: #178a48;
+    background: rgba(31, 157, 85, 0.18);
+}
+
+.proxy-test.is-fail {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.12);
+}
+
+.proxy-test.is-fail:hover {
+    color: #c82333;
+    background: rgba(220, 53, 69, 0.18);
+}
+
+.proxy-test:disabled {
+    opacity: 0.85;
+    cursor: wait;
+}
+
+.proxy-empty {
+    text-align: center;
+    padding: 28px 10px;
+    color: #90979f;
+    font-size: 0.9rem;
+}
+
+.proxy-add {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.proxy-add textarea {
+    flex: 1 1 auto;
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+.proxy-add-btn {
+    flex: 0 0 auto;
+    align-self: stretch;
+    padding: 10px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.proxy-check-log-panel {
+    margin-top: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.55);
+    overflow: hidden;
+}
+
+.proxy-check-log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.proxy-check-log-header i {
+    margin-right: 6px;
+    color: #4a90e2;
+}
+
+.proxy-check-log {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text-color);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.proxy-check-log-placeholder {
+    color: #90979f;
+    text-align: center;
+    padding: 18px 8px;
+}
+
+.proxy-check-log-line {
+    display: flex;
+    gap: 10px;
+    padding: 2px 0;
+    word-break: break-all;
+}
+
+.proxy-check-log-time {
+    flex: 0 0 auto;
+    color: #8a93a0;
+}
+
+.proxy-check-log-msg {
+    flex: 1 1 auto;
+}
+
+.proxy-check-log-line.is-ok .proxy-check-log-msg {
+    color: #1f9d55;
+}
+
+.proxy-check-log-line.is-fail .proxy-check-log-msg {
+    color: #dc3545;
+}
+
+.proxy-check-log-line.is-info .proxy-check-log-msg {
+    color: #4a90e2;
+}
+
+/* ===== 暗色模式 ===== */
+@media (prefers-color-scheme: dark) {
+    .btn-toolbar {
+        background: #33373e;
+        border-color: rgba(255, 255, 255, 0.14);
+        color: #cfd4db;
+    }
+
+    .btn-toolbar:hover {
+        border-color: #4a90e2;
+        color: #7db4ee;
+    }
+
+    .btn-toolbar-danger {
+        color: #ff8a95;
+        border-color: rgba(255, 107, 122, 0.35);
+        background: #33373e;
+    }
+
+    .btn-toolbar-danger:hover {
+        border-color: #ff6b7a;
+        color: #ff6b7a;
+        background: rgba(220, 53, 69, 0.18);
+    }
+
+    .proxy-items {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .proxy-item {
+        border-bottom-color: rgba(255, 255, 255, 0.07);
+    }
+
+    .proxy-item:hover {
+        background: rgba(74, 144, 226, 0.12);
+    }
+
+    .proxy-item.selected {
+        background: rgba(74, 144, 226, 0.18);
+    }
+
+    .proxy-addr {
+        color: #f0f0f0;
+    }
+
+    .proxy-slider {
+        background: #4a5058;
+    }
+
+    .proxy-del {
+        color: #7d838c;
+    }
+
+    .proxy-del:hover {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff6b7a;
+    }
+
+    .proxy-test {
+        color: #8a929f;
+    }
+
+    .proxy-test:hover {
+        background: rgba(74, 144, 226, 0.18);
+        color: #7db4ee;
+    }
+
+    .proxy-test.is-testing {
+        color: #f0c36a;
+        background: rgba(230, 162, 60, 0.18);
+    }
+
+    .proxy-test.is-ok {
+        background: rgba(31, 157, 85, 0.18);
+    }
+
+    .proxy-test.is-latency-fast {
+        color: #3dd68c;
+        background: rgba(31, 157, 85, 0.18);
+    }
+
+    .proxy-test.is-latency-medium {
+        color: #f0c36a;
+        background: rgba(230, 162, 60, 0.18);
+    }
+
+    .proxy-test.is-latency-slow {
+        color: #ff6b7a;
+        background: rgba(220, 53, 69, 0.18);
+    }
+
+    .proxy-test.is-fail {
+        color: #ff6b7a;
+        background: rgba(220, 53, 69, 0.18);
+    }
+
+    .proxy-empty {
+        color: #8a929f;
+    }
+
+    .proxy-check-log-panel {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .proxy-check-log-header {
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .proxy-check-log {
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    .proxy-check-log-placeholder {
+        color: #8a929f;
+    }
+
+    .proxy-check-log-time {
+        color: #7d838c;
+    }
 } 

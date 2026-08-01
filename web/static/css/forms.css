@@ -34,8 +34,16 @@
 @media (prefers-color-scheme: dark) {
     .form-control, .form-select {
         background-color: #2d2d2d;
-        color: #ffffff;
+        color: #f0f0f0;
         border-color: #3d3d3d;
+        caret-color: #4a90e2;
+    }
+
+    /* 暗色模式下占位提示文字保持足够对比度，避免几乎不可见 */
+    .form-control::placeholder,
+    .form-select::placeholder {
+        color: #8a929f;
+        opacity: 1;
     }
 
     .table {

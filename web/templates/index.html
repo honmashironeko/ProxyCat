@@ -1431,48 +1431,53 @@
                         </h5>
                         <div class="proxy-management">
                             <div class="proxy-lists">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="proxy-list-section">
-                                            <div class="proxy-list-header">
-                                                <i class="fa fa-globe"></i>
-                                                <span>HTTP代理</span>
-                                            </div>
-                                            <textarea class="form-control" id="http-proxy-list" rows="8" 
-                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:8080"></textarea>
-                                        </div>
+                                <div class="proxy-toolbar">
+                                    <div class="proxy-count">
+                                        <label class="proxy-select-all" title="" id="proxy-select-all-label">
+                                            <input type="checkbox" id="proxy-select-all" onchange="toggleSelectAllProxies(this.checked)">
+                                            <span data-i18n="select_all_btn">全选</span>
+                                        </label>
+                                        <span class="proxy-count-sep">·</span>
+                                        <i class="fa fa-list"></i>
+                                        <span data-i18n="proxy_total_label">代理总数</span>：<span id="proxy-total">0</span>
+                                        <span class="proxy-count-sep">·</span>
+                                        <span data-i18n="proxy_enabled_label">已启用</span> <span id="proxy-enabled-count">0</span>
+                                        <span class="proxy-count-sep">·</span>
+                                        <span data-i18n="proxy_selected_label">已选中</span> <span id="proxy-selected-count">0</span>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="proxy-list-section">
-                                            <div class="proxy-list-header">
-                                                <i class="fa fa-lock"></i>
-                                                <span>HTTPS代理</span>
-                                            </div>
-                                            <textarea class="form-control" id="https-proxy-list" rows="8"
-                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:8443"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="proxy-list-section">
-                                            <div class="proxy-list-header">
-                                                <i class="fa fa-shield"></i>
-                                                <span>SOCKS5代理</span>
-                                            </div>
-                                            <textarea class="form-control" id="socks5-proxy-list" rows="8"
-                                                placeholder="每行一个地址，格式：ip:port&#10;例如：127.0.0.1:1080"></textarea>
-                                        </div>
+                                    <div class="proxy-toolbar-actions">
+                                        <button type="button" class="btn btn-sm btn-toolbar" onclick="setAllProxies(true)">
+                                            <i class="fa fa-check-circle"></i>
+                                            <span data-i18n="enable_all_btn">全部启用</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-toolbar" onclick="setAllProxies(false)">
+                                            <i class="fa fa-ban"></i>
+                                            <span data-i18n="disable_all_btn">全部禁用</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-toolbar" onclick="setSelectedProxies(true)">
+                                            <i class="fa fa-check-square-o"></i>
+                                            <span data-i18n="enable_selected_btn">启用选中</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-toolbar" onclick="setSelectedProxies(false)">
+                                            <i class="fa fa-minus-square-o"></i>
+                                            <span data-i18n="disable_selected_btn">禁用选中</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-toolbar btn-toolbar-danger" onclick="deleteSelectedProxies()">
+                                            <i class="fa fa-trash"></i>
+                                            <span data-i18n="delete_selected_btn">删除选中</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="mt-4">
-                                    <div class="proxy-list-section">
-                                        <div class="proxy-list-header">
-                                            <i class="fa fa-code"></i>
-                                            <span data-i18n="full_proxy">完整代理地址</span>
-                                            <div class="proxy-list-help" data-i18n="proxy_help">支持完整格式的代理地址，包含协议和认证信息</div>
-                                        </div>
-                                        <textarea class="form-control" id="full-proxy-list" rows="4"
-                                            placeholder="每行一个地址，格式：protocol://[username:password@]ip:port&#10;例如：http://user:pass@127.0.0.1:8080"></textarea>
-                                    </div>
+                                <div id="proxy-items" class="proxy-items"></div>
+                                <div id="proxy-empty" class="proxy-empty" data-i18n="proxy_empty_hint">暂无代理，请在下方添加</div>
+                                <div class="proxy-add">
+                                    <textarea class="form-control" id="proxy-add-input" rows="3"
+                                        data-i18n-placeholder="proxy_add_placeholder"
+                                        placeholder="每行一个：ip:port 或 protocol://[user:pass@]ip:port&#10;例如：http://user:pass@127.0.0.1:8080"></textarea>
+                                    <button type="button" class="btn btn-secondary proxy-add-btn" onclick="addProxies()">
+                                        <i class="fa fa-plus"></i>
+                                        <span data-i18n="add_proxy_btn">添加代理</span>
+                                    </button>
                                 </div>
                             </div>
                             <div class="mb-3 mt-4">
@@ -1480,15 +1485,67 @@
                                 <input type="text" class="form-control" id="test-target-url" placeholder="https://www.baidu.com">
                                 <div class="form-text" data-i18n="test_url_help">用于检测代理有效性的目标地址</div>
                             </div>
+                            <div class="proxy-health-settings">
+                                <div class="proxy-health-field">
+                                    <label class="form-label" for="proxy-check-timeout" data-i18n="proxy_check_timeout_label">检测超时（ms）</label>
+                                    <input type="number" class="form-control" id="proxy-check-timeout" min="200" max="60000" step="100" value="2000" onchange="saveHealthCheckConfig()">
+                                </div>
+                                <div class="proxy-health-toggle">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="auto-check-enabled" onchange="toggleAutoCheckControls(); saveHealthCheckConfig()">
+                                        <label class="form-check-label" for="auto-check-enabled" data-i18n="auto_check_enabled_label">启用自动检测</label>
+                                    </div>
+                                </div>
+                                <div class="proxy-health-field">
+                                    <label class="form-label" for="auto-check-interval" data-i18n="auto_check_interval_label">自动检测周期（分钟）</label>
+                                    <input type="number" class="form-control" id="auto-check-interval" min="1" max="10080" step="1" value="60" disabled onchange="saveHealthCheckConfig()">
+                                </div>
+                                <div class="proxy-health-toggle">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="auto-disable-failed" onchange="saveHealthCheckConfig()">
+                                        <label class="form-check-label" for="auto-disable-failed" data-i18n="auto_disable_failed_label">自动禁用失败代理</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-text proxy-health-help" data-i18n="auto_disable_failed_help">启用后，手动或自动检测中超时、连接失败的代理会被禁用。</div>
+                            <div id="auto-check-status" class="proxy-auto-check-status"></div>
                             <div class="proxy-actions">
-                                <button class="btn btn-primary" onclick="saveProxies()">
-                                    <i class="fa fa-save"></i>
-                                    <span data-i18n="save_proxy_btn">保存代理</span>
-                                </button>
-                                <button class="btn btn-warning" onclick="checkProxies()">
+                                <button class="btn btn-warning" id="check-proxy-btn" onclick="checkProxies('enabled')">
                                     <i class="fa fa-check-circle"></i>
-                                    <span data-i18n="check_proxy_btn">检测代理</span>
+                                    <span data-i18n="check_proxy_btn">检测已启用</span>
                                 </button>
+                                <button class="btn btn-outline-warning" id="check-selected-btn" onclick="checkProxies('selected')">
+                                    <i class="fa fa-check-square-o"></i>
+                                    <span data-i18n="check_selected_btn">检测选中</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="check-pause-btn" onclick="pauseProxyCheck()" style="display:none;">
+                                    <i class="fa fa-pause"></i>
+                                    <span data-i18n="check_pause_btn">暂停</span>
+                                </button>
+                                <button type="button" class="btn btn-primary" id="check-resume-btn" onclick="resumeProxyCheck()" style="display:none;">
+                                    <i class="fa fa-play"></i>
+                                    <span data-i18n="check_resume_btn">继续</span>
+                                </button>
+                                <button type="button" class="btn btn-danger" id="check-stop-btn" onclick="stopProxyCheck()" style="display:none;">
+                                    <i class="fa fa-stop"></i>
+                                    <span data-i18n="check_stop_btn">停止</span>
+                                </button>
+                                <span id="check-progress" class="proxy-check-progress" aria-live="polite"></span>
+                            </div>
+                            <div class="proxy-check-log-panel">
+                                <div class="proxy-check-log-header">
+                                    <span>
+                                        <i class="fa fa-terminal"></i>
+                                        <span data-i18n="proxy_check_log_title">检测日志</span>
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-toolbar" onclick="clearProxyCheckLog()">
+                                        <i class="fa fa-trash"></i>
+                                        <span data-i18n="clear_check_log_btn">清空</span>
+                                    </button>
+                                </div>
+                                <div id="proxy-check-log" class="proxy-check-log" data-empty="1">
+                                    <div class="proxy-check-log-placeholder" data-i18n="proxy_check_log_empty">暂无检测记录</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1678,6 +1735,7 @@
 
                 // 更新按钮状态
                 updateServiceButtons(status);
+                updateAutoCheckStatus(data.auto_check);
             });
         }
 
@@ -1723,7 +1781,14 @@
                     $('input[name="blacklist_file"]').val(config.blacklist_file || '');
                     $('select[name="ip_auth_priority"]').val(config.ip_auth_priority || 'whitelist');
                     $('select[name="display_level"]').val(config.display_level || '1');
-                    
+                    $('#test-target-url').val(config.test_url || 'https://www.baidu.com');
+                    $('#proxy-check-timeout').val(config.proxy_check_timeout_ms || '2000');
+                    $('#auto-check-enabled').prop('checked', (config.auto_check_enabled || '').toLowerCase() === 'true');
+                    $('#auto-check-interval').val(config.auto_check_interval_minutes || '60');
+                    $('#auto-disable-failed').prop('checked', (config.auto_disable_failed_proxies || '').toLowerCase() === 'true');
+                    toggleAutoCheckControls();
+                    updateAutoCheckStatus(data.auto_check);
+
                     // 根据 use_getip 的状态更新 getip_url 输入框的禁用状态
                     const useGetip = (config.use_getip || '').toLowerCase() === 'true';
                     $('input[name="getip_url"]').prop('disabled', !useGetip);
@@ -1737,38 +1802,975 @@
             });
         }
 
+        function toggleAutoCheckControls() {
+            const enabled = $('#auto-check-enabled').prop('checked');
+            $('#auto-check-interval').prop('disabled', !enabled);
+        }
+
+        function updateAutoCheckStatus(autoCheck) {
+            const box = document.getElementById('auto-check-status');
+            if (!box) return;
+            if (!autoCheck || !autoCheck.enabled) {
+                box.textContent = tProxy('auto_check_status_disabled', '自动检测未启用');
+                return;
+            }
+            const summary = autoCheck.summary;
+            let text = tProxy('auto_check_status_enabled', '自动检测已启用，每 {} 分钟执行一次')
+                .replace('{}', autoCheck.interval_minutes || 60);
+            if (summary) {
+                text += ' · ' + tProxy('auto_check_status_summary', '上次：成功 {} / 失败 {} / 禁用 {}')
+                    .replace('{}', summary.valid || 0)
+                    .replace('{}', summary.failed || 0)
+                    .replace('{}', summary.disabled || 0);
+            }
+            box.textContent = text;
+        }
+
+        function saveHealthCheckConfig() {
+            const timeout = Number($('#proxy-check-timeout').val());
+            const interval = Number($('#auto-check-interval').val());
+            if (!Number.isFinite(timeout) || timeout < 200 || timeout > 60000) {
+                showNotification(tProxy('proxy_check_timeout_invalid', '检测超时应在 200 到 60000 ms 之间'), 'error');
+                return;
+            }
+            if (!Number.isFinite(interval) || interval < 1 || interval > 10080) {
+                showNotification(tProxy('auto_check_interval_invalid', '自动检测周期应在 1 到 10080 分钟之间'), 'error');
+                return;
+            }
+            $.ajax({
+                url: appendToken('/api/config'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    test_url: getProxyTestUrl(),
+                    proxy_check_timeout_ms: timeout,
+                    auto_check_enabled: $('#auto-check-enabled').prop('checked'),
+                    auto_check_interval_minutes: interval,
+                    auto_disable_failed_proxies: $('#auto-disable-failed').prop('checked')
+                })
+            }).done(function(response) {
+                if (response.status === 'success') {
+                    showNotification(tProxy('health_check_config_saved', '检测设置已保存'), 'success');
+                    updateStatus();
+                } else {
+                    showNotification(response.message || tProxy('config_save_failed', '配置保存失败'), 'error');
+                }
+            }).fail(function(xhr) {
+                showNotification((xhr.responseJSON && xhr.responseJSON.message) || tProxy('config_save_failed', '配置保存失败'), 'error');
+            });
+        }
+
+        // ===== 代理管理：启用/禁用列表 =====
+        // 单一数据源：每项 { addr, enabled, selected }
+        let proxyItems = [];
+        // 多浏览器共享检测状态
+        let lastProxyCheckLogId = 0;
+        let lastProxyCheckLogClearId = 0;
+        let lastProxyCheckRevision = 0;
+        let proxyCheckSyncTimer = null;
+        // 本页刚写入、尚未拿到服务端 id 的日志指纹，避免轮询重复插入
+        const pendingLocalCheckLogs = new Set();
+
+        function proxyCheckLogFingerprint(message, level) {
+            return `${level || 'info'}|${message || ''}`;
+        }
+
+        // 协议别名 → 引擎标准协议（与后端 modules.PROXY_SCHEME_ALIASES 对齐）
+        const PROXY_SCHEME_ALIASES = {
+            'socks5h': 'socks5',
+            'socks5a': 'socks5',
+            'socks': 'socks5',
+            'socks4': 'socks5',
+            'socks4a': 'socks5',
+            'sock': 'socks5',
+            'http': 'http',
+            'https': 'https',
+            'socks5': 'socks5'
+        };
+
+        function normalizeProxyAddr(raw) {
+            let s = (raw || '').trim();
+            if (s.startsWith('#')) s = s.replace(/^#+\s*/, '');
+            if (!s) return '';
+            // 无协议前缀时默认 http://
+            if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(s)) s = 'http://' + s;
+            // 协议名小写 + 别名归并（socks5h → socks5 等）
+            s = s.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*/, m => {
+                const lower = m.toLowerCase();
+                return PROXY_SCHEME_ALIASES[lower] || lower;
+            });
+            return s;
+        }
+
+        // 与后端 validate_proxy_format 对齐
+        // 接受输入阶段的别名；normalize 后仅 http/https/socks5
+        // scheme://[user:pass@]host:port ，端口 1-65535
+        function isValidProxyFormat(addr) {
+            if (!addr) return false;
+            // 先规范化再校验，保证 socks5h 等能通过
+            const normalized = normalizeProxyAddr(addr);
+            const m = String(normalized).match(
+                /^(socks5|http|https):\/\/(?:([^@/\s]+)@)?(\[[^\]]+\]|[^:\/\s]+):(\d+)$/i
+            );
+            if (!m) return false;
+            const port = parseInt(m[4], 10);
+            return port > 0 && port < 65536;
+        }
+
+        function proxyProtocol(addr) {
+            const normalized = normalizeProxyAddr(addr) || addr || '';
+            const m = normalized.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//);
+            if (!m) return 'http';
+            const raw = m[1].toLowerCase();
+            return PROXY_SCHEME_ALIASES[raw] || raw;
+        }
+
+        function tProxy(key, fallback) {
+            return (translations[currentLanguage] && translations[currentLanguage][key]) || fallback;
+        }
+
+        // 持久化当前代理列表（已无独立“保存代理”按钮，增删改后自动调用）
+        function persistProxies(options = {}) {
+            const { successMessage = null, silent = false } = options;
+            const allProxies = proxyItems.map(item => item.enabled ? item.addr : '#' + item.addr);
+            const testEl = document.getElementById('test-target-url');
+            const testUrl = testEl ? testEl.value.trim() : '';
+
+            return $.ajax({
+                url: appendToken('/api/proxies'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ proxies: allProxies })
+            }).then(function(response) {
+                if (response && response.status === 'success') {
+                    if (testUrl) {
+                        $.ajax({
+                            url: appendToken('/api/config'),
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ test_url: testUrl })
+                        });
+                    }
+                    if (successMessage) {
+                        showNotification(successMessage, 'success');
+                    } else if (!silent) {
+                        showNotification(tProxy('proxy_save_success', '代理保存成功'), 'success');
+                    }
+                    return response;
+                }
+                const msg = (response && response.message) || '';
+                showNotification(tProxy('proxy_save_failed', '代理保存失败: {}').replace('{}', msg), 'error');
+                return $.Deferred().reject(response).promise();
+            }, function(xhr) {
+                const msg = (xhr && xhr.responseText) || '';
+                showNotification(tProxy('proxy_save_failed', '代理保存失败: {}').replace('{}', msg), 'error');
+            });
+        }
+
         function loadProxies() {
             $.get(appendToken('/api/proxies'), function(data) {
-                const httpProxies = [];
-                const httpsProxies = [];
-                const socks5Proxies = [];
-                const fullProxies = [];
-                
-                data.proxies.forEach(proxy => {
-                    if (proxy.includes('@') || (proxy.includes('://') && !proxy.match(/^(http|https|socks5):\/\/[^@]+:\d+$/))) {
-                        // 带认证信息或其他完整格式的代理放入完整代理列表
-                        fullProxies.push(proxy);
-                    } else if (proxy.startsWith('http://')) {
-                        // HTTP代理
-                        httpProxies.push(proxy.replace('http://', ''));
-                    } else if (proxy.startsWith('https://')) {
-                        // HTTPS代理
-                        httpsProxies.push(proxy.replace('https://', ''));
-                    } else if (proxy.startsWith('socks5://')) {
-                        // SOCKS5代理
-                        socks5Proxies.push(proxy.replace('socks5://', ''));
-                    } else {
-                        // 没有协议前缀的默认作为HTTP代理
-                        httpProxies.push(proxy);
+                // 保留已有检测状态（按地址）；服务端结果优先用于跨浏览器恢复
+                const prevStatus = {};
+                proxyItems.forEach(item => {
+                    if (item.addr && item.checkStatus) {
+                        prevStatus[item.addr] = {
+                            status: item.checkStatus,
+                            latency: item.checkLatency
+                        };
                     }
                 });
-                
-                // 更新各个文本框的内容
-                document.getElementById('http-proxy-list').value = httpProxies.join('\n');
-                document.getElementById('https-proxy-list').value = httpsProxies.join('\n');
-                document.getElementById('socks5-proxy-list').value = socks5Proxies.join('\n');
-                document.getElementById('full-proxy-list').value = fullProxies.join('\n');
+                const serverResults = data.check_results || {};
+                proxyItems = (data.proxies || [])
+                    .map(line => (line || '').trim())
+                    .filter(line => line.length > 0)
+                    .map(line => {
+                        const addr = normalizeProxyAddr(line);
+                        const server = serverResults[addr];
+                        let checkStatus = prevStatus[addr] ? prevStatus[addr].status : null;
+                        let checkLatency = prevStatus[addr] ? prevStatus[addr].latency : null;
+                        if (server && server.status) {
+                            // 本地正在 testing 时不覆盖，避免闪烁
+                            if (checkStatus !== 'testing') {
+                                checkStatus = server.status;
+                                checkLatency = server.valid ? Number(server.elapsed_ms) : null;
+                            }
+                        }
+                        return {
+                            enabled: !line.startsWith('#'),
+                            selected: false,
+                            addr,
+                            checkStatus, // null | testing | ok | fail
+                            checkLatency
+                        };
+                    })
+                    .filter(item => item.addr);
+                renderProxyItems();
             });
+        }
+
+        function renderProxyItems() {
+            const box = document.getElementById('proxy-items');
+            const empty = document.getElementById('proxy-empty');
+            if (!box) return;
+            box.innerHTML = '';
+            proxyItems.forEach((item, idx) => {
+                const proto = proxyProtocol(item.addr);
+                const row = document.createElement('div');
+                row.className = 'proxy-item'
+                    + (item.enabled ? '' : ' disabled')
+                    + (item.selected ? ' selected' : '');
+                row.dataset.idx = String(idx);
+
+                const select = document.createElement('label');
+                select.className = 'proxy-select';
+                const selectCb = document.createElement('input');
+                selectCb.type = 'checkbox';
+                selectCb.checked = !!item.selected;
+                selectCb.addEventListener('change', () => toggleSelectProxy(idx, selectCb.checked));
+                select.appendChild(selectCb);
+
+                const sw = document.createElement('label');
+                sw.className = 'proxy-switch';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = item.enabled;
+                cb.addEventListener('change', () => toggleProxy(idx));
+                const slider = document.createElement('span');
+                slider.className = 'proxy-slider';
+                sw.appendChild(cb);
+                sw.appendChild(slider);
+
+                const badge = document.createElement('span');
+                badge.className = 'proxy-proto proxy-proto-' + proto;
+                badge.textContent = proto.toUpperCase();
+
+                const addr = document.createElement('span');
+                addr.className = 'proxy-addr';
+                addr.textContent = item.addr;
+                addr.title = item.addr;
+
+                const testBtn = document.createElement('button');
+                testBtn.type = 'button';
+                testBtn.className = 'proxy-test' + (item.checkStatus ? ' is-' + item.checkStatus : '');
+                testBtn.title = tProxy('proxy_test_btn', '测试连通性');
+                testBtn.dataset.idx = String(idx);
+                if (item.checkStatus === 'testing') {
+                    testBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+                    testBtn.disabled = true;
+                } else if (item.checkStatus === 'ok') {
+                    testBtn.classList.add(latencyClass(item.checkLatency));
+                    testBtn.textContent = formatLatency(item.checkLatency);
+                    testBtn.title = `${tProxy('proxy_test_btn', '测试连通性')} · ${formatLatency(item.checkLatency)}`;
+                } else if (item.checkStatus === 'fail') {
+                    testBtn.innerHTML = '<i class="fa fa-times"></i>';
+                } else {
+                    testBtn.innerHTML = '<i class="fa fa-plug"></i>';
+                }
+                testBtn.addEventListener('click', () => testSingleProxy(idx));
+
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'proxy-del';
+                del.title = tProxy('delete_btn', '删除');
+                del.innerHTML = '<i class="fa fa-times"></i>';
+                del.addEventListener('click', () => deleteProxy(idx));
+
+                row.appendChild(select);
+                row.appendChild(sw);
+                row.appendChild(badge);
+                row.appendChild(addr);
+                row.appendChild(testBtn);
+                row.appendChild(del);
+                box.appendChild(row);
+            });
+            if (empty) empty.style.display = proxyItems.length ? 'none' : 'block';
+            updateProxyCount();
+        }
+
+        function formatLatency(latency) {
+            const value = Number(latency);
+            return Number.isFinite(value) && value >= 0 ? `${Math.round(value)}ms` : '--';
+        }
+
+        function latencyClass(latency) {
+            const value = Number(latency);
+            if (!Number.isFinite(value) || value < 0) return 'is-latency-unknown';
+            if (value < 500) return 'is-latency-fast';
+            if (value < 1500) return 'is-latency-medium';
+            return 'is-latency-slow';
+        }
+
+        function applyProxyCheckResult(item, data) {
+            const ok = !!(data && data.status === 'success' && data.valid);
+            item.checkStatus = ok ? 'ok' : 'fail';
+            item.checkLatency = ok && data.elapsed_ms != null ? Number(data.elapsed_ms) : null;
+            return ok;
+        }
+
+        function updateProxyTestButton(idx) {
+            const item = proxyItems[idx];
+            if (!item) return;
+            const btn = document.querySelector(`.proxy-test[data-idx="${idx}"]`);
+            if (!btn) {
+                renderProxyItems();
+                return;
+            }
+            btn.className = 'proxy-test' + (item.checkStatus ? ' is-' + item.checkStatus : '');
+            btn.disabled = item.checkStatus === 'testing';
+            btn.title = tProxy('proxy_test_btn', '测试连通性');
+            if (item.checkStatus === 'testing') {
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+            } else if (item.checkStatus === 'ok') {
+                btn.classList.add(latencyClass(item.checkLatency));
+                btn.textContent = formatLatency(item.checkLatency);
+                btn.title = `${tProxy('proxy_test_btn', '测试连通性')} · ${formatLatency(item.checkLatency)}`;
+            } else if (item.checkStatus === 'fail') {
+                btn.innerHTML = '<i class="fa fa-times"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa fa-plug"></i>';
+            }
+        }
+
+        function getProxyTestUrl() {
+            const el = document.getElementById('test-target-url');
+            return ((el && el.value) || '').trim() || 'https://www.baidu.com';
+        }
+
+        function applyServerCheckResults(results) {
+            if (!results || typeof results !== 'object') return false;
+            let changed = false;
+            proxyItems.forEach((item, idx) => {
+                if (!item || !item.addr) return;
+                // 本页正在测这一条时，不拿远端结果打断本地 testing 态
+                if (item.checkStatus === 'testing') return;
+                const remote = results[item.addr];
+                if (!remote || !remote.status) return;
+                const nextStatus = remote.status === 'ok' ? 'ok' : 'fail';
+                const nextLatency = nextStatus === 'ok' && remote.elapsed_ms != null
+                    ? Number(remote.elapsed_ms)
+                    : null;
+                if (item.checkStatus !== nextStatus || item.checkLatency !== nextLatency) {
+                    item.checkStatus = nextStatus;
+                    item.checkLatency = nextLatency;
+                    updateProxyTestButton(idx);
+                    changed = true;
+                }
+            });
+            return changed;
+        }
+
+        function appendProxyCheckLog(message, level, options = {}) {
+            const box = document.getElementById('proxy-check-log');
+            if (!box) return;
+            const { sync = true, time = null, id = null } = options;
+            if (box.dataset.empty === '1' || box.querySelector('.proxy-check-log-placeholder')) {
+                box.innerHTML = '';
+                box.dataset.empty = '0';
+            }
+            const displayTime = time || new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = 'proxy-check-log-line' + (level ? ' is-' + level : '');
+            if (id != null) line.dataset.logId = String(id);
+            line.innerHTML = `<span class="proxy-check-log-time"></span><span class="proxy-check-log-msg"></span>`;
+            line.querySelector('.proxy-check-log-time').textContent = displayTime;
+            line.querySelector('.proxy-check-log-msg').textContent = message;
+            box.appendChild(line);
+            box.scrollTop = box.scrollHeight;
+
+            if (id != null) {
+                lastProxyCheckLogId = Math.max(lastProxyCheckLogId, Number(id) || 0);
+            }
+
+            // 推到服务端，其他浏览器可轮询到
+            if (sync) {
+                const fp = proxyCheckLogFingerprint(message, level);
+                pendingLocalCheckLogs.add(fp);
+                $.ajax({
+                    url: appendToken('/api/proxy_check_logs'),
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ message: message, level: level || 'info' })
+                }).done(function(data) {
+                    if (data && data.id != null) {
+                        lastProxyCheckLogId = Math.max(lastProxyCheckLogId, Number(data.id) || 0);
+                        line.dataset.logId = String(data.id);
+                    }
+                }).always(function() {
+                    pendingLocalCheckLogs.delete(fp);
+                });
+            }
+        }
+
+        function clearProxyCheckLog(options = {}) {
+            const { sync = true } = options;
+            const box = document.getElementById('proxy-check-log');
+            if (!box) return;
+            box.innerHTML = `<div class="proxy-check-log-placeholder">${tProxy('proxy_check_log_empty', '暂无检测记录')}</div>`;
+            box.dataset.empty = '1';
+            pendingLocalCheckLogs.clear();
+            if (sync) {
+                $.ajax({
+                    url: appendToken('/api/proxy_check_logs'),
+                    method: 'DELETE'
+                }).done(function(data) {
+                    if (data && data.log_clear_id != null) {
+                        lastProxyCheckLogClearId = Number(data.log_clear_id) || lastProxyCheckLogClearId;
+                    }
+                });
+            }
+        }
+
+        function applyServerCheckLogs(logs, logClearId, latestLogId) {
+            if (logClearId != null && Number(logClearId) > lastProxyCheckLogClearId) {
+                lastProxyCheckLogClearId = Number(logClearId);
+                // 远端清空：仅本地清空显示，不再回写服务端
+                clearProxyCheckLog({ sync: false });
+            }
+            if (!Array.isArray(logs) || !logs.length) {
+                if (latestLogId != null) {
+                    lastProxyCheckLogId = Math.max(lastProxyCheckLogId, Number(latestLogId) || 0);
+                }
+                return;
+            }
+            logs.forEach(entry => {
+                if (!entry || entry.id == null) return;
+                const id = Number(entry.id) || 0;
+                if (id <= lastProxyCheckLogId) return;
+                const fp = proxyCheckLogFingerprint(entry.message || '', entry.level || 'info');
+                // 本页刚写过的同一条：只推进游标，避免重复显示
+                if (pendingLocalCheckLogs.has(fp)) {
+                    lastProxyCheckLogId = Math.max(lastProxyCheckLogId, id);
+                    pendingLocalCheckLogs.delete(fp);
+                    return;
+                }
+                appendProxyCheckLog(entry.message || '', entry.level || 'info', {
+                    sync: false,
+                    time: entry.time || null,
+                    id: id
+                });
+            });
+            if (latestLogId != null) {
+                lastProxyCheckLogId = Math.max(lastProxyCheckLogId, Number(latestLogId) || 0);
+            }
+        }
+
+        function syncProxyCheckState(options = {}) {
+            const { full = false } = options;
+            const since = full ? 0 : lastProxyCheckLogId;
+            return $.get(appendToken(`/api/proxy_check_state?since_log_id=${since}`), function(data) {
+                if (!data || data.status !== 'success') return;
+                if (data.revision != null) {
+                    lastProxyCheckRevision = Number(data.revision) || lastProxyCheckRevision;
+                }
+                applyServerCheckResults(data.results || {});
+                applyServerCheckLogs(data.logs || [], data.log_clear_id, data.latest_log_id);
+            });
+        }
+
+        function requestCheckProxy(addr, testUrl) {
+            const xhr = $.ajax({
+                url: appendToken('/api/check_proxy'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    proxy: addr,
+                    test_url: testUrl,
+                    force: true
+                })
+            });
+            // 供批量检测停止时 abort
+            proxyCheckCtl.currentXhr = xhr;
+            return xhr.always(function() {
+                if (proxyCheckCtl.currentXhr === xhr) {
+                    proxyCheckCtl.currentXhr = null;
+                }
+            });
+        }
+
+        function autoDisableFailedProxies(addresses) {
+            if (!$('#auto-disable-failed').prop('checked') || !addresses.length) return;
+            $.ajax({
+                url: appendToken('/api/disable_proxies'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ proxies: addresses })
+            }).done(function(data) {
+                if (data.status === 'success' && data.disabled) {
+                    addresses.forEach(addr => {
+                        const item = proxyItems.find(x => x.addr === addr);
+                        if (item) item.enabled = false;
+                    });
+                    renderProxyItems();
+                    appendProxyCheckLog(
+                        tProxy('auto_disable_log', '已自动禁用 {} 个失败代理').replace('{}', data.disabled),
+                        'info'
+                    );
+                }
+            }).fail(function(xhr) {
+                appendProxyCheckLog(
+                    tProxy('auto_disable_failed_log', '自动禁用失败：{}').replace('{}', (xhr.responseJSON && xhr.responseJSON.message) || xhr.responseText || ''),
+                    'fail'
+                );
+            });
+        }
+
+        function formatCheckResultLog(addr, data, ok) {
+            const ms = (data && data.elapsed_ms != null) ? ` [${data.elapsed_ms}ms]` : '';
+            const err = (!ok && data && data.error) ? ` — ${data.error}` : '';
+            const base = ok
+                ? tProxy('proxy_check_item_ok', '成功：{}')
+                : tProxy('proxy_check_item_fail', '失败：{}');
+            return base.replace('{}', addr) + ms + err;
+        }
+
+        function testSingleProxy(idx) {
+            const item = proxyItems[idx];
+            if (!item || item.checkStatus === 'testing') return;
+            // 批量检测进行中时，不允许打断式单测（避免状态错乱）
+            if (proxyCheckCtl.running) {
+                showNotification(tProxy('check_busy', '批量检测进行中，请先暂停/停止'), 'info');
+                return;
+            }
+
+            const testUrl = getProxyTestUrl();
+            item.checkStatus = 'testing';
+            item.checkLatency = null;
+            updateProxyTestButton(idx);
+            appendProxyCheckLog(
+                tProxy('proxy_check_item_testing', '检测中：{}').replace('{}', item.addr),
+                'info'
+            );
+
+            requestCheckProxy(item.addr, testUrl)
+                .done(function(data) {
+                    const ok = applyProxyCheckResult(item, data);
+                    updateProxyTestButton(idx);
+                    appendProxyCheckLog(formatCheckResultLog(item.addr, data, ok), ok ? 'ok' : 'fail');
+                    if (!ok) autoDisableFailedProxies([item.addr]);
+                })
+                .fail(function(xhr) {
+                    item.checkStatus = 'fail';
+                    item.checkLatency = null;
+                    updateProxyTestButton(idx);
+                    let err = '';
+                    try {
+                        const body = xhr && xhr.responseJSON;
+                        err = (body && (body.error || body.message)) || (xhr && xhr.responseText) || '';
+                    } catch (e) {
+                        err = (xhr && xhr.responseText) || '';
+                    }
+                    appendProxyCheckLog(
+                        tProxy('proxy_check_item_fail', '失败：{}').replace('{}', item.addr)
+                            + (err ? ' — ' + err : ''),
+                        'fail'
+                    );
+                });
+        }
+
+        // 批量检测控制：运行 / 暂停 / 停止
+        const proxyCheckCtl = {
+            running: false,
+            paused: false,
+            stopRequested: false,
+            currentXhr: null,
+            total: 0,
+            done: 0,
+            okCount: 0,
+            failCount: 0,
+        };
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function setCheckControlState(state) {
+            // state: idle | running | paused
+            const startBtn = document.getElementById('check-proxy-btn');
+            const pauseBtn = document.getElementById('check-pause-btn');
+            const resumeBtn = document.getElementById('check-resume-btn');
+            const stopBtn = document.getElementById('check-stop-btn');
+            const progress = document.getElementById('check-progress');
+
+            const show = (el, on) => { if (el) el.style.display = on ? '' : 'none'; };
+
+            if (state === 'idle') {
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = `<i class="fa fa-check-circle"></i> <span>${tProxy('check_proxy_btn', '检测已启用')}</span>`;
+                }
+                show(pauseBtn, false);
+                show(resumeBtn, false);
+                show(stopBtn, false);
+                if (progress) progress.textContent = '';
+            } else if (state === 'running') {
+                if (startBtn) {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> <span>${tProxy('checking_proxy', '检测中...')}</span>`;
+                }
+                show(pauseBtn, true);
+                show(resumeBtn, false);
+                show(stopBtn, true);
+                if (pauseBtn) pauseBtn.disabled = false;
+                if (stopBtn) stopBtn.disabled = false;
+            } else if (state === 'paused') {
+                if (startBtn) {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = `<i class="fa fa-pause"></i> <span>${tProxy('check_paused_label', '已暂停')}</span>`;
+                }
+                show(pauseBtn, false);
+                show(resumeBtn, true);
+                show(stopBtn, true);
+                if (resumeBtn) resumeBtn.disabled = false;
+                if (stopBtn) stopBtn.disabled = false;
+            }
+            updateCheckProgress();
+        }
+
+        function updateCheckProgress() {
+            const progress = document.getElementById('check-progress');
+            if (!progress) return;
+            if (!proxyCheckCtl.running || !proxyCheckCtl.total) {
+                if (!proxyCheckCtl.running) progress.textContent = '';
+                return;
+            }
+            const extra = proxyCheckCtl.paused
+                ? ` · ${tProxy('check_paused_label', '已暂停')}`
+                : '';
+            progress.textContent = tProxy('check_progress_text', '进度 {}/{}（成功 {} / 失败 {}）')
+                .replace('{}', proxyCheckCtl.done)
+                .replace('{}', proxyCheckCtl.total)
+                .replace('{}', proxyCheckCtl.okCount)
+                .replace('{}', proxyCheckCtl.failCount) + extra;
+        }
+
+        async function waitWhilePausedOrStopped() {
+            while (proxyCheckCtl.paused && !proxyCheckCtl.stopRequested) {
+                await sleep(200);
+            }
+            return !proxyCheckCtl.stopRequested;
+        }
+
+        function pauseProxyCheck() {
+            if (!proxyCheckCtl.running || proxyCheckCtl.paused) return;
+            proxyCheckCtl.paused = true;
+            setCheckControlState('paused');
+            appendProxyCheckLog(tProxy('check_paused_log', '检测已暂停'), 'info');
+        }
+
+        function resumeProxyCheck() {
+            if (!proxyCheckCtl.running || !proxyCheckCtl.paused) return;
+            proxyCheckCtl.paused = false;
+            setCheckControlState('running');
+            appendProxyCheckLog(tProxy('check_resumed_log', '检测已继续'), 'info');
+        }
+
+        function stopProxyCheck() {
+            if (!proxyCheckCtl.running) return;
+            proxyCheckCtl.stopRequested = true;
+            proxyCheckCtl.paused = false; // 解除暂停等待
+            // 中断当前正在进行的请求
+            if (proxyCheckCtl.currentXhr && typeof proxyCheckCtl.currentXhr.abort === 'function') {
+                try { proxyCheckCtl.currentXhr.abort(); } catch (e) { /* ignore */ }
+            }
+            const stopBtn = document.getElementById('check-stop-btn');
+            const pauseBtn = document.getElementById('check-pause-btn');
+            const resumeBtn = document.getElementById('check-resume-btn');
+            if (stopBtn) stopBtn.disabled = true;
+            if (pauseBtn) pauseBtn.disabled = true;
+            if (resumeBtn) resumeBtn.disabled = true;
+            appendProxyCheckLog(tProxy('check_stop_requested_log', '正在停止检测…'), 'info');
+        }
+
+        async function checkProxies(mode) {
+            if (proxyCheckCtl.running) return;
+
+            mode = mode || 'enabled';
+
+            // 以地址为键重新解析 idx，避免 render 后索引漂移
+            let items = proxyItems
+                .map((item, idx) => ({ item, idx, addr: item.addr }));
+
+            if (mode === 'selected') {
+                items = items.filter(x => x.item.selected);
+            } else {
+                items = items.filter(x => x.item.enabled);
+            }
+
+            if (!items.length) {
+                const key = mode === 'selected' ? 'proxy_check_none_selected' : 'proxy_check_none_enabled';
+                showNotification(tProxy(key, '没有可检测的代理'), 'info');
+                appendProxyCheckLog(tProxy(key, '没有可检测的代理'), 'info');
+                return;
+            }
+
+            const testUrl = getProxyTestUrl();
+
+            proxyCheckCtl.running = true;
+            proxyCheckCtl.paused = false;
+            proxyCheckCtl.stopRequested = false;
+            proxyCheckCtl.total = items.length;
+            proxyCheckCtl.done = 0;
+            proxyCheckCtl.okCount = 0;
+            proxyCheckCtl.failCount = 0;
+            setCheckControlState('running');
+
+            // 记住测试目标
+            $.ajax({
+                url: appendToken('/api/config'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ test_url: testUrl })
+            });
+
+            const startMsg = mode === 'selected'
+                ? tProxy('proxy_check_start_selected', '开始检测 {} 个选中代理…')
+                : tProxy('proxy_check_start', '开始检测 {} 个已启用代理…');
+            appendProxyCheckLog(startMsg.replace('{}', items.length), 'info');
+
+            let stopped = false;
+            const failedAddresses = [];
+
+            for (let i = 0; i < items.length; i++) {
+                if (proxyCheckCtl.stopRequested) {
+                    stopped = true;
+                    break;
+                }
+                const cont = await waitWhilePausedOrStopped();
+                if (!cont) {
+                    stopped = true;
+                    break;
+                }
+
+                // 根据地址重新定位，防止中途列表变更
+                const addr = items[i].addr;
+                let idx = proxyItems.findIndex(x => x.addr === addr);
+                if (idx < 0) {
+                    proxyCheckCtl.done++;
+                    updateCheckProgress();
+                    continue;
+                }
+                const item = proxyItems[idx];
+
+                item.checkStatus = 'testing';
+                item.checkLatency = null;
+                updateProxyTestButton(idx);
+                appendProxyCheckLog(
+                    tProxy('proxy_check_item_testing', '检测中：{}').replace('{}', item.addr)
+                        + ` (${i + 1}/${items.length})`,
+                    'info'
+                );
+                updateCheckProgress();
+
+                try {
+                    const data = await requestCheckProxy(item.addr, testUrl);
+                    if (proxyCheckCtl.stopRequested) {
+                        // 停止时若请求已返回，仍记录结果
+                        const ok = applyProxyCheckResult(item, data);
+                        if (ok) proxyCheckCtl.okCount++; else proxyCheckCtl.failCount++;
+                        if (!ok) failedAddresses.push(item.addr);
+                        updateProxyTestButton(idx);
+                        appendProxyCheckLog(formatCheckResultLog(item.addr, data, ok), ok ? 'ok' : 'fail');
+                        proxyCheckCtl.done++;
+                        stopped = true;
+                        break;
+                    }
+                    const ok = applyProxyCheckResult(item, data);
+                    if (ok) proxyCheckCtl.okCount++; else proxyCheckCtl.failCount++;
+                    if (!ok) failedAddresses.push(item.addr);
+                    updateProxyTestButton(idx);
+                    appendProxyCheckLog(formatCheckResultLog(item.addr, data, ok), ok ? 'ok' : 'fail');
+                } catch (e) {
+                    const aborted = proxyCheckCtl.stopRequested
+                        || (e && (e.statusText === 'abort' || e.status === 0 && proxyCheckCtl.stopRequested));
+                    if (aborted) {
+                        // 当前条被中止：恢复为未检测，不计入失败
+                        item.checkStatus = null;
+                        item.checkLatency = null;
+                        updateProxyTestButton(idx);
+                        appendProxyCheckLog(
+                            tProxy('check_item_aborted', '已中止：{}').replace('{}', item.addr),
+                            'info'
+                        );
+                        stopped = true;
+                        break;
+                    }
+                    item.checkStatus = 'fail';
+                    item.checkLatency = null;
+                    failedAddresses.push(item.addr);
+                    proxyCheckCtl.failCount++;
+                    updateProxyTestButton(idx);
+                    appendProxyCheckLog(
+                        tProxy('proxy_check_item_fail', '失败：{}').replace('{}', item.addr)
+                            + (e && e.message ? ' — ' + e.message : ''),
+                        'fail'
+                    );
+                }
+
+                proxyCheckCtl.done++;
+                updateCheckProgress();
+            }
+
+            if (failedAddresses.length) {
+                autoDisableFailedProxies([...new Set(failedAddresses)]);
+            }
+
+            const okCount = proxyCheckCtl.okCount;
+            const failCount = proxyCheckCtl.failCount;
+            const checked = proxyCheckCtl.done;
+            const total = proxyCheckCtl.total;
+
+            if (stopped || proxyCheckCtl.stopRequested) {
+                const msg = tProxy('check_stopped_log', '检测已停止：已测 {}/{}（成功 {} / 失败 {}）')
+                    .replace('{}', checked)
+                    .replace('{}', total)
+                    .replace('{}', okCount)
+                    .replace('{}', failCount);
+                appendProxyCheckLog(msg, 'info');
+                showNotification(msg, 'info');
+            } else {
+                const msg = tProxy('proxy_check_done', '检测完成：成功 {} / 失败 {} / 共 {}')
+                    .replace('{}', okCount)
+                    .replace('{}', failCount)
+                    .replace('{}', total);
+                appendProxyCheckLog(msg, 'info');
+                showNotification(msg, failCount ? 'info' : 'success');
+            }
+
+            proxyCheckCtl.running = false;
+            proxyCheckCtl.paused = false;
+            proxyCheckCtl.stopRequested = false;
+            proxyCheckCtl.currentXhr = null;
+            setCheckControlState('idle');
+        }
+
+        function updateProxyCount() {
+            const total = document.getElementById('proxy-total');
+            const enabled = document.getElementById('proxy-enabled-count');
+            const selected = document.getElementById('proxy-selected-count');
+            const selectedCount = proxyItems.filter(x => x.selected).length;
+            if (total) total.textContent = proxyItems.length;
+            if (enabled) enabled.textContent = proxyItems.filter(x => x.enabled).length;
+            if (selected) selected.textContent = selectedCount;
+
+            const selectAll = document.getElementById('proxy-select-all');
+            if (selectAll) {
+                const allSelected = proxyItems.length > 0 && selectedCount === proxyItems.length;
+                const someSelected = selectedCount > 0 && selectedCount < proxyItems.length;
+                selectAll.checked = allSelected;
+                selectAll.indeterminate = someSelected;
+            }
+        }
+
+        function toggleProxy(idx) {
+            if (!proxyItems[idx]) return;
+            proxyItems[idx].enabled = !proxyItems[idx].enabled;
+            renderProxyItems();
+            persistProxies({ silent: true });
+        }
+
+        function toggleSelectProxy(idx, selected) {
+            if (!proxyItems[idx]) return;
+            proxyItems[idx].selected = !!selected;
+            renderProxyItems();
+        }
+
+        function toggleSelectAllProxies(selected) {
+            proxyItems.forEach(x => x.selected = !!selected);
+            renderProxyItems();
+        }
+
+        function deleteProxy(idx) {
+            proxyItems.splice(idx, 1);
+            renderProxyItems();
+            persistProxies({ silent: true });
+        }
+
+        function deleteSelectedProxies() {
+            const count = proxyItems.filter(x => x.selected).length;
+            if (count === 0) {
+                showNotification(tProxy('proxy_delete_none', '请先勾选要删除的代理'), 'info');
+                return;
+            }
+            const msg = tProxy('confirm_delete_selected', '确定删除选中的 {} 个代理吗？').replace('{}', count);
+            if (!confirm(msg)) return;
+            proxyItems = proxyItems.filter(x => !x.selected);
+            renderProxyItems();
+            persistProxies({
+                successMessage: tProxy('proxy_deleted', '已删除 {} 个代理').replace('{}', count)
+            });
+        }
+
+        function setAllProxies(enabled) {
+            proxyItems.forEach(x => x.enabled = enabled);
+            renderProxyItems();
+            persistProxies({ silent: true });
+        }
+
+        function setSelectedProxies(enabled) {
+            const selected = proxyItems.filter(x => x.selected);
+            if (!selected.length) {
+                showNotification(tProxy('proxy_select_none', '请先勾选要操作的代理'), 'info');
+                return;
+            }
+            selected.forEach(x => x.enabled = !!enabled);
+            renderProxyItems();
+            const msg = enabled
+                ? tProxy('proxy_enable_selected', '已启用选中的 {} 个代理').replace('{}', selected.length)
+                : tProxy('proxy_disable_selected', '已禁用选中的 {} 个代理').replace('{}', selected.length);
+            persistProxies({ successMessage: msg });
+        }
+
+        function addProxies() {
+            const ta = document.getElementById('proxy-add-input');
+            if (!ta) return;
+            const rawLines = ta.value.split('\n');
+            const remaining = [];
+            const invalid = [];
+            let added = 0;
+
+            rawLines.forEach(rawLine => {
+                const line = rawLine.trim();
+                if (!line) return;
+
+                const enabled = !line.startsWith('#');
+                const addr = normalizeProxyAddr(line);
+
+                if (!addr || !isValidProxyFormat(addr)) {
+                    invalid.push(line);
+                    remaining.push(rawLine);
+                    return;
+                }
+
+                // 去重：已存在的有效行直接丢弃，不回填输入框
+                if (proxyItems.some(x => x.addr === addr)) return;
+
+                proxyItems.push({ addr, enabled, selected: false, checkStatus: null });
+                added++;
+            });
+
+            // 无效行保留在输入框，方便用户修改后重试
+            ta.value = remaining.join('\n');
+            renderProxyItems();
+
+            if (invalid.length > 0) {
+                const preview = invalid.slice(0, 5).join(', ') + (invalid.length > 5 ? ' ...' : '');
+                showNotification(
+                    tProxy('proxy_format_invalid', '格式无效未导入：{}').replace('{}', preview),
+                    'error'
+                );
+            }
+
+            if (added > 0) {
+                const btn = document.querySelector('.proxy-add-btn');
+                if (btn) btn.disabled = true;
+                persistProxies({
+                    successMessage: tProxy('proxy_add_saved', '已添加并保存 {} 个代理').replace('{}', added)
+                }).always(function() {
+                    if (btn) btn.disabled = false;
+                });
+            } else if (invalid.length === 0) {
+                showNotification(tProxy('proxy_add_none', '没有可添加的新代理'), 'info');
+            }
         }
 
         function loadIpLists() {
@@ -1815,95 +2817,10 @@
         function switchProxy() {
             $.get(appendToken('/api/switch_proxy'), function(data) {
                 if (data.status === 'success') {
-                    updateStatus(); 
+                    updateStatus();
                 } else {
                     console.error('Failed to switch proxy:', data.message);
                 }
-            });
-        }
-
-        function saveProxies() {
-            // 获取各个代理列表的内容
-            const httpProxies = document.getElementById('http-proxy-list').value
-                .split('\n')
-                .filter(line => line.trim())
-                .map(line => `http://${line.trim()}`);
-            
-            const httpsProxies = document.getElementById('https-proxy-list').value
-                .split('\n')
-                .filter(line => line.trim())
-                .map(line => `https://${line.trim()}`);
-            
-            const socks5Proxies = document.getElementById('socks5-proxy-list').value
-                .split('\n')
-                .filter(line => line.trim())
-                .map(line => `socks5://${line.trim()}`);
-            
-            const fullProxies = document.getElementById('full-proxy-list').value
-                .split('\n')
-                .filter(line => line.trim());
-            
-            // 合并所有代理列表
-            const allProxies = [...httpProxies, ...httpsProxies, ...socks5Proxies, ...fullProxies];
-            
-            // 获取测试URL
-            const testUrl = document.getElementById('test-target-url').value.trim();
-            
-            // 首先更新配置
-            $.ajax({
-                url: appendToken('/api/config'),
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ test_url: testUrl }),
-                success: function(configResponse) {
-                    // 然后保存代理列表
-                    $.ajax({
-                        url: appendToken('/api/proxies'),
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ proxies: allProxies }),
-                        success: function(response) {
-                            if (response.status === 'success' && configResponse.status === 'success') {
-                                showNotification(translations[currentLanguage].proxy_save_success, 'success');
-                                // 重新加载代理列表以确保显示正确
-                                loadProxies();
-                            } else {
-                                showNotification(translations[currentLanguage].proxy_save_failed.format(response.message), 'error');
-                            }
-                        },
-                        error: function(xhr) {
-                            showNotification(translations[currentLanguage].proxy_save_failed.format(xhr.responseText), 'error');
-                        }
-                    });
-                },
-                error: function(xhr) {
-                    showNotification(translations[currentLanguage].config_save_failed.format(xhr.responseText), 'error');
-                }
-            });
-        }
-
-        function checkProxies() {
-            const testUrl = $('#test-target-url').val().trim() || 'https://www.baidu.com';
-            
-            // 显示加载状态
-            const saveBtn = document.querySelector('.proxy-actions .btn-primary');
-            const checkBtn = document.querySelector('.proxy-actions .btn-warning');
-            saveBtn.disabled = true;
-            checkBtn.disabled = true;
-            checkBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ${translations[currentLanguage].checking_proxy}`;
-            
-            $.get(appendToken('/api/check_proxies'), { test_url: testUrl }, function(data) {
-                if (data.status === 'success') {
-                    loadProxies();
-                    showNotification(translations[currentLanguage].proxy_check_result.replace('{}', data.total), 'success');
-                } else {
-                    showNotification(translations[currentLanguage].proxy_check_failed.format(data.message), 'error');
-                }
-            }).always(function() {
-                // 恢复按钮状态
-                saveBtn.disabled = false;
-                checkBtn.disabled = false;
-                checkBtn.innerHTML = `<i class="fa fa-check-circle"></i> <span>${translations[currentLanguage].check_proxy_btn}</span>`;
             });
         }
 
@@ -2060,7 +2977,11 @@
                 blacklist_file: $('input[name="blacklist_file"]').val(),
                 ip_auth_priority: $('select[name="ip_auth_priority"]').val(),
                 display_level: $('select[name="display_level"]').val(),
-                test_url: $('input[name="test_url"]').val()
+                test_url: $('#test-target-url').val(),
+                proxy_check_timeout_ms: $('#proxy-check-timeout').val(),
+                auto_check_enabled: $('#auto-check-enabled').prop('checked').toString(),
+                auto_check_interval_minutes: $('#auto-check-interval').val(),
+                auto_disable_failed_proxies: $('#auto-disable-failed').prop('checked').toString()
             };
 
             // 保存配置
@@ -2222,8 +3143,7 @@
                 'api_url_label': 'API地址',
                 'enable_proxy_check_label': '代理有效性检测',
                 'proxy_list_label': '代理列表',
-                'save_proxy_btn': '保存代理',
-                'check_proxy_btn': '检测代理',
+                'check_proxy_btn': '检测已启用',
                 'whitelist_title': '白名单',
                 'blacklist_title': '黑名单',
                 'ip_auth_priority_label': 'IP认证优先级',
@@ -2346,11 +3266,72 @@
                     'socks5': '每行一个地址，格式：ip:port\n例如：127.0.0.1:1080',
                     'full': '每行一个地址，格式：protocol://[username:password@]ip:port\n例如：http://user:pass@127.0.0.1:8080'
                 },
-                'save_proxy_btn': '保存代理',
-                'check_proxy_btn': '检测代理',
+                'proxy_total_label': '代理总数',
+                'proxy_enabled_label': '已启用',
+                'proxy_disabled_label': '已禁用',
+                'proxy_selected_label': '已选中',
+                'select_all_btn': '全选',
+                'enable_all_btn': '全部启用',
+                'disable_all_btn': '全部禁用',
+                'enable_selected_btn': '启用选中',
+                'disable_selected_btn': '禁用选中',
+                'delete_selected_btn': '删除选中',
+                'proxy_select_none': '请先勾选要操作的代理',
+                'proxy_enable_selected': '已启用选中的 {} 个代理',
+                'proxy_disable_selected': '已禁用选中的 {} 个代理',
+                'add_proxy_btn': '添加代理',
+                'delete_btn': '删除',
+                'confirm_delete_selected': '确定删除选中的 {} 个代理吗？',
+                'proxy_deleted': '已删除 {} 个代理',
+                'proxy_delete_none': '请先勾选要删除的代理',
+                'proxy_empty_hint': '暂无代理，请在下方添加',
+                'proxy_add_placeholder': '每行一个：ip:port 或 protocol://[user:pass@]ip:port\n支持 http/https/socks5/socks5h\n例如：socks5h://user:pass@host:11080',
+                'proxy_added': '已添加 {} 个代理',
+                'proxy_add_saved': '已添加并保存 {} 个代理',
+                'proxy_add_none': '没有可添加的新代理',
+                'proxy_format_invalid': '格式无效未导入：{}',
+                'check_proxy_btn': '检测已启用',
+                'check_selected_btn': '检测选中',
                 'checking_proxy': '检测中...',
+                'check_pause_btn': '暂停',
+                'check_resume_btn': '继续',
+                'check_stop_btn': '停止',
+                'check_paused_label': '已暂停',
+                'check_paused_log': '检测已暂停',
+                'check_resumed_log': '检测已继续',
+                'check_stop_requested_log': '正在停止检测…',
+                'check_stopped_log': '检测已停止：已测 {}/{}（成功 {} / 失败 {}）',
+                'check_item_aborted': '已中止：{}',
+                'check_progress_text': '进度 {}/{}（成功 {} / 失败 {}）',
+                'check_busy': '批量检测进行中，请先暂停/停止',
+                'proxy_test_btn': '测试连通性',
+                'proxy_check_timeout_label': '检测超时（ms）',
+                'proxy_check_timeout_invalid': '检测超时应在 200 到 60000 ms 之间',
+                'auto_check_enabled_label': '启用自动检测',
+                'auto_check_interval_label': '自动检测周期（分钟）',
+                'auto_check_interval_invalid': '自动检测周期应在 1 到 10080 分钟之间',
+                'auto_disable_failed_label': '自动禁用失败代理',
+                'auto_disable_failed_help': '启用后，手动或自动检测中超时、连接失败的代理会被禁用。',
+                'auto_check_status_disabled': '自动检测未启用',
+                'auto_check_status_enabled': '自动检测已启用，每 {} 分钟执行一次',
+                'auto_check_status_summary': '上次：成功 {} / 失败 {} / 禁用 {}',
+                'health_check_config_saved': '检测设置已保存',
+                'auto_disable_log': '已自动禁用 {} 个失败代理',
+                'auto_disable_failed_log': '自动禁用失败：{}',
+                'proxy_check_log_title': '检测日志',
+                'clear_check_log_btn': '清空',
+                'proxy_check_log_empty': '暂无检测记录',
+                'proxy_check_none_enabled': '没有已启用的代理可检测',
+                'proxy_check_start': '开始检测 {} 个已启用代理…',
+                'proxy_check_start_selected': '开始检测 {} 个选中代理…',
+                'proxy_check_none_selected': '没有已选中的代理可检测',
+                'proxy_check_item_testing': '检测中：{}',
+                'proxy_check_item_ok': '成功：{}',
+                'proxy_check_item_fail': '失败：{}',
+                'proxy_check_done': '检测完成：成功 {} / 失败 {} / 共 {}',
                 'proxy_check_success': '代理检测完成，有效代理数：{}',
                 'proxy_check_failed': '代理检测失败：{}',
+                'proxy_check_result': '代理检测完成，有效代理数：{}',
                 'version_text': '当前版本:',
                 'latest_version': '已是最新版本',
                 'new_version_available': '发现新版本',
@@ -2450,8 +3431,7 @@
                 'api_url_label': 'API URL',
                 'enable_proxy_check_label': 'Proxy Validity Check',
                 'proxy_list_label': 'Proxy List',
-                'save_proxy_btn': 'Save Proxies',
-                'check_proxy_btn': 'Check Proxies',
+                'check_proxy_btn': 'Check Enabled',
                 'whitelist_title': 'Whitelist',
                 'blacklist_title': 'Blacklist',
                 'ip_auth_priority_label': 'IP Auth Priority',
@@ -2554,11 +3534,72 @@
                     'socks5': 'One address per line, format: ip:port\nExample: 127.0.0.1:1080',
                     'full': 'One address per line, format: protocol://[username:password@]ip:port\nExample: http://user:pass@127.0.0.1:8080'
                 },
-                'save_proxy_btn': 'Save Proxies',
-                'check_proxy_btn': 'Check Proxies',
+                'proxy_total_label': 'Total',
+                'proxy_enabled_label': 'Enabled',
+                'proxy_disabled_label': 'Disabled',
+                'proxy_selected_label': 'Selected',
+                'select_all_btn': 'Select All',
+                'enable_all_btn': 'Enable All',
+                'disable_all_btn': 'Disable All',
+                'enable_selected_btn': 'Enable Selected',
+                'disable_selected_btn': 'Disable Selected',
+                'delete_selected_btn': 'Delete Selected',
+                'proxy_select_none': 'Select proxies first',
+                'proxy_enable_selected': 'Enabled {} selected proxy(ies)',
+                'proxy_disable_selected': 'Disabled {} selected proxy(ies)',
+                'add_proxy_btn': 'Add Proxy',
+                'delete_btn': 'Delete',
+                'confirm_delete_selected': 'Delete {} selected proxy(ies)?',
+                'proxy_deleted': 'Deleted {} proxy(ies)',
+                'proxy_delete_none': 'Select proxies to delete first',
+                'proxy_empty_hint': 'No proxies yet. Add some below.',
+                'proxy_add_placeholder': 'One per line: ip:port or protocol://[user:pass@]ip:port\nSupports http/https/socks5/socks5h\nExample: socks5h://user:pass@host:11080',
+                'proxy_added': 'Added {} proxy(ies)',
+                'proxy_add_saved': 'Added and saved {} proxy(ies)',
+                'proxy_add_none': 'No new proxies to add',
+                'proxy_format_invalid': 'Invalid format, skipped: {}',
+                'check_proxy_btn': 'Check Enabled',
+                'check_selected_btn': 'Check Selected',
                 'checking_proxy': 'Checking...',
+                'check_pause_btn': 'Pause',
+                'check_resume_btn': 'Resume',
+                'check_stop_btn': 'Stop',
+                'check_paused_label': 'Paused',
+                'check_paused_log': 'Check paused',
+                'check_resumed_log': 'Check resumed',
+                'check_stop_requested_log': 'Stopping check…',
+                'check_stopped_log': 'Check stopped: done {}/{} (OK {} / FAIL {})',
+                'check_item_aborted': 'Aborted: {}',
+                'check_progress_text': 'Progress {}/{} (OK {} / FAIL {})',
+                'check_busy': 'Bulk check in progress — pause/stop first',
+                'proxy_test_btn': 'Test connectivity',
+                'proxy_check_timeout_label': 'Check timeout (ms)',
+                'proxy_check_timeout_invalid': 'Check timeout must be between 200 and 60000 ms',
+                'auto_check_enabled_label': 'Enable automatic checks',
+                'auto_check_interval_label': 'Auto-check interval (minutes)',
+                'auto_check_interval_invalid': 'Auto-check interval must be between 1 and 10080 minutes',
+                'auto_disable_failed_label': 'Automatically disable failed proxies',
+                'auto_disable_failed_help': 'When enabled, proxies that time out or fail during manual or automatic checks are disabled.',
+                'auto_check_status_disabled': 'Automatic checks are disabled',
+                'auto_check_status_enabled': 'Automatic checks are enabled every {} minute(s)',
+                'auto_check_status_summary': 'Last run: OK {} / FAIL {} / disabled {}',
+                'health_check_config_saved': 'Check settings saved',
+                'auto_disable_log': 'Automatically disabled {} failed proxy(ies)',
+                'auto_disable_failed_log': 'Automatic disable failed: {}',
+                'proxy_check_log_title': 'Check Log',
+                'clear_check_log_btn': 'Clear',
+                'proxy_check_log_empty': 'No check records yet',
+                'proxy_check_none_enabled': 'No enabled proxies to check',
+                'proxy_check_start': 'Checking {} enabled proxy(ies)…',
+                'proxy_check_start_selected': 'Checking {} selected proxy(ies)…',
+                'proxy_check_none_selected': 'No selected proxies to check',
+                'proxy_check_item_testing': 'Testing: {}',
+                'proxy_check_item_ok': 'OK: {}',
+                'proxy_check_item_fail': 'FAIL: {}',
+                'proxy_check_done': 'Done: OK {} / FAIL {} / Total {}',
                 'proxy_check_success': 'Proxy check completed, valid proxies: {}',
                 'proxy_check_failed': 'Proxy check failed: {}',
+                'proxy_check_result': 'Proxy check completed, valid proxies: {}',
                 'version_text': 'Current Version:',
                 'latest_version': 'Up to date',
                 'new_version_available': 'New version available',
@@ -2592,51 +3633,12 @@
             // 更新日志级别选项
             updateLogLevelOptions();
 
-            // 更新代理列表标题
-            const proxyHeaders = document.querySelectorAll('.proxy-list-header span');
-            proxyHeaders.forEach(header => {
-                const headerText = header.textContent.toLowerCase();
-                if (headerText.includes('http') && !headerText.includes('https')) {
-                    header.textContent = translations[language].http_proxy;
-                } else if (headerText.includes('https')) {
-                    header.textContent = translations[language].https_proxy;
-                } else if (headerText.includes('socks5')) {
-                    header.textContent = translations[language].socks5_proxy;
-                }
-            });
-
-            // 更新代理列表占位符
-            document.getElementById('http-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.http);
-            document.getElementById('https-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.https);
-            document.getElementById('socks5-proxy-list').setAttribute('placeholder', translations[language].proxy_placeholder.socks5);
-            
-            // 更新帮助文本
-            const helpText = document.querySelector('.proxy-list-help');
-            if (helpText) {
-                helpText.textContent = translations[language].proxy_help;
-            }
-
-            // 更新占位符文本
-            const placeholders = {
-                'http-proxy-list': translations[language].proxy_placeholder.http,
-                'https-proxy-list': translations[language].proxy_placeholder.https,
-                'socks5-proxy-list': translations[language].proxy_placeholder.socks5,
-                'full-proxy-list': translations[language].proxy_placeholder.full
-            };
-
-            Object.entries(placeholders).forEach(([id, text]) => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.setAttribute('placeholder', text);
-                }
-            });
+            // 语言切换后刷新代理列表，更新删除按钮等提示文案
+            renderProxyItems();
 
             // 更新按钮文本
-            const saveBtn = document.querySelector('.proxy-actions .btn-primary span');
-            const checkBtn = document.querySelector('.proxy-actions .btn-warning span');
-            if (saveBtn) {
-                saveBtn.textContent = translations[language].save_proxy_btn;
-            }
+            const checkBtn = document.querySelector('#check-proxy-btn span')
+                || document.querySelector('.proxy-actions .btn-warning span');
             if (checkBtn) {
                 checkBtn.textContent = translations[language].check_proxy_btn;
             }
@@ -2661,6 +3663,7 @@
                 
                 // 更新按钮状态
                 updateServiceButtons(status);
+                updateAutoCheckStatus(data.auto_check);
                 
                 // 确保在DOM加载完成后更新
                 if (document.readyState === 'loading') {
@@ -2718,10 +3721,13 @@
         loadConfig();
         loadProxies();
         loadIpLists();
-        
-        setInterval(updateStatus, 2000); 
-        setInterval(updateCountdown, 1000); 
+        // 首次全量拉取共享检测状态，之后增量轮询
+        syncProxyCheckState({ full: true });
+
+        setInterval(updateStatus, 2000);
+        setInterval(updateCountdown, 1000);
         setInterval(updateLogs, 2000);
+        setInterval(function() { syncProxyCheckState(); }, 2000);
         updateStatus();
         updateCountdown();
         updateLogs();

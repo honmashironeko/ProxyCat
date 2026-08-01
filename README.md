@@ -49,6 +49,48 @@
 
 [ProxyCat操作手册](../main/ProxyCat-Manual/Operation%20Manual.md)
 
+## 更新代码（Docker 用户必看）
+
+使用 Docker 部署时，`config/` 是你的个人配置（已通过 volume 挂载）。
+
+### 推荐：本地改动放进 override（不会被 git pull 覆盖）
+
+仓库里的 `docker-compose.yml` 只作基础模板。**请勿直接改它**，把端口、额外挂载、镜像名等本地定制写到：
+
+```bash
+cp docker-compose.override.yml.example docker-compose.override.yml
+# 编辑 docker-compose.override.yml
+```
+
+Compose 会自动合并 `docker-compose.yml` + `docker-compose.override.yml`。  
+`docker-compose.override.yml` 已加入 `.gitignore`，`git pull` **不会覆盖**你的本地改动。
+
+### 仍在改 docker-compose.yml 时的备份流程
+
+若你以前直接改过 `docker-compose.yml`，更新前请先备份再恢复：
+
+```bash
+# 1. 备份
+rm -rf backup.bak && mkdir backup.bak
+cp -r config docker-compose.yml backup.bak/
+
+# 2. 拉取最新代码
+git pull
+
+# 3. 恢复配置（建议迁移到 override）
+cp -r backup.bak/config ./
+# 推荐：把个人改动迁到 override，而不是覆盖回 docker-compose.yml
+cp backup.bak/docker-compose.yml docker-compose.override.yml
+# 或继续覆盖：
+# cp backup.bak/docker-compose.yml ./
+```
+
+恢复后重新构建运行：
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
 ## 报错排查
 
 [ProxyCat排查手册](../main/ProxyCat-Manual/Investigation%20Manual.md)

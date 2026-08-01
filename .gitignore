@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Local runtime / secrets
+logs/
+*.log
+
+# Docker local overrides (Compose auto-merges this with docker-compose.yml)
+docker-compose.override.yml
+docker-compose.local.yml
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Claude / local worktrees
+.claude/worktrees/
+.claude/settings.local.json

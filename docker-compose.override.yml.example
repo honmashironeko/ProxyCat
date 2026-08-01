@@ -1,0 +1,25 @@
+# 复制为 docker-compose.override.yml 后按需修改。
+# Docker Compose 会自动与 docker-compose.yml 合并；此文件已被 .gitignore，不会被 git pull 覆盖。
+#
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#
+version: '3'
+services:
+  proxycat:
+    # 示例：改本地端口映射
+    # ports:
+    #   - "18080:1080"
+    #   - "15000:5000"
+
+    # 示例：额外挂载日志目录
+    # volumes:
+    #   - ./config:/app/config
+    #   - ./logs:/app/logs
+
+    # 示例：使用已构建镜像而不是每次 build
+    # image: proxycat:local
+    # build: null
+
+    # 示例：环境变量
+    # environment:
+    #   - TZ=Asia/Shanghai

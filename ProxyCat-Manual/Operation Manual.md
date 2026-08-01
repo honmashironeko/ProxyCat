@@ -87,7 +87,10 @@ docker-compose down | docker-compose up -d
 # 查看日志信息
 docker logs proxycat
 
-# docker端口默认为1080和5000,1080为监听端口，5000为web页面管理如需其他端口请对应修改并放行
+# docker端口默认为1080和5000,1080为监听端口，5000为web页面管理
+# 如需改端口/额外挂载等，请复制 docker-compose.override.yml.example
+# 为 docker-compose.override.yml 后修改（该文件不会被 git pull 覆盖）
+# cp docker-compose.override.yml.example docker-compose.override.yml
 ```
 
 ### 配置文件介绍
@@ -138,6 +141,23 @@ proxy_file = ip.txt
 # 是否启用代理检测功能 True or False(默认为True)
 # Whether to enable proxy detection feature True or False (default:True)
 check_proxies = True
+
+# 代理连通性检测总超时（毫秒），超过即视为失败(默认为:2000)
+# Total connectivity-check deadline in milliseconds (default:2000)
+proxy_check_timeout_ms = 2000
+
+# 是否启用自动检测 True or False(默认为:false)
+# Whether to enable periodic automatic proxy checks (default:false)
+auto_check_enabled = false
+
+# 自动检测周期（分钟），仅自动检测启用时生效(默认为:60)
+# Automatic proxy check interval in minutes (default:60)
+auto_check_interval_minutes = 60
+
+# 是否自动禁用检测失败/超时的代理 True or False(默认为:false)
+# Whether to automatically disable proxies that fail or time out (default:false)
+# 启用后，手动检测和自动检测中的失败项会被写入代理列表并标记为禁用（# 前缀）
+auto_disable_failed_proxies = false
 
 # 语言设置 (cn/en)
 # Language setting (cn/en)
