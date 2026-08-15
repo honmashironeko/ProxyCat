@@ -114,4 +114,4 @@
 - [各大运营商流量卡](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 - [国外匿名代理](https://www.ipmart.io?source=Shironeko)
 
-![Star History Chart](https://api.star-history.com/svg?repos=honmashironeko/ProxyCat&type=Date)
+![Star History Chart](https://star-history.dera.page/svg?repos=honmashironeko/ProxyCat&type=Date)
