@@ -417,6 +417,7 @@ body[data-tab="tab-pool"] .sb-sub { display: flex; }
 .exit-row .exit-load { color: var(--text-soft); flex-shrink: 0; min-width: 54px; text-align: right; }
 .exit-row .exit-left { color: var(--text-soft); flex-shrink: 0; min-width: 52px; text-align: right; }
 .exit-head { color: var(--text-faint); font-weight: 650; }
+.exit-empty { color: var(--text-faint); justify-content: center; padding: 8px 0; }
 .exit-flag { color: var(--warn-text); font-size: 11px; flex-shrink: 0; }
 .exit-fails {
   flex-shrink: 0; font-size: 10px; font-weight: 700; line-height: 1.6;

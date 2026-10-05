@@ -665,7 +665,11 @@ function _sinceText(iso) {
 
 function renderExitRows(exits, cm) {
   var $list = $('#exit-list'), $rows = $('#exit-rows');
-  if (!exits || !exits.length) { $rows.empty(); $list.hide(); return; }
+  if (!exits || !exits.length) {
+    $rows.html('<div class="exit-row exit-empty">' + escapeHtml(T().exit_no_data) + '</div>');
+    $list.show();
+    return;
+  }
   $rows.html(exits.map(function (e) {
     var load = e.capacity > 0
       ? escapeHtml(e.active) + '/' + escapeHtml(e.capacity)
@@ -711,10 +715,8 @@ function updateStatusAndGauge() {
     var exitList = d.active_proxies || [];
     var exitText = fillTemplate(
       d.elastic_active ? T().upstream_exits_expanding : T().upstream_exits, exitList.length);
-    if (exitList.length > 1) $('#tag-exits').show().text(exitText);
-    else $('#tag-exits').hide();
+    $('#tag-exits').show().text(exitText);
     renderExitRows(exitList, cm);
-    if (!exitList.length) closeExitPop();
     if (cm === 'per_request') { $('#tag-interval').text(T().pool_per_request_swap); $('#tip-zero').show(); }
     else if (cm === 'request_count') { $('#tag-interval').text((parseInt(d.request_interval) || 0) + ' ' + T().times); $('#tip-zero').hide(); }
     else { $('#tag-interval').text(iv + T().seconds); $('#tip-zero').hide(); }

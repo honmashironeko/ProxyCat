@@ -1585,8 +1585,6 @@ class AsyncProxyServer:
         return rotated
 
     async def _replace_soonest(self) -> bool:
-        if not self._expiry_enabled():
-            return False
         roster = self._workers.roster
         if not roster:
             return False
@@ -1594,7 +1592,7 @@ class AsyncProxyServer:
         return await self._replace_exit(soonest)
 
     async def _maintain_exit_pool(self, force_fetch=False, rotate=False,
-                                  max_fill=None) -> MaintenanceOutcome:
+                                  max_fill=None, force_rotate=False) -> MaintenanceOutcome:
         async with self._refill_lock:
             filled = await self._fill_from_standby(max_fill)
 
@@ -1608,7 +1606,7 @@ class AsyncProxyServer:
 
             fetched = False
             gained = 0
-            if ((deficient or (rotate and expired))
+            if ((deficient or force_rotate or (rotate and expired))
                     and (force_fetch or self._fetch_allowed(current_time))):
                 self.last_switch_attempt = current_time
                 result = await self._fetch_into_standby()
@@ -3367,7 +3365,7 @@ class AsyncProxyServer:
                 return {'cooldown': remaining}
 
             self._standby.clear()
-            await self._maintain_exit_pool(force_fetch=True)
+            await self._maintain_exit_pool(force_fetch=True, force_rotate=True)
             async with self._refill_lock:
                 await self._replace_soonest()
             return bool(self.proxies)

@@ -400,7 +400,7 @@ var translations = {
     'exit_served': '已服务 {} 次', 'exit_failures': '失败 {} 次', 'exit_suspect': '连续失败，即将被替换',
     'source_error_ago': '（{}前）',
     'exit_load_unlimited': '{}/不限', 'pool_rotate_waiting': '待请求更换',
-    'pool_waiting_exits': '等待补货',
+    'pool_waiting_exits': '等待补货', 'exit_no_data': '暂无出口',
 
     'pool_tab': '代理池', 'pool_config_tab': '池设置',
     'pool_stat_total': '代理总数', 'pool_stat_valid': '有效代理',
@@ -838,7 +838,7 @@ var translations = {
     'exit_served': '{} requests served', 'exit_failures': '{} failures', 'exit_suspect': 'Failing repeatedly, about to be replaced',
     'source_error_ago': ' ({} ago)',
     'exit_load_unlimited': '{}/unlimited', 'pool_rotate_waiting': 'on next request',
-    'pool_waiting_exits': 'awaiting exits',
+    'pool_waiting_exits': 'awaiting exits', 'exit_no_data': 'No exits',
 
     'pool_tab': 'Proxy Pool', 'pool_config_tab': 'Pool Settings',
     'pool_stat_total': 'Total', 'pool_stat_valid': 'Valid',
