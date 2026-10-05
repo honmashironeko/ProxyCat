@@ -196,3 +196,5 @@ Open source development isn't easy. If you find this tool helpful, consider spon
 - [First affordable proxy service - Get 5000 free IPs + ¥10 coupon with invite code](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
 - [Various carrier data plans](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 - [Click here to purchase](https://www.ipmart.io?source=Shironeko)
+
+![Star History Chart](https://star-history.dera.page/svg?repos=honmashironeko/ProxyCat&type=Date)

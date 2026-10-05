@@ -202,3 +202,5 @@ README 只保留基本介绍与快速部署，其余内容都在下列文档里�
 - [第一家平价代理服务商 - 使用邀请码可获 5000 免费 IP + 10 元优惠券](https://h.shanchendaili.com/invite_reg.html?invite=fM6fVG)
 - [各类运营商数据套餐](https://172.lot-ml.com/ProductEn/Index/0b7c9adef5e9648f)
 - [点击这里购买](https://www.ipmart.io?source=Shironeko)
+
+![Star History Chart](https://star-history.dera.page/svg?repos=honmashironeko/ProxyCat&type=Date)
