@@ -16,6 +16,8 @@
  *           6. 主题无存档时跟随系统且不写存档，仅手动切换才持久化；index.html 首帧内联脚本判据须与 initTheme 一致。
  *           7. 密码列打码时可见文本是圆点，collectUsers 必须读 .user-pass 的 data-pass，否则会把掩码存回。
  *           8. loadUsers 失败时若清空表格，随后的保存会用空表覆盖真实账号（等于关掉认证），须保留旧行。
+ *           9. 弹窗回调只有 _modalCallback 一个槽位，OK / 取消须先取出并清空再调用；回调里再开弹窗（如 addUser 的两步
+ *              输入）时，调用后清空会抹掉内层刚注册的回调，表现为确认后毫无反应。
  */
 
 var _focusReturn = null;
@@ -278,11 +280,15 @@ function showModal(opts) {
   $('#modal-ok').off('click').on('click', function () {
     var val = o.input ? input.val().trim() : true;
     closeModal('modal-overlay');
-    if (_modalCallback) { _modalCallback(val); _modalCallback = null; }
+    var cb = _modalCallback;
+    _modalCallback = null;
+    if (cb) cb(val);
   });
   $('#modal-cancel').off('click').on('click', function () {
     closeModal('modal-overlay');
-    if (_modalCallback) { _modalCallback(null); _modalCallback = null; }
+    var cb = _modalCallback;
+    _modalCallback = null;
+    if (cb) cb(null);
   });
 
   input.off('keydown').on('keydown', function (e) {
