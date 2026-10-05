@@ -177,6 +177,7 @@ In no particular order, thanks to all contributors who helped with this project:
 - chars6
 - qianzai（千载）
 - ziwindlu
+- lalala-orz(啦啦啦)
 
 ## Sponsor
 

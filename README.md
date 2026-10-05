@@ -183,6 +183,7 @@ README 只保留基本介绍与快速部署，其余内容都在下列文档里�
 - chars6
 - qianzai（千载）
 - ziwindlu
+- lalala-orz(啦啦啦)
 
 ## 赞助
 
