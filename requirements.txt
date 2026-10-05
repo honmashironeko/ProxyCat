@@ -1,10 +1,30 @@
-colorama==0.4.6
-httpx==0.27.2
-httpx[http2,socks]==0.27.2
-packaging==24.1
-Requests==2.32.3
-tqdm>=4.65.0
+# ProxyCat 运行依赖（含内置的代理池模块）。
+# 需要 Python 3.10 及以上：源码大量使用运行时求值的 X | Y 联合类型注解（未启用
+# from __future__ import annotations），3.9 及更早版本在导入阶段就抛 TypeError。
+
 flask>=2.0.1
 werkzeug>=2.0.0
-asyncio>=3.4.3
+waitress>=3.0.0
+jinja2>=3.1.0
+
+# socks extra 不可省：非 CONNECT 的明文 HTTP 转发走 httpx 的代理支持，
+# 上游是 socks5 时缺 socksio 会直接 502（CONNECT 隧道是手写握手，不受影响）
+httpx[http2,socks]==0.27.2
+requests==2.32.3
+colorama==0.4.6
+
+aiosqlite>=0.19.0
+aiohttp>=3.9.0
+beautifulsoup4>=4.12.0
+# aiohttp 自身不支持 SOCKS（socks5:// 会被当成 HTTP 代理去连，必然失败）。
+# 缺了这个依赖，验证器会把可用的 socks5 代理全判成失效。
+aiohttp-socks>=0.8.0
+
+maxminddb>=2.6.0
+ipip-ipdb>=0.1.1
+
 configparser>=5.0.0
+pyyaml>=6.0
+
+packaging==24.1
+tqdm>=4.65.0

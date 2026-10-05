@@ -1,13 +1,24 @@
 version: '3'
 services:
   proxycat:
-    build: .
+    build:
+      context: .
+      args:
+        # 容器用户的 UID/GID 须对齐宿主上 config/logs/data 的属主（见 Dockerfile）
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
     environment:
       - TZ=Asia/Shanghai
     ports:
       - "1080:1080"
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./config:/app/config
+      - ./logs:/app/logs
+      - ./modules/proxypool/data:/app/modules/proxypool/data
     restart: unless-stopped
-    network_mode: "bridge"
+    # 应用收尾时会排空池的写队列与两个落库线程：池 stop 默认预算 35 秒（见
+    # modules/proxypool_service.py 的 stop），加上两次落库与 app.py 的 3 秒硬超时，
+    # 最坏约 44 秒。降到 Docker 默认的 10 秒宽限期会被 SIGKILL，最后一批验证结果
+    # 与访问记录随之丢失。
+    stop_grace_period: 60s

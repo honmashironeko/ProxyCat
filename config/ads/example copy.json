@@ -1,0 +1,10 @@
+{
+  "id": "example-provider",
+  "enabled": true,
+  "title": "广告赞助",
+  "body": "良好的发展少不了资金的支持，如果您觉得ProxyCat对您有帮助，欢迎赞助我们。",
+  "image_url": "",
+  "link_url": "https://github.com/honmashironeko/ProxyCat",
+  "link_text": "了解更多",
+  "display_time": 10
+}
