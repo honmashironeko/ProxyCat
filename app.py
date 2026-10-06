@@ -1188,12 +1188,18 @@ def change_language():
 version_checker = VersionChecker(
     os.path.join(BASE_DIR, 'logs', 'version_check.json'),
     language_provider=lambda: server.language,
+    url_provider=lambda: server.config.get('version_check_url', ''),
 )
 
 
 @app.route('/api/version')
 def check_version():
     return jsonify(version_checker.result_payload())
+
+@app.route('/api/version/check', methods=['POST'])
+@require_token
+def check_version_now():
+    return jsonify(version_checker.check_now())
 
 @app.route('/api/users', methods=['GET', 'POST'])
 @require_token

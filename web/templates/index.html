@@ -43,6 +43,9 @@
             <span class="sb-title" data-i18n="title">ProxyCat 控制面板</span>
             <span class="sb-meta">
                 <span class="hdr-ver" id="hdr-ver">{{ app_version }}</span>
+                <button class="hdr-ver-refresh" id="ver-refresh" type="button" data-i18n-title="version_check_now" title="立即检查更新">
+                    <i class="fa fa-refresh"></i>
+                </button>
                 <span class="hdr-ver-stat" id="ver-stat"></span>
             </span>
         </div>
@@ -799,6 +802,17 @@
                                     </select>
                                     <div class="fg-hint" data-i18n="display_level_hint">只影响命令行运行 ProxyCat.py 时的输出</div>
 
+                                    </div>
+
+                                    <span class="col-label" data-i18n="advanced_group_version"></span>
+
+                                    <div class="fg">
+                                    <div class="fg-label-row">
+                                    <label class="fg-label" data-i18n="version_check_url_label">版本检查地址</label>
+                                    <i class="fa fa-info-circle fg-tip" data-i18n-title="version_check_url_doc" aria-hidden="true"></i>
+                                    </div>
+                                    <input class="fg-input" name="version_check_url" placeholder="https://github.com/honmashironeko/ProxyCat/releases.atom">
+                                    <div class="fg-hint" data-i18n="version_check_url_hint">留空用内置的 GitHub 地址；填了只用这个，保存后下次检查生效</div>
                                     </div>
 
                             </div>

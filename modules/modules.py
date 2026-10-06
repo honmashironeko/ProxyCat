@@ -252,6 +252,7 @@ MESSAGES = {
         'config_reason_max': '不能大于 {}',
         'config_reason_expected_choice': '只能是 {} 之一',
         'config_reason_expected_ip': '必须是一到两个合法的 IP 地址（IPv4 与 IPv6 各至多一个，逗号分隔）',
+        'config_reason_expected_url': '必须是 http/https 开头的完整地址，留空表示使用内置地址',
         'config_reason_derived_key': '该配置项由 [Server] 段派生，不能单独设置',
         'config_reason_unknown_key': '不是可修改的配置项',
         'config_reason_users_via_api': '用户账号请通过用户管理接口修改',
@@ -609,6 +610,7 @@ MESSAGES = {
         'config_reason_max': 'must not be greater than {}',
         'config_reason_expected_choice': 'must be one of {}',
         'config_reason_expected_ip': 'must be one or two valid IP addresses (at most one IPv4 and one IPv6, comma-separated)',
+        'config_reason_expected_url': 'must be a full http/https URL, or empty to use the built-in addresses',
         'config_reason_derived_key': 'this option is derived from the [Server] section and cannot be set separately',
         'config_reason_unknown_key': 'not an editable option',
         'config_reason_users_via_api': 'manage user accounts through the user management API',
@@ -838,6 +840,7 @@ DEFAULT_CONFIG = {
     'proxy_source_mode': 'local',
     'api_proxy_url': 'http://example.com/getip',
     'pool_remote_url': '',
+    'version_check_url': '',
 
     'proxy_file': 'ip.txt',
     'check_proxies_on_startup': 'True',

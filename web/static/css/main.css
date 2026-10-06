@@ -200,9 +200,22 @@ body::before {
   background: var(--surface-alt); border: 1px solid var(--border);
   padding: 2px 9px; border-radius: 100px;
 }
-.hdr-ver-stat { font-size: 10px; font-weight: 650; color: var(--text-faint); }
+.hdr-ver-refresh {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; line-height: 1; color: var(--text-faint);
+  background: var(--surface-alt); border: 1px solid var(--border);
+  padding: 3px 7px; border-radius: 100px; cursor: pointer;
+}
+.hdr-ver-refresh:hover { color: var(--primary-text); border-color: var(--primary-text); }
+.hdr-ver-refresh[disabled] { opacity: .55; cursor: default; }
+.hdr-ver-refresh.busy .fa { animation: spin .7s linear infinite; }
+.hdr-ver-stat {
+  font-size: 10px; font-weight: 650; color: var(--text-faint);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .ver-ok { color: var(--success-text); }
 .ver-new { color: var(--warn-text); }
+.ver-err { color: var(--danger-text); }
 
 .sb-nav { display: flex; flex-direction: column; gap: 2px; }
 .sb-item {

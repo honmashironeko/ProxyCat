@@ -139,6 +139,7 @@ The pool's adapter layer parses parameters from the **handler function's signatu
 | Access record export | At most 50000 records per call | The truncation flag exists only in the JSON metadata (`truncated`, `true` once the count reaches the limit); the CSV carries no such flag |
 | Pool `page_size` / `limit` / export | All bound by the 50000 cap | When `limit` is present, `page` is forced to 1, equivalent to "take the first `limit` rows" |
 | `GET /api/version` | Reads a cache, **makes no request** | The check is done at process start and by a background task every 24 hours |
+| `POST /api/version/check` | **Blocks the current web thread** until the check finishes (up to ~15 s) | Concurrent calls merge into the one in flight; resets the 24-hour timer |
 
 ## Blocking and Concurrency
 
@@ -897,8 +898,8 @@ Stores multiple credential sets for the upstream proxy-fetch endpoint and design
 
 ## Version Check and Ads
 
-> **The endpoints in this section require no authentication**; even when a token is configured,
-> you do not need to send it.
+> **Except for `POST /api/version/check`, the endpoints in this section require no authentication**;
+> even when a token is configured, you do not need to send it.
 
 ### Check Version (GET /api/version)
 
@@ -931,6 +932,60 @@ never makes an external request** — calling it never incurs a network wait.
   situation no longer happens.
 - The check runs on a background thread: it does not block startup, and it does not occupy a web
   worker thread.
+- When you need the answer right now, use `POST /api/version/check` below.
+
+**The version comes from the GitHub repository's release history.** By default three addresses are
+requested concurrently and **the first one to return a usable version number wins**:
+
+| Address | Notes |
+|---|---|
+| `github.com/…/releases.atom` | The official release feed; no authentication, no rate limit |
+| `gh-proxy.com/https://api.github.com/…` | A third-party mirror with better reachability from mainland China; it sees your request IP and may return a cached, older version |
+| `api.github.com/repos/…/releases` | The official API; 60 requests per hour per IP when unauthenticated |
+
+Concurrent rather than sequential retries: a blocked or timing-out address does not slow the
+whole thing down — a usable address usually answers within a second, and when all three fail the
+call returns after roughly 8 seconds. Requests keep httpx's default behaviour of **honouring the
+`HTTP(S)_PROXY` environment variables**.
+
+When the [`version_check_url`](ProxyCat-Manual/Configuration-EN.md#advanced-options) config option
+is non-empty, **that address is the only source** and the three built-ins are not requested. The
+version is taken as the `ProxyCat[-_]v?digits.digits[.digits]` prefix of a tag, so suffixes such as
+`-测试版V5` are dropped.
+
+### Check Version Now (POST /api/version/check)
+
+**Requires authentication** — unlike the read-only cached GET above, this endpoint really does
+make an external request.
+
+No parameters, no request body. **The current web thread waits until the check finishes** (up to
+about 15 seconds). Only one check runs at a time — concurrent calls wait for the one in flight
+instead of each firing their own round of requests.
+
+```json
+{
+  "status": "success",
+  "current_version": "ProxyCat-V3.0.0",
+  "latest_version": "ProxyCat-V3.0.0",
+  "is_latest": true,
+  "source": "github.com",
+  "checked_at": "2026-10-06 18:39:42"
+}
+```
+
+| Field | Description |
+|---|---|
+| `status` | The outcome of **this check** — the key difference from the GET |
+| `source` | Hostname of the winning address; present on success only |
+| `checked_at` | The time of this check |
+| `latest_version` / `is_latest` | Present whenever a successful version is held in memory |
+| `message` | Why **this check** failed; present on failure only |
+
+**When this check fails but an earlier one succeeded**, `status` is `error` and carries a
+`message`, while still including the previous successful `latest_version`. That is exactly how it
+differs from the GET: the GET reports "last known state", this endpoint reports "did *this* one
+succeed". Both write the time of the check into `logs/version_check.json`, so **a manual check
+also resets the 24-hour timer**.
 
 **When there is neither a successful result nor a failure record** (the first check after startup
 has not finished yet), it returns:
@@ -1899,7 +1954,7 @@ curl -X POST "http://localhost:5001/api/pool/import?token=YOUR_TOKEN" \
 | GET | `/web` | Yes | Panel single page |
 | GET | `/static/<path>` | No | Frontend static assets |
 
-## Panel API (33)
+## Panel API (34)
 
 | Method | Path | Description |
 |---|---|---|
@@ -1933,6 +1988,7 @@ curl -X POST "http://localhost:5001/api/pool/import?token=YOUR_TOKEN" \
 | GET | `/api/api_credentials` | Read upstream API credentials |
 | POST | `/api/api_credentials` | Manage upstream API credentials |
 | GET | `/api/version` | Version check result (read-only cache, **no authentication**) |
+| POST | `/api/version/check` | Trigger a version check immediately (**requires authentication**) |
 | GET | `/api/ads` | Get ads (**no authentication**) |
 | POST | `/api/ads/dismiss` | Dismiss ads (**no authentication**) |
 | POST | `/api/ads/reopen` | Reopen ads (**no authentication**) |

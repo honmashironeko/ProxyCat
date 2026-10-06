@@ -53,8 +53,10 @@
 - **多语言**：面板支持中文 / 英文切换，语言是服务端设置，整站文案一起切换。
 - **凭据管理**：上游取代理接口的凭据可存多套并一键切换。
 - **容器化部署**：Docker 一键部署，内置健康检查会按实际面板端口探活。
-- **版本检查**：启动时比对一次最新版本，之后每 24 小时一次；结果落盘，24 小时内重启不重查，
-  也不会因为打开面板而等待网络。
+- **版本检查**：从 GitHub 的发布记录取最新版本，默认并发请求官方发布源、国内可达的镜像与官方
+  API，**谁先返回用谁**；启动时比对一次，之后每 24 小时一次；结果落盘，24 小时内重启不重查，
+  也不会因为打开面板而等待网络。侧边栏版本号旁的按钮可**立即检查一次**，结果显示在原处
+  （失败时连原因一起显示）。地址可用 `version_check_url` 换成自有镜像。
 
 面板四个页签（代理配置 / 代理池 / 访问控制 / 运行日志）的逐页说明与截图见
 [使用手册](Operation%20Manual.md)。
@@ -322,7 +324,7 @@ ProxyCat 会在下列场景主动向本机之外发起连接，供你核对「�
 
 | 触发时机 | 目标地址 | 直连还是经代理 | 相关配置项 | 如何关闭 |
 |---|---|---|---|---|
-| 版本检查：后台线程抓作者站点的版本公告、解析版本号做更新提示，结果落盘 `logs/version_check.json`；启动时（`app.py` 与 `ProxyCat.py` 两个入口都会拉起该线程）距上次检查尝试满 24 小时、从未查过、或记录版本与当前版本不符即立即查一次，此后每 600 秒判断一次、至多每 24 小时发一次；24 小时按「上次检查尝试」记账，失败也算时间 | `y.shironekosan.cn`（硬编码） | **直连** | 无（地址硬编码在 `modules/version_check.py`） | 没有开关；只能在网络层屏蔽该域名（hosts / 防火墙 / DNS）。该请求走 httpx 默认客户端，系统设了 `HTTP(S)_PROXY` 环境变量时会改走环境代理 |
+| 版本检查：后台线程从 GitHub 仓库的发布记录取版本号做更新提示，结果落盘 `logs/version_check.json`；**并发请求三个内置地址、谁先返回可用的版本号就用谁**（官方发布源无认证无限流；镜像国内可达性更好，但会看到请求 IP 且可能返回缓存的旧版本；官方 API 未认证时每 IP 每小时限 60 次），全失败约 8 秒返回。启动时（`app.py` 与 `ProxyCat.py` 两个入口都会拉起该线程）距上次检查尝试满 24 小时、从未查过、或记录版本与当前版本不符即立即查一次，此后每 600 秒判断一次、至多每 24 小时发一次；24 小时按「上次检查尝试」记账，失败也算时间。面板侧边栏的刷新按钮或 `POST /api/version/check` 可强制立即检查一次，同样会重置 24 小时计时 | `github.com`（releases.atom）、`gh-proxy.com`、`api.github.com`（后两个是镜像与官方 API） | **直连** | `version_check_url`（`[Server]`，面板「代理配置 → 高级选项」）：留空用内置三个地址，填入后**只用该地址**，可指向自有镜像 | 填一个自有地址把内置的第三方镜像换掉；要彻底不发就指向一个不可达地址并在网络层屏蔽，或停止进程。该请求走 httpx 默认客户端，系统设了 `HTTP(S)_PROXY` 环境变量时会改走环境代理 |
 | GeoNode 抓取插件分页抓公开代理列表（每页 500 条、最多 20 页）：池启动后插件默认启用、尚无下次执行时间即抓一轮；此后每 60 秒扫描一次、按插件周期执行（新插件默认 60 分钟），失败按默认重试 2 次、基础等待 10 秒退避；面板插件列表里点「抓取」可立即触发 | `proxylist.geonode.com`（硬编码） | **直连** | 启停与周期存在池数据库（面板「代理池 → 代理管理」的插件列表）；全局默认 `plugins.scan_interval_seconds=60`、`plugins.default_interval_minutes=60`、`plugins.execution_timeout_seconds=300`、`plugins.max_retries_on_failure=2`、`plugins.retry_base_delay_seconds=10.0`（`[Pool]`） | 面板插件列表里停用 `geonode_plugin`（写进池数据库、重启仍生效），或停止池服务；抓取地址硬编码，改地址需改代码 |
 | GitHub 抓取插件并发抓 12 个公开代理清单（6 个 http、5 个 socks5、1 个 https）：与 GeoNode 插件共用同一套调度，池启动首次加载即抓一轮，之后默认每 60 分钟；面板插件列表里点「抓取」也可立即触发 | `raw.githubusercontent.com`（12 个硬编码清单地址） | **直连** | 同 `plugins.*`（`[Pool]`）；启停与周期存在池数据库 | 面板插件列表里停用 `github_proxy_plugin`，或停止池服务；地址硬编码，改地址需改代码 |
 | 代理验证前的端点直连预筛：每次验证前不带任何代理直连探测各检测端点是否可达（本机 IP 直接对这些站点可见），结果缓存 300 秒；对不在缓存里的单个地址（如插件专属 `test_url`）随时补探一次 | `test_url`（默认 `https://www.baidu.com`）、`validator.identity_echo_apis`（默认 `httpbin.org`、`httpbingo.org`、`eu.httpbin.org`）及其明文派生地址、`validator.plain_identity_echo_apis`（默认 `postman-echo.com`）、3 个硬编码连通性地址（华为云 / Cloudflare / Firefox 的固定连通性探测地址）；明文一组仅 `check_anonymity=true` 时探测 | **直连** | `test_url`（`[Server]`，派生 `validator.target_url`）、`validator.identity_echo_apis`、`validator.plain_identity_echo_apis`、`validator.check_anonymity`（`[Pool]`） | 无法整体关闭（是验证流程的一部分）；可把 `test_url` 与两个端点列表换成自有地址；`check_anonymity=false` 可去掉明文与 3 个硬编码地址，但 `test_url` 与身份回显列表仍会被直连探测；清空 `identity_echo_apis` 会回落到内置默认（`httpbin.org`、`httpbingo.org`），不是关闭手段 |

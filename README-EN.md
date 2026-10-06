@@ -117,7 +117,7 @@ These four are all classic "symptom first, cause later" cases; the full explanat
 
 ### Network Behaviour
 
-Besides forwarding client traffic, ProxyCat itself also makes outbound requests, many of them **direct** (sent from this machine's real IP) — for example the version check, the pool's host public-IP lookup, the GeoNode and GitHub scraping plugins and the offline geolocation-database update. These requests can all be turned off or pointed at addresses of your own (the version check has no dedicated switch and must be blocked at the network layer); for each one's trigger, destination and how to stop it, see [Features](ProxyCat-Manual/Features-EN.md#outbound-network-requests). Traffic forwarded through a proxy is not on this list — that is the client's own traffic.
+Besides forwarding client traffic, ProxyCat itself also makes outbound requests, many of them **direct** (sent from this machine's real IP) — for example the version check, the pool's host public-IP lookup, the GeoNode and GitHub scraping plugins and the offline geolocation-database update. These requests can all be turned off or pointed at addresses of your own (pointing `version_check_url` at an address of your own keeps the version check away from the built-in third-party mirror); for each one's trigger, destination and how to stop it, see [Features](ProxyCat-Manual/Features-EN.md#outbound-network-requests). Traffic forwarded through a proxy is not on this list — that is the client's own traffic.
 
 ## Documentation
 

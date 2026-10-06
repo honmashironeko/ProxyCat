@@ -19,10 +19,13 @@
 - Progress and cancellation for batch tasks: long jobs such as imports, batch validation and plugin fetches appear under Background tasks showing progress, rate, estimated time left and per-category counts (saved / unusable / unreachable / failed) for the current stage (Checking port reachability / Validating proxies), and a running task can be cancelled in one click (its status then reads Cancelled)
 
 - Added a version check module: it checks once at startup and every 24 hours after that, persisting the check time so a restart within 24 hours does not check again (at most one outbound request per 24 hours); the panel's version API only reads the cached result, so opening the panel never blocks on the network, and a failed check keeps the last successfully fetched version
+- The version check now reads the version from the GitHub repository's release history: it requests the official `releases.atom`, the gh-proxy mirror and the official API concurrently and takes the first usable version number, so a blocked or timing-out address does not slow the rest down; when all three fail it returns after roughly 8 seconds. The new `version_check_url` option uses the three built-ins when empty and makes that address the only source when set (point it at a mirror of your own); on save it is validated as a full http/https URL
 
 - Added a promo / announcement slot to the panel: drop a JSON file (title, body, image, link, dwell time) into `config/ads/` and it is shown; users can dismiss it in one click and reopen it from the sidebar (the dismissal is not persisted, so it is back after a restart)
 
 **UI and Interaction**
+
+- Added a Check for updates now button next to the version chip in the sidebar: clicking it forces an immediate check (ignoring the 24-hour limit), the button spins and is disabled while it runs, and the result appears in place — Up to date, or New version: xxx with the version linking to the GitHub Releases page, or the specific reason on failure (hover for the full text). Previously there was no feedback at all unless the check succeeded
 
 - The panel moved from a horizontal tab strip to a fixed left sidebar with four sections: Proxy Config, Proxy Pool, Access Control and Logs; the Proxy Pool section is split into the three sub-views Proxy Management / Pool Settings / Database Maintenance; the service and pool run states sit permanently in the sidebar, and the Chinese and English wording was filled in throughout
 

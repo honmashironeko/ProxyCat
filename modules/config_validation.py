@@ -17,6 +17,7 @@
 import logging
 from functools import partial
 from typing import Any, Callable, Mapping
+from urllib.parse import urlsplit
 
 from modules.modules import (
     DEFAULT_CONFIG, FALSE_WORDS, TRUE_WORDS, render_config_error,
@@ -87,6 +88,16 @@ def _as_text(value: Any, key: str) -> str:
     return str(value).strip()
 
 
+def _as_url(value: Any, key: str) -> str:
+    text = str(value).strip()
+    if not text:
+        return ''
+    parts = urlsplit(text)
+    if parts.scheme not in ('http', 'https') or not parts.netloc:
+        raise ConfigValidationError(key, value, "config_reason_expected_url")
+    return text
+
+
 def _as_upper_choice(value: Any, key: str, allowed: tuple[str, ...]) -> str:
     return _as_choice(value, key, allowed, lower=False)
 
@@ -117,6 +128,8 @@ _SERVER_RULES: dict[str, Callable[[Any, str], str]] = {
     'check_proxies_on_startup': _as_bool,
     'check_proxies_on_use':     _as_bool,
     'auto_expand_enabled':      _as_bool,
+
+    'version_check_url':        _as_url,
 
     'mode':                     partial(_as_choice, allowed=(
         'cycle', 'loadbalance', 'continuous', 'request')),

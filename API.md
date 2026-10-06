@@ -133,6 +133,7 @@ token 在 `config/config.ini` 的 `[Server] token`。**校验只读查询串参�
 | 访问记录导出 | 单次最多 50000 条 | 被截断的标记只有 JSON 格式的元信息里有（`truncated`，条数达到上限即为 `true`），CSV 没有该标记 |
 | 代理池 `page_size` / `limit` / 导出 | 统一受 50000 约束 | `limit` 存在时 `page` 被强制为 1，等效「取前 limit 条」 |
 | `GET /api/version` | 只读缓存，**不发起请求** | 检查由进程启动时与每 24 小时的后台任务完成 |
+| `POST /api/version/check` | **会阻塞当前 Web 线程**至本次检查结束（最长约 15 秒） | 并发调用合并到正在跑的那一次；会重置 24 小时计时 |
 
 ## 阻塞与并发
 
@@ -888,7 +889,7 @@ IP 的黑白名单校验。
 
 ## 版本检查与广告
 
-> **本节端点无鉴权**，配置了 token 也无需携带。
+> **除 `POST /api/version/check` 外，本节端点无鉴权**，配置了 token 也无需携带。
 
 ### 检查版本（GET /api/version）
 
@@ -918,6 +919,53 @@ IP 的黑白名单校验。
 - **无论成败都记录时间**，因此对外最多 24 小时发起一次请求；断网时不会再出现
   「每次打开面板都要等一次超时」的情况。
 - 检查在后台线程里做，不阻塞启动，也不占用 Web 工作线程。
+- 需要立刻知道结果时用下面的 `POST /api/version/check`。
+
+**版本取自 GitHub 仓库的发布记录**，默认并发请求三个地址，**谁先返回可用的版本号就用谁**：
+
+| 地址 | 说明 |
+|---|---|
+| `github.com/…/releases.atom` | 官方发布源，无需认证、无频率限制 |
+| `gh-proxy.com/https://api.github.com/…` | 第三方镜像，国内可达性更好；会看到请求 IP，且可能返回缓存的旧版本 |
+| `api.github.com/repos/…/releases` | 官方 API，未认证时每 IP 每小时限 60 次 |
+
+并发而非顺序重试：被墙或超时的地址不会拖慢整体，可用时通常 1 秒内返回；三者全部失败时
+约 8 秒返回。请求沿用 httpx 默认行为，**读取 `HTTP(S)_PROXY` 环境变量**。
+
+配置项 [`version_check_url`](ProxyCat-Manual/Configuration.md#高级选项) 非空时**只用该地址**，
+内置的三个源不再请求。版本号从标签里取 `ProxyCat[-_]v?数字.数字[.数字]` 这一段前缀，
+`-测试版V5` 之类的后缀被丢弃。
+
+### 立即检查版本（POST /api/version/check）
+
+**需鉴权**（与上面只读缓存的 GET 相反：本端点会真的发起外部请求）。
+
+无参数、无请求体。**当前 Web 线程会等到本次检查结束才返回**（最长约 15 秒），
+同一时刻只有一次检查在跑 —— 并发调用会等正在跑的那一次，而不是各自再发一轮请求。
+
+```json
+{
+  "status": "success",
+  "current_version": "ProxyCat-V3.0.0",
+  "latest_version": "ProxyCat-V3.0.0",
+  "is_latest": true,
+  "source": "github.com",
+  "checked_at": "2026-10-06 18:39:42"
+}
+```
+
+| 字段 | 说明 |
+|---|---|
+| `status` | **本次检查**的成败，这是与 GET 的关键差别 |
+| `source` | 本次胜出的地址主机名；仅成功时出现 |
+| `checked_at` | 本次检查的时间 |
+| `latest_version` / `is_latest` | 只要内存里有成功的版本号就会出现 |
+| `message` | **本次失败**的原因，仅失败时出现 |
+
+**本次检查失败、但此前成功过**时，`status` 为 `error`、带 `message`，同时仍带上一次成功
+的 `latest_version`。这正是它与 GET 的区别：GET 只报「最后已知状态」，本端点报「这一次
+成不成」。两者都会把本次检查的时间写进 `logs/version_check.json`，因此**手动检查同样会
+重置 24 小时的计时**。
 
 **既没有成功结果、也没有失败记录时**（启动后第一次检查还没跑完）返回：
 
@@ -1851,7 +1899,7 @@ curl -X POST "http://localhost:5001/api/pool/import?token=YOUR_TOKEN" \
 | GET | `/web` | 是 | 面板单页 |
 | GET | `/static/<path>` | 否 | 前端静态资源 |
 
-## 面板接口（33）
+## 面板接口（34）
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
@@ -1885,6 +1933,7 @@ curl -X POST "http://localhost:5001/api/pool/import?token=YOUR_TOKEN" \
 | GET | `/api/api_credentials` | 读上游 API 凭据 |
 | POST | `/api/api_credentials` | 管理上游 API 凭据 |
 | GET | `/api/version` | 版本检查结果（只读缓存，**免鉴权**） |
+| POST | `/api/version/check` | 立即触发一次版本检查（**需鉴权**） |
 | GET | `/api/ads` | 获取广告（**免鉴权**） |
 | POST | `/api/ads/dismiss` | 关闭广告（**免鉴权**） |
 | POST | `/api/ads/reopen` | 重新开启广告（**免鉴权**） |

@@ -21,7 +21,7 @@ The panel's settings forms use the same grouping: the common `[Server]` options 
 2. **The inline comments in `config.ini`** — the most complete, one Chinese sentence per key.
 3. **`GET /api/pool/schema`** — the machine-readable form of the `[Pool]` section (the panel's Pool Settings form is rendered from it).
 
-Some of these options directly determine which external addresses the program sends requests to (e.g. `test_url`, `api_proxy_url`, `pool_remote_url`, `validator.*_apis`, `validator.host_public_ip`); for the full list see [Outbound Network Requests](Features-EN.md#outbound-network-requests).
+Some of these options directly determine which external addresses the program sends requests to (e.g. `test_url`, `api_proxy_url`, `pool_remote_url`, `version_check_url`, `validator.*_apis`, `validator.host_public_ip`); for the full list see [Outbound Network Requests](Features-EN.md#outbound-network-requests).
 
 > Note: the comments inside `config.ini` are in **Chinese**; only the panel's field descriptions are rendered per language.
 
@@ -190,6 +190,7 @@ The panel's Proxy Config → Advanced group: the cooldowns, caching and internal
 | `log_backup_count` | `3` | Number of historical files kept after rotation; at least 1 (`0` would make logs never rotate) | Needs a full application restart |
 | `proxy_failure_cooldown` | `3` | Folding window for failure warnings (seconds): warnings of the same kind are written to the log once per window, with a record of how many were folded. Under high concurrency failures arrive in batches — without folding, one sentence would flood the log. Folding **happens at the log layer only**; an exit's accounting and scheduling are unaffected (they look at the recent failure share, not a timer) | Immediately |
 | `display_level` | `1` | Console verbosity: `0` shows only exit roster changes and error messages, `1` shows the exit roster with per-exit state and the countdown, `2` shows all detailed information (the behaviour of `2` and `3` is identical item by item, and a `3` is normalised to `2`); `2` appends an explanation of each level after the startup banner. It only affects output when running the `ProxyCat.py` command-line entry | Immediately (affects only the command-line entry's output) |
+| `version_check_url` | empty | The source address for the version check. When **empty**, three built-in addresses are requested concurrently (the official `releases.atom`, the `gh-proxy.com` mirror and the official API) and the first usable version number wins; when **set**, that address is the only source and the three built-ins are not requested. It may be a GitHub API, a `releases.atom` or any page a version number can be parsed out of, and must be a full http/https URL (otherwise the save is rejected). Note that the built-in third-party mirror sees your request IP and may return a cached, older version, and that the unauthenticated official API allows 60 requests per hour per IP | Immediately (used by the next check) |
 
 ### Access Control and UI Language
 

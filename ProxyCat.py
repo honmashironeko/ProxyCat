@@ -254,6 +254,7 @@ if __name__ == '__main__':
         os.path.join(BASE_DIR, 'logs', 'version_check.json'),
         language_provider=lambda: version_language,
         on_result=lambda payload: print_version_result(payload, version_language),
+        url_provider=lambda: server.config.get('version_check_url', ''),
     )
     if not version_checker.start():
         print_version_result(version_checker.result_payload(), version_language)

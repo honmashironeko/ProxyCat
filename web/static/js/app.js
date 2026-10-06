@@ -782,6 +782,7 @@ function discardServerChanges() {
 var SERVER_FORM_DEFAULTS = {
   proxy_source_mode: 'local', proxy_file: 'ip.txt', mode: 'cycle',
   api_proxy_url: '', proxy_username: '', proxy_password: '', pool_remote_url: '',
+  version_check_url: '',
   client_idle_timeout: '300',
   max_pool_size: '500',
   client_max_connections: '1000',
@@ -2265,16 +2266,51 @@ function clearDomainStats() {
 }
 
 
+var VER_RELEASES_URL = 'https://github.com/honmashironeko/ProxyCat/releases';
+
+function _renderVer(d) {
+  var stat = d.is_latest
+    ? '<span class="ver-ok"> ' + T().latest_version + '</span>'
+    : '<span class="ver-new">' + T().new_version_available + ': <a href="' + VER_RELEASES_URL + '" target="_blank" rel="noopener">' + escapeHtml(d.latest_version || '') + '</a></span>';
+  $('#hdr-ver').text(d.current_version || 'ProxyCat');
+  $('#ver-stat').removeAttr('title').html(stat);
+}
+
 function checkVer() {
   onLangRender(checkVer);
   $.get(appendToken('/api/version'), function (d) {
-    if (d.status === 'success') {
-      $('#hdr-ver').text(d.current_version || 'ProxyCat');
-      if (d.is_latest) $('#ver-stat').html('<span class="ver-ok"> ' + T().latest_version + '</span>');
-      else $('#ver-stat').html('<span class="ver-new"> ' + T().new_version_available + ': ' + (d.latest_version || '') + '</span>');
+    if (d.status === 'success') _renderVer(d);
+  });
+}
+
+var _verChecking = false;
+
+function refreshVer() {
+  if (_verChecking) return;
+  _verChecking = true;
+  $('#ver-refresh').prop('disabled', true).addClass('busy');
+  $('#ver-stat').removeAttr('title').html('<span class="ver-checking">' + T().version_checking + '</span>');
+  $.ajax({
+    url: appendToken('/api/version/check'), method: 'POST',
+    success: function (d) {
+      if (d && d.status === 'success') { _renderVer(d); return; }
+      showVerError((d && d.message) || T().version_check_failed);
+    },
+    error: function (x) {
+      showVerError(jqErrorText(x, T().version_check_failed));
+    },
+    complete: function () {
+      _verChecking = false;
+      $('#ver-refresh').prop('disabled', false).removeClass('busy');
     }
   });
 }
+
+function showVerError(message) {
+  $('#ver-stat').attr('title', message).empty().append($('<span class="ver-err">').text(message));
+}
+
+$(document).on('click', '#ver-refresh', refreshVer);
 
 
 var _ads = [];
