@@ -23,7 +23,7 @@ from configparser import ConfigParser
 from typing import Any
 from colorama import Fore, Style
 
-CURRENT_VERSION = "ProxyCat-V3.0.0"
+CURRENT_VERSION = "ProxyCat-V3.0.1"
 
 logger = logging.getLogger(__name__)
 
